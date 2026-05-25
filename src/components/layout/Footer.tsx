@@ -38,21 +38,21 @@ interface FooterSocialLink {
 
 const currentYear = new Date().getFullYear();
 
-const primaryLinks: FooterPrimaryLink[] = [
+const primaryLinks: readonly FooterPrimaryLink[] = [
   {
     label: "White Paper",
-    href: "#",
+    href: "/public/pdf/ScorchCore_WhitePaper.pdf",
     icon: FileText,
     disabled: true,
   },
   {
     label: "Forge Manual",
-    href: "/terminology",
+    href: "/pdf/Manual_forja.pdf",
     icon: BookOpen,
   },
   {
     label: "GitHub",
-    href: "https://github.com/DNO8/ScorchCoreWeb",
+    href: "https://github.com/Scorchcore/ScorchCore",
     icon: Github,
     external: true,
   },
@@ -65,9 +65,9 @@ const primaryLinks: FooterPrimaryLink[] = [
 ] as const;
 
 const socialLinks: FooterSocialLink[] = [
-  { label: "X", href: "#", disabled: true },
-  { label: "Instagram", href: "#", icon: Instagram, disabled: true },
-  { label: "Discord", href: "#", icon: MessageCircle, disabled: true },
+  { label: "X", href: "https://x.com/ScorchCoreLatam",disabled: true },
+  { label: "Instagram", href: "https://www.instagram.com/prospectorzero", icon: Instagram, disabled: true }
+  //{ label: "Discord", href: "#", icon: MessageCircle, disabled: true },
 ] as const;
 
 const sparkPositions = [
