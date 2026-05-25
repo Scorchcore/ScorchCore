@@ -41,7 +41,7 @@ const currentYear = new Date().getFullYear();
 const primaryLinks: readonly FooterPrimaryLink[] = [
   {
     label: "White Paper",
-    href: "/pdf/ScorchCore_WhitePaper.pdf",
+    href: "/pdf/WhitePaper.pdf",
     icon: FileText,
     disabled: true,
   },
