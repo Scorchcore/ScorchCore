@@ -1,0 +1,79 @@
+{
+  "name": "Rayo Sanador",
+  "description": "A ALTO-stage dawn CoreMiner.",
+  "image": "ipfs://bafybeifxslykt76r5n2dobmecfy2pan5263yzkwas2hczp35ie7njy2bgq/ALTO/dawn/RAYO_SANADOR.mp4",
+  "animation_url": "",
+  "external_url": "https://scorchcore.xyz/miner/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Miner Name",
+      "value": "Rayo Sanador"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Type",
+      "value": "Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Stage",
+      "value": "ALTO"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Origin Recipe",
+      "value": "Rayo Sanador"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Recipe Serial Number",
+      "value": 3
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Lineage",
+      "value": "Gen 0"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Purity",
+      "value": "Pure"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 120
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Collection Bonus",
+      "value": 1
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Appearance",
+      "value": "ALTO Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Visual Effects",
+      "value": "Standard"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Max Supply",
+      "value": 1350
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Repair Cost",
+      "value": "5% producción mensual"
+    }
+  ]
+}

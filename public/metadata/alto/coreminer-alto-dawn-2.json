@@ -1,0 +1,79 @@
+{
+  "name": "Escudo de Luz",
+  "description": "A ALTO-stage dawn CoreMiner.",
+  "image": "ipfs://bafybeifxslykt76r5n2dobmecfy2pan5263yzkwas2hczp35ie7njy2bgq/ALTO/dawn/ESCUDO_DE_LUZ.mp4",
+  "animation_url": "",
+  "external_url": "https://scorchcore.xyz/miner/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Miner Name",
+      "value": "Escudo de Luz"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Type",
+      "value": "Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Stage",
+      "value": "ALTO"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Rarity",
+      "value": "Common"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Origin Recipe",
+      "value": "Escudo de Luz"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Recipe Serial Number",
+      "value": 2
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Lineage",
+      "value": "Gen 0"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Purity",
+      "value": "Pure"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 110
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Collection Bonus",
+      "value": 1
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Appearance",
+      "value": "ALTO Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Visual Effects",
+      "value": "Standard"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Max Supply",
+      "value": 1500
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Repair Cost",
+      "value": "5% producción mensual"
+    }
+  ]
+}

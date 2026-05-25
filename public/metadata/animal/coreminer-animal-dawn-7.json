@@ -1,0 +1,98 @@
+{
+  "name": "Ángel del Amanecer",
+  "description": "A radiant Dawn-type CoreMiner that channels light energy for powerful resource extraction. This ANIMAL-stage miner is part of the ScorchCore mining ecosystem.",
+  "description_localized": {
+    "en": "A radiant Dawn-type CoreMiner that channels light energy for powerful resource extraction. This ANIMAL-stage miner is part of the ScorchCore mining ecosystem.",
+    "es": "Un radiante CoreMiner tipo Alba que canaliza energÃ­a lumÃ­nica para extracciÃ³n poderosa de recursos. Este minero de etapa ANIMAL es parte del ecosistema de minerÃ­a ScorchCore."
+  },
+  "image": "ipfs://bafybeidwztjewnhjmqddwlrk42ydabdjfxugd4nz2hoyywj42d5u7glfw4/ANIMAL/dawn/ANGEL_DEL_AMANECER.mp4",
+  "animation_url": "ipfs://QmaatUw3z2pikEdfhVAHvUYzNbg4YH1rwTqPa38DqCzcsA",
+  "external_url": "https://scorchcore.xyz/miner/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Miner Name",
+      "value": "Ángel del Amanecer"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Type",
+      "value": "Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Stage",
+      "value": "ANIMAL"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Origin Recipe",
+      "value": "Ángel del Amanecer"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Recipe Serial Number",
+      "value": 7
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Lineage",
+      "value": "Gen 0"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Purity",
+      "value": "Pure"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 1000
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Collection Bonus",
+      "value": 3
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Appearance",
+      "value": "ANIMAL Dawn"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Visual Effects",
+      "value": "Standard"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Max Supply",
+      "value": 50
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Repair Cost",
+      "value": "4% producción mensual"
+    }
+  ],
+  "_dynamic_data_source": {
+    "contract": "MinerStatsManager",
+    "fields": [
+      "level",
+      "experience",
+      "efficiency",
+      "durability",
+      "lastMined",
+      "lastRepaired",
+      "isVoracious",
+      "lastFed"
+    ],
+    "api_endpoint": "/api/metadata/dynamic/{tokenId}",
+    "notes": "Otros campos derivados (current_power, mining_cycles) se calculan en el API"
+  }
+}

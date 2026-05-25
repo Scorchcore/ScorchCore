@@ -1,0 +1,296 @@
+  // PETIT_AQUA - Ordenados por Base Mining Power
+  'PETIT_AQUA': [
+    'GOTA_RAPIDA-thumbnail.webp',                  // Power: 50 (minerIndex 0)
+    'CORRIENTE_LIGERA-thumbnail.webp',             // Power: 60 (minerIndex 1)
+    'BURBUJA_EFICIENTE-thumbnail.webp',            // Power: 70 (minerIndex 2)
+    'CHORRO_PRECISO-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'FLUJO_SERENO-thumbnail.webp',                 // Power: 90 (minerIndex 4)
+    'GOTA_DE_ROCIO-thumbnail.webp',                // Power: 100 (minerIndex 5)
+    'CORRIENTE_DE_TSUNAMI-thumbnail.webp',         // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_BEAST - Ordenados por Base Mining Power
+  'PETIT_BEAST': [
+    'CACHORRO_AGIL-thumbnail.webp',                // Power: 50 (minerIndex 0)
+    'RASTREADOR_TENAZ-thumbnail.webp',             // Power: 60 (minerIndex 1)
+    'CAZADOR_JOVEN-thumbnail.webp',                // Power: 70 (minerIndex 2)
+    'GARRA_IMPACIENTE-thumbnail.webp',             // Power: 80 (minerIndex 3)
+    'CRIA_FEROZ-thumbnail.webp',                   // Power: 90 (minerIndex 4)
+    'EXPLORADOR_AUDAZ-thumbnail.webp',             // Power: 100 (minerIndex 5)
+    'CACHORRO_ALFA-thumbnail.webp',                // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_BIRD - Ordenados por Base Mining Power
+  'PETIT_BIRD': [
+    'ALA_VELOZ-thumbnail.webp',                    // Power: 50 (minerIndex 0)
+    'CORRIENTE_ASCENDENTE-thumbnail.webp',         // Power: 60 (minerIndex 1)
+    'PLUMA_LIGERA-thumbnail.webp',                 // Power: 70 (minerIndex 2)
+    'PICOTAZO_PRECISO-thumbnail.webp',             // Power: 80 (minerIndex 3)
+    'PEQUENO_RAPTOR-thumbnail.webp',               // Power: 90 (minerIndex 4)
+    'POLLUELO_VIGIA-thumbnail.webp',               // Power: 100 (minerIndex 5)
+    'GORRION_SONICO-thumbnail.webp',               // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_BUG - Ordenados por Base Mining Power
+  'PETIT_BUG': [
+    'ZANGANO_OBRERO-thumbnail.webp',               // Power: 50 (minerIndex 0)
+    'HORMIGA_EXPLORADORA-thumbnail.webp',          // Power: 60 (minerIndex 1)
+    'PUPA_EFICIENTE-thumbnail.webp',               // Power: 70 (minerIndex 2)
+    'ZUMBIDO_SILENCIOSO-thumbnail.webp',           // Power: 80 (minerIndex 3)
+    'ESCARABAJO_RESILIENTE-thumbnail.webp',        // Power: 90 (minerIndex 4)
+    'LARVA_PROTEGIDA-thumbnail.webp',              // Power: 100 (minerIndex 5)
+    'ZANGANO_REINA-thumbnail.webp',                // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_DAWN - Ordenados por Base Mining Power
+  'PETIT_DAWN': [
+    'RAYO_DEL_SOL-thumbnail.webp',                 // Power: 50 (minerIndex 0)
+    'VIGIA_DEL_ALBA-thumbnail.webp',               // Power: 60 (minerIndex 1)
+    'LUZ_PURA-thumbnail.webp',                     // Power: 70 (minerIndex 2)
+    'DESTELLO_PRECISO-thumbnail.webp',             // Power: 80 (minerIndex 3)
+    'CLARIDAD_CONSTANTE-thumbnail.webp',           // Power: 90 (minerIndex 4)
+    'GOTA_DE_ROCIO-thumbnail.webp',                // Power: 100 (minerIndex 5)
+    'CHISPA_DEL_SOL-thumbnail.webp',               // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_DUSK - Ordenados por Base Mining Power
+  'PETIT_DUSK': [
+    'SUSURRO_NOCTURNO-thumbnail.webp',             // Power: 50 (minerIndex 0)
+    'ESPIA_CREPUSCULAR-thumbnail.webp',            // Power: 60 (minerIndex 1)
+    'BRILLO_EFIMERO-thumbnail.webp',               // Power: 70 (minerIndex 2)
+    'DAGA_DE_SOMBRA-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'PENUMBRA_CONSTANTE-thumbnail.webp',           // Power: 90 (minerIndex 4)
+    'CRIA_DEL_OCASO-thumbnail.webp',               // Power: 100 (minerIndex 5)
+    'SOMBRA_ASECHANTE-thumbnail.webp',             // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_MECH - Ordenados por Base Mining Power
+  'PETIT_MECH': [
+    'NANO_CONSTRUCTOR-thumbnail.webp',             // Power: 50 (minerIndex 0)
+    'DRON_DE_PROSPECCION-thumbnail.webp',          // Power: 60 (minerIndex 1)
+    'PEQUENO_LOBO-thumbnail.webp',                 // Power: 70 (minerIndex 2)
+    'CHISPA_PRECISA-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'CIRCUITO_ESTABLE-thumbnail.webp',             // Power: 90 (minerIndex 4)
+    'TORNILLO_DE_TITANIO-thumbnail.webp',          // Power: 100 (minerIndex 5)
+    'NANO_CONSTRUCTOR_ALFA-thumbnail.webp',        // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_PLANT - Ordenados por Base Mining Power
+  'PETIT_PLANT': [
+    'BROTE_CONSTANTE-thumbnail.webp',              // Power: 50 (minerIndex 0)
+    'RAIZ_JOVEN-thumbnail.webp',                   // Power: 60 (minerIndex 1)
+    'HOJA_PERENNE-thumbnail.webp',                 // Power: 70 (minerIndex 2)
+    'ESPINA_AFILADA-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'FLUJO_DE_SAVIA-thumbnail.webp',               // Power: 90 (minerIndex 4)
+    'SEMILLA_DURMIENTE-thumbnail.webp',            // Power: 100 (minerIndex 5)
+    'BROTE_MILENARIO-thumbnail.webp',              // Power: 500 (minerIndex 6)
+  ],
+
+  // PETIT_REPTILE - Ordenados por Base Mining Power
+  'PETIT_REPTILE': [
+    'ESCAMA_VENENOSA-thumbnail.webp',              // Power: 50 (minerIndex 0)
+    'GECKO_ASTUTO-thumbnail.webp',                 // Power: 60 (minerIndex 1)
+    'ESCUDO_RESBALADIZO-thumbnail.webp',           // Power: 70 (minerIndex 2)
+    'MORDIDA_RAPIDA-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'SANGRE_FRIA-thumbnail.webp',                  // Power: 90 (minerIndex 4)
+    'CRIA_DE_CAIMAN-thumbnail.webp',               // Power: 100 (minerIndex 5)
+    'CAIMAN_SOBERANO-thumbnail.webp',              // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_AQUA - Ordenados por Base Mining Power
+  'ALTO_AQUA': [
+    'MAREA_CRECIENTE-thumbnail.webp',              // Power: 50 (minerIndex 0)
+    'REA_CURATIVA-thumbnail.webp',                 // Power: 60 (minerIndex 1)
+    'CORRIENTE_RESTAURADORA-thumbnail.webp',       // Power: 70 (minerIndex 2)
+    'OLA_VIGOROSA-thumbnail.webp',                 // Power: 80 (minerIndex 3)
+    'REMOLINO_CONSTANTE-thumbnail.webp',           // Power: 90 (minerIndex 4)
+    'PULSO_OCEANICO-thumbnail.webp',               // Power: 100 (minerIndex 5)
+    'MAREA_SANADORA-thumbnail.webp',               // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_BEAST - Ordenados por Base Mining Power
+  'ALTO_BEAST': [
+    'LIDER_DE_LA_MANADA-thumbnail.webp',           // Power: 100 (minerIndex 0)
+    'BESTIA_VETERANA-thumbnail.webp',              // Power: 110 (minerIndex 1)
+    'COLMILLO_AFILADO-thumbnail.webp',             // Power: 120 (minerIndex 2)
+    'DEPREDADOR_SOLITARIO-thumbnail.webp',         // Power: 130 (minerIndex 3)
+    'GUARDIAN_LEAL-thumbnail.webp',                // Power: 140 (minerIndex 4)
+    'RUGIDO_POTENTE-thumbnail.webp',               // Power: 150 (minerIndex 5)
+    'LIDER_DE_LA_MANADA_ALFA-thumbnail.webp',      // Power: 750 (minerIndex 6)
+  ],
+
+  // ALTO_BIRD - Ordenados por Base Mining Power
+  'ALTO_BIRD': [
+    'CAZADOR_SOLITARIO-thumbnail.webp',            // Power: 70 (minerIndex 0)
+    'SEMIPLUMAS-thumbnail.webp',                   // Power: 80 (minerIndex 1)
+    'EXPLORADOR_DEL_CIELO-thumbnail.webp',         // Power: 90 (minerIndex 2)
+    'NIDO_SEGURO-thumbnail.webp',                  // Power: 100 (minerIndex 3)
+    'CENTINELA_DEL_CIELO-thumbnail.webp',          // Power: 150 (minerIndex 4)
+    'CANTO_DEL_VIENTO-thumbnail.webp',             // Power: 500 (minerIndex 5)
+    'HARPIA_REAL-thumbnail.webp',                  // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_BUG - Ordenados por Base Mining Power
+  'ALTO_BUG': [
+    'INSECTO_VETERANO-thumbnail.webp',             // Power: 50 (minerIndex 0)
+    'GUARDIAN_DEL_NIDO-thumbnail.webp',            // Power: 60 (minerIndex 1)
+    'MANDIBULA_AFILADA-thumbnail.webp',            // Power: 70 (minerIndex 2)
+    'ZUMBIDO_POTENTE-thumbnail.webp',              // Power: 80 (minerIndex 3)
+    'AVISPA_SOLDADO-thumbnail.webp',               // Power: 90 (minerIndex 4)
+    'AVISPA_ASESINA-thumbnail.webp',               // Power: 100 (minerIndex 5)
+    'LADY_BUG-thumbnail.webp',                     // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_DAWN - Ordenados por Base Mining Power
+  'ALTO_DAWN': [
+    'GUARDIAN_DEL_ALBA-thumbnail.webp',            // Power: 100 (minerIndex 0)
+    'ESCUDO_DE_LUZ-thumbnail.webp',                // Power: 110 (minerIndex 1)
+    'RAYO_SANADOR-thumbnail.webp',                 // Power: 120 (minerIndex 2)
+    'BRILLO_PROTECTOR-thumbnail.webp',             // Power: 130 (minerIndex 3)
+    'PURIFICACION_RADIANTE-thumbnail.webp',        // Power: 140 (minerIndex 4)
+    'BENEVOLENCIA_SOLAR-thumbnail.webp',           // Power: 150 (minerIndex 5)
+    'LUZ_DE_AURA-thumbnail.webp',                  // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_DUSK - Ordenados por Base Mining Power
+  'ALTO_DUSK': [
+    'PASO_SOMBIO-thumbnail.webp',                  // Power: 60 (minerIndex 0)
+    'RUTUAL_SECRETO-thumbnail.webp',               // Power: 70 (minerIndex 1)
+    'DUSK_VETERANO-thumbnail.webp',                // Power: 80 (minerIndex 2)
+    'LADRON_DE_ECOS-thumbnail.webp',               // Power: 90 (minerIndex 3)
+    'ASECHADOR_SILECIOSO-thumbnail.webp',          // Power: 100 (minerIndex 4)
+    'FILO_DEL_ABISMO-thumbnail.webp',              // Power: 500 (minerIndex 5)
+    'RELAMPAGO_DE_SOMBRA-thumbnail.webp',          // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_MECH - Ordenados por Base Mining Power
+  'ALTO_MECH': [
+    'UNIDAD_DE_PROCESAMIENTO-thumbnail.webp',      // Power: 50 (minerIndex 0)
+    'SINTETIZADOR_DE_ALIACIONES-thumbnail.webp',   // Power: 60 (minerIndex 1)
+    'AUTOMATA_DE_COMBATE-thumbnail.webp',          // Power: 70 (minerIndex 2)
+    'CHIP_DE_AHORRO-thumbnail.webp',               // Power: 80 (minerIndex 3)
+    'MECH_VETERANO-thumbnail.webp',                // Power: 90 (minerIndex 4)
+    'SOBRECARGA_CONTROLADA-thumbnail.webp',        // Power: 100 (minerIndex 5)
+    'PROCESADOR_SUPER_CUANTICO-thumbnail.webp',    // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_PLANT - Ordenados por Base Mining Power
+  'ALTO_PLANT': [
+    'ARBOL_VETERANO-thumbnail.webp',               // Power: 50 (minerIndex 0)
+    'RAIZ_PROFUNDA-thumbnail.webp',                // Power: 60 (minerIndex 1)
+    'SAVIA_CURATIVA-thumbnail.webp',               // Power: 70 (minerIndex 2)
+    'HOJA_ENERGETICA-thumbnail.webp',              // Power: 80 (minerIndex 3)
+    'PLANTA_CARNIVORA-thumbnail.webp',             // Power: 90 (minerIndex 4)
+    'HOJA_GIGANTE-thumbnail.webp',                 // Power: 100 (minerIndex 5)
+    'GUARDIAN_DEL_BOSQUE-thumbnail.webp',          // Power: 500 (minerIndex 6)
+  ],
+
+  // ALTO_REPTILE - Ordenados por Base Mining Power
+  'ALTO_REPTILE': [
+    'REPTIL_VETERANO-thumbnail.webp',              // Power: 50 (minerIndex 0)
+    'DEPREDADOR_SIGILOSO-thumbnail.webp',          // Power: 60 (minerIndex 1)
+    'ESCAMA_PULIDA-thumbnail.webp',                // Power: 70 (minerIndex 2)
+    'MIRADA_HIPNOTICA-thumbnail.webp',             // Power: 80 (minerIndex 3)
+    'GUARDIAN_SILENCIOSO-thumbnail.webp',          // Power: 90 (minerIndex 4)
+    'DIAMANTE_BLINDADO-thumbnail.webp',            // Power: 100 (minerIndex 5)
+    'LAGARTO_INSACIABLE-thumbnail.webp',           // Power: 500 (minerIndex 6)
+  ],
+
+  // ANIMAL_AQUA - Ordenados por Base Mining Power
+  'ANIMAL_AQUA': [
+    'TURBINA_PROPULSORA-thumbnail.webp',           // Power: 120 (minerIndex 0)
+    'NAVEGANTE_DE_PRECISION-thumbnail.webp',       // Power: 140 (minerIndex 1)
+    'CONSTRUCTOR_CORALINO-thumbnail.webp',         // Power: 160 (minerIndex 2)
+    'SUBMARINO_BLINDADO-thumbnail.webp',           // Power: 180 (minerIndex 3)
+    'GENERADOR_DE_MAREAS-thumbnail.webp',          // Power: 200 (minerIndex 4)
+    'SONDA_OCEANICA_X-thumbnail.webp',             // Power: 220 (minerIndex 5)
+    'NAVEGANTE_CIBERNETICO_MK_LL-thumbnail.webp',  // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_BEAST - Ordenados por Base Mining Power
+  'ANIMAL_BEAST': [
+    'FURIA_PRIMIGENIA-thumbnail.webp',             // Power: 120 (minerIndex 0)
+    'FURIA_SALVAJE-thumbnail.webp',                // Power: 140 (minerIndex 1)
+    'FURIA_CONTROLADA-thumbnail.webp',             // Power: 160 (minerIndex 2)
+    'BERSERKER_INDOMABLE-thumbnail.webp',          // Power: 180 (minerIndex 3)
+    'CORAZON_VALIENTE-thumbnail.webp',             // Power: 200 (minerIndex 4)
+    'INSTINTO_ASESINO-thumbnail.webp',             // Power: 220 (minerIndex 5)
+    'AVATAR_DE_LA_FURIA-thumbnail.webp',           // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_BIRD - Ordenados por Base Mining Power
+  'ANIMAL_BIRD': [
+    'VUELO_RASANTE-thumbnail.webp',                // Power: 120 (minerIndex 0)
+    'CORRIENTE_CONTROLADA-thumbnail.webp',         // Power: 140 (minerIndex 1)
+    'BUBO_BUBO-thumbnail.webp',                    // Power: 160 (minerIndex 2)
+    'ATALAYA-thumbnail.webp',                      // Power: 180 (minerIndex 3)
+    'CORAZON_DE_CONDOR-thumbnail.webp',            // Power: 200 (minerIndex 4)
+    'INSTINTO_CAZADOR-thumbnail.webp',             // Power: 220 (minerIndex 5)
+    'REY_DE_LOS_CIELOS-thumbnail.webp',            // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_BUG - Ordenados por Base Mining Power
+  'ANIMAL_BUG': [
+    'PULGON_LANUDO-thumbnail.webp',                // Power: 120 (minerIndex 0)
+    'POLILLA_BOGON-thumbnail.webp',                // Power: 140 (minerIndex 1)
+    'MANTIS_REINA-thumbnail.webp',                 // Power: 160 (minerIndex 2)
+    'PULGA_ELECTRONICA-thumbnail.webp',            // Power: 180 (minerIndex 3)
+    'INSTINTO_PARACITARIO-thumbnail.webp',         // Power: 200 (minerIndex 4)
+    'TERMITA_BIOLUMINICENTE-thumbnail.webp',       // Power: 220 (minerIndex 5)
+    'TIJERETA_NINFA-thumbnail.webp',               // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_DAWN - Ordenados por Base Mining Power
+  'ANIMAL_DAWN': [
+    'PALADIN_DEL_ALBA-thumbnail.webp',             // Power: 120 (minerIndex 0)
+    'PROTECTOR_RADIANTE-thumbnail.webp',           // Power: 140 (minerIndex 1)
+    'LUZ_PURIFICADORA-thumbnail.webp',             // Power: 160 (minerIndex 2)
+    'GUARDIAN_SOLAR-thumbnail.webp',               // Power: 180 (minerIndex 3)
+    'BENDICCION_DEL_AMANECER-thumbnail.webp',      // Power: 200 (minerIndex 4)
+    'HERALDO_DE_LA_ESPERANZA-thumbnail.webp',      // Power: 220 (minerIndex 5)
+    'ANGEL_DEL_AMANECER-thumbnail.webp',           // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_DUSK - Ordenados por Base Mining Power
+  'ANIMAL_DUSK': [
+    'PESADILLA_VIVIENTE-thumbnail.webp',           // Power: 120 (minerIndex 0)
+    'TERROR_NOCTURNO-thumbnail.webp',              // Power: 140 (minerIndex 1)
+    'INTRIGA_CONTROLADA-thumbnail.webp',           // Power: 160 (minerIndex 2)
+    'DEVORADOR_DE_LUZ-thumbnail.webp',             // Power: 180 (minerIndex 3)
+    'CORAZON_SOMBRIO-thumbnail.webp',              // Power: 200 (minerIndex 4)
+    'INSTINTO_NOCTURNO-thumbnail.webp',            // Power: 220 (minerIndex 5)
+    'QUIMERA_DEL_ABISMO-thumbnail.webp',           // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_MECH - Ordenados por Base Mining Power
+  'ANIMAL_MECH': [
+    'CANON_DE_RIELES-thumbnail.webp',              // Power: 120 (minerIndex 0)
+    'CENTINELA_DE_GUERRA-thumbnail.webp',          // Power: 140 (minerIndex 1)
+    'PILOTO_AUTOMATICO-thumbnail.webp',            // Power: 160 (minerIndex 2)
+    'MAQUINA_DE_GUERRA-thumbnail.webp',            // Power: 180 (minerIndex 3)
+    'CORAZON_DE_ACERO-thumbnail.webp',             // Power: 200 (minerIndex 4)
+    'INSTINTO_DE_COMBATE-thumbnail.webp',          // Power: 220 (minerIndex 5)
+    'DESTRUCTOR_IMPARABLE-thumbnail.webp',         // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_PLANT - Ordenados por Base Mining Power
+  'ANIMAL_PLANT': [
+    'ARMONIA_NATURAL-thumbnail.webp',              // Power: 120 (minerIndex 0)
+    'AVATAR_DEL_BOSQUE-thumbnail.webp',            // Power: 140 (minerIndex 1)
+    'ESPIRITU_DEL_BOSQUE-thumbnail.webp',          // Power: 160 (minerIndex 2)
+    'SINERGIA_FORESTAL-thumbnail.webp',            // Power: 180 (minerIndex 3)
+    'CORAZON_DE_ROBLE-thumbnail.webp',             // Power: 200 (minerIndex 4)
+    'INSTINTO_SIMBIOTICO-thumbnail.webp',          // Power: 220 (minerIndex 5)
+    'GNOMO_DEL_SANTUARIO-thumbnail.webp',          // Power: 1000 (minerIndex 6)
+  ],
+
+  // ANIMAL_REPTILE - Ordenados por Base Mining Power
+  'ANIMAL_REPTILE': [
+    'DRAGAN_PURPURA-thumbnail.webp',               // Power: 160 (minerIndex 0)
+    'FURIA_CONTROLADA-thumbnail.webp',             // Power: 160 (minerIndex 1)
+    'FURIA_ESCAMOSA-thumbnail.webp',               // Power: 180 (minerIndex 2)
+    'CORAZON_DE_KROK-thumbnail.webp',              // Power: 200 (minerIndex 3)
+    'FURIA_VENENOSA-thumbnail.webp',               // Power: 220 (minerIndex 4)
+    'INSTINTO_DEPREDADOR-thumbnail.webp',          // Power: 220 (minerIndex 5)
+    'BASILISCO_EMPERADOR-thumbnail.webp',          // Power: 1000 (minerIndex 6)
+  ],

@@ -1,0 +1,38 @@
+{
+  "name": "Geoda ANIMAL Bird",
+  "description": "A crystalline geode containing a dormant Bird-type CoreMiner. This ANIMAL-stage geode pulses with energy, ready to hatch into a mining companion.",
+  "description_localized": {
+    "en": "A crystalline geode containing a dormant Bird-type CoreMiner. This ANIMAL-stage geode pulses with energy, ready to hatch into a mining companion.",
+    "es": "Una geoda cristalina que contiene un CoreMiner tipo Bird latente. Esta geoda de etapa ANIMAL pulsa con energÃ­a, lista para eclosionar en un compaÃ±ero de minerÃ­a."
+  },
+  "image": "ipfs://bafybeigvnabmism2x6a4obqkfdvgum4wnnbv7ca62wppq4rfpe5vyfnwr4/videos/geodes/animal/GEODA_ANIMAL_BIRD.mp4",
+  "animation_url": "ipfs://QmVow3xiWirGK8YjH7cYH1826uxBAZUhfyYsSKNPtU7dhi",
+  "external_url": "https://scorchcore.xyz/geode/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Category",
+      "value": "ANIMAL"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Axie Class",
+      "value": "Bird"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Status",
+      "value": "Unhatched"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Potential Stage",
+      "value": "ANIMAL"
+    },
+    {
+      "trait_type": "Base Mining Power",
+      "value": 165,
+      "display_type": "number"
+    }
+  ]
+}

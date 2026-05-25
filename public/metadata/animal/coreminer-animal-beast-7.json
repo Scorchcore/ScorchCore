@@ -1,0 +1,79 @@
+{
+  "name": "Avatar de la Furia",
+  "description": "A ANIMAL-stage beast CoreMiner.",
+  "image": "ipfs://bafybeidwztjewnhjmqddwlrk42ydabdjfxugd4nz2hoyywj42d5u7glfw4/ANIMAL/beast/AVATAR_DE_LA_FURIA.mp4",
+  "animation_url": "",
+  "external_url": "https://scorchcore.xyz/miner/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Miner Name",
+      "value": "Avatar de la Furia"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Type",
+      "value": "Beast"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Stage",
+      "value": "ANIMAL"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Origin Recipe",
+      "value": "Avatar de la Furia"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Recipe Serial Number",
+      "value": 7
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Lineage",
+      "value": "Gen 0"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Purity",
+      "value": "Pure"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 1000
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Collection Bonus",
+      "value": 3
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Appearance",
+      "value": "ANIMAL Beast"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Visual Effects",
+      "value": "Standard"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Max Supply",
+      "value": 50
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Repair Cost",
+      "value": "4% producción mensual"
+    }
+  ]
+}

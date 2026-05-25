@@ -1,0 +1,38 @@
+{
+  "name": "Geoda PETIT Bug",
+  "description": "A crystalline geode containing a dormant Bug-type CoreMiner. This PETIT-stage geode pulses with energy, ready to hatch into a mining companion.",
+  "description_localized": {
+    "en": "A crystalline geode containing a dormant Bug-type CoreMiner. This PETIT-stage geode pulses with energy, ready to hatch into a mining companion.",
+    "es": "Una geoda cristalina que contiene un CoreMiner tipo Bug latente. Esta geoda de etapa PETIT pulsa con energía, lista para eclosionar en un compañero de minería."
+  },
+  "image": "ipfs://QmQ1JrBMPE1BhGet87xF47iWs11SDeCmJW7i983JDYuy3T",
+  "animation_url": "ipfs://QmQ1JrBMPE1BhGet87xF47iWs11SDeCmJW7i983JDYuy3T",
+  "external_url": "https://scorchcore.xyz/geode/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Category",
+      "value": "PETIT"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Axie Class",
+      "value": "Bug"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Status",
+      "value": "Unhatched"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Potential Stage",
+      "value": "PETIT"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 75
+    }
+  ]
+}

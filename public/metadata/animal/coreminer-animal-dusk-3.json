@@ -1,0 +1,98 @@
+{
+  "name": "Intriga Controlada",
+  "description": "A DUSK-type CoreMiner from the ScorchCore mining ecosystem. This ANIMAL-stage miner specializes in efficient resource extraction.",
+  "description_localized": {
+    "en": "A DUSK-type CoreMiner from the ScorchCore mining ecosystem. This ANIMAL-stage miner specializes in efficient resource extraction.",
+    "es": "Un CoreMiner tipo DUSK del ecosistema de minería ScorchCore. Este minero de etapa ANIMAL se especializa en extracción eficiente de recursos."
+  },
+  "image": "ipfs://bafybeihgddt3kgv4pbmqguva4hp7fxbixlpk2b5nghn7sh7a5b64bfwjla/ANIMAL/ANIMAL_DUSK/INTRIGA_CONTROLADA.mp4",
+  "animation_url": "ipfs://bafybeihgddt3kgv4pbmqguva4hp7fxbixlpk2b5nghn7sh7a5b64bfwjla/ANIMAL/ANIMAL_DUSK/INTRIGA_CONTROLADA.mp4",
+  "external_url": "https://scorchcore.xyz/miner/{id}",
+  "attributes": [
+    {
+      "display_type": "string",
+      "trait_type": "Miner Name",
+      "value": "Intriga Controlada"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Type",
+      "value": "DUSK"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Stage",
+      "value": "ANIMAL"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Origin Recipe",
+      "value": "Intriga Controlada"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Recipe Serial Number",
+      "value": 4
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Lineage",
+      "value": "Gen 0"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Purity",
+      "value": "Pure"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Base Mining Power",
+      "value": 160
+    },
+    {
+      "display_type": "boost_percentage",
+      "trait_type": "Collection Bonus",
+      "value": 2
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Appearance",
+      "value": "ANIMAL DUSK"
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Visual Effects",
+      "value": "Standard"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Max Supply",
+      "value": 900
+    },
+    {
+      "display_type": "string",
+      "trait_type": "Repair Cost",
+      "value": "5% producción mensual"
+    }
+  ],
+  "_dynamic_data_source": {
+    "contract": "MinerStatsManager",
+    "fields": [
+      "level",
+      "experience",
+      "efficiency",
+      "durability",
+      "lastMined",
+      "lastRepaired",
+      "isVoracious",
+      "lastFed"
+    ],
+    "api_endpoint": "/api/metadata/dynamic/{tokenId}",
+    "notes": "Otros campos derivados (current_power, mining_cycles) se calculan en el API"
+  }
+}
