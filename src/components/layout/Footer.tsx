@@ -43,7 +43,6 @@ const primaryLinks: readonly FooterPrimaryLink[] = [
     label: "White Paper",
     href: "/pdf/WhitePaper.pdf",
     icon: FileText,
-    disabled: true,
   },
   {
     label: "Forge Manual",
