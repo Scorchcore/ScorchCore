@@ -47,4 +47,4 @@ public/**/*.mp4
 public/**/miners-thumbnails/**
 
 windsurf/
-windsurf/**
+.windsurf/**
