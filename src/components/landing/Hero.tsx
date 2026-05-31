@@ -144,69 +144,17 @@ export default function Hero() {
 
       media.add("(max-width: 767px)", () => {
         gsap.set(stone, { xPercent: -50, yPercent: -50, scale: 1 });
-        gsap.set(stoneImage, { opacity: 0.72 });
+        gsap.set(stoneImage, { opacity: 0.76 });
         gsap.set(text, { opacity: 1, y: 0 });
-        gsap.set(glow, { opacity: 0.9, scale: 1 });
+        gsap.set(glow, { opacity: 0.78, scale: 1 });
         gsap.set(eclipse, {
           opacity: 0,
-          scale: 0.45,
-          backgroundColor: "#000000",
+          scale: 1,
+          backgroundColor: "#1a0902",
         });
         gsap.set(frame, { opacity: 1 });
         if (sideRocks) gsap.set(sideRocks, { opacity: 0.85, scale: 1 });
         if (particles) gsap.set(particles, { opacity: 0.75, y: 0 });
-
-        const timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.35,
-            invalidateOnRefresh: true,
-            anticipatePin: 1,
-            fastScrollEnd: true,
-          },
-        });
-
-        timeline
-          .to(text, { opacity: 0, y: -34, duration: 0.3 }, 0.05)
-          .to(
-            stone,
-            { scale: 1.34, yPercent: -50, duration: 0.64, ease: "none" },
-            0,
-          )
-          .to(
-            glow,
-            { opacity: 0.9, scale: 1.62, duration: 0.62, ease: "none" },
-            0.02,
-          )
-          .to(sideRocks, { opacity: 0.14, duration: 0.42, ease: "none" }, 0.15)
-          .to(
-            eclipse,
-            {
-              opacity: 0.5,
-              scale: 1.4,
-              backgroundColor: "#f06a12",
-              duration: 0.18,
-              ease: "none",
-            },
-            0.58,
-          )
-          .to(
-            eclipse,
-            {
-              opacity: 0.24,
-              scale: 2.35,
-              backgroundColor: "#1a0902",
-              duration: 0.24,
-              ease: "none",
-            },
-            0.74,
-          )
-          .to(stoneImage, { opacity: 0.36, duration: 0.18, ease: "none" }, 0.76)
-          .to(glow, { opacity: 0.2, duration: 0.16, ease: "none" }, 0.8);
-
-        return () => timeline.kill();
       });
 
       return () => media.revert();
@@ -279,7 +227,7 @@ export default function Hero() {
         >
           <div
             ref={glowRef}
-            className="scorch-hero__stone-glow absolute left-1/2 top-[68%] h-28 w-72 -translate-x-1/2 rounded-full bg-orange-500/25 blur-3xl md:h-36 md:w-[500px]"
+            className="scorch-hero__stone-glow absolute left-1/2 top-[68%] h-28 w-72 -translate-x-1/2 rounded-full blur-3xl md:h-36 md:w-[500px]"
           />
           <Image
             src="/assets/landing/piedra.webp"
@@ -299,7 +247,7 @@ export default function Hero() {
           className="scorch-hero__eclipse pointer-events-none absolute left-1/2 top-1/2 z-[25] h-[42vmax] w-[42vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black opacity-0 blur-xl"
         />
 
-        <div className="relative z-30 mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-6xl flex-col items-center justify-center text-center">
+        <div className="scorch-hero__content relative z-30 mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-6xl flex-col items-center justify-center text-center">
           <div ref={textRef} className="relative z-10 max-w-5xl">
             <p className="alchemy-eyebrow mb-5 text-xs md:text-sm">
               ScorchCore Protocol
