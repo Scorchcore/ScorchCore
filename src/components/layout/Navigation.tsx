@@ -11,7 +11,7 @@ export const Navigation: React.FC = () => {
   return (
     <nav className="border-b border-orange-500/20 bg-black/70 shadow-[0_10px_34px_rgba(0,0,0,0.35)] backdrop-blur">
       <div className="container mx-auto px-4">
-        <div className="flex items-center gap-2 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-none [&::-webkit-scrollbar]:hidden">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
 
