@@ -193,13 +193,15 @@ export function MinerVideoPlayer({
   const [isVisible, setIsVisible] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
 
-  // Lazy loading: cargar metadata del video
   useEffect(() => {
-    import('@/lib/utils/data/localMinerData').then(({ getLocalMinerVideo }) => {
-      getLocalMinerVideo(category, minerType, minerIndex).then(src => {
-        setVideoSrc(src);
-      });
-    });
+    import('@/lib/constants/storagePaths').then(
+      ({ getCoreMinerVideoFilename, getCoreMinerVideoPath, getStorageUrl }) => {
+        const filename = getCoreMinerVideoFilename(category, minerType, minerIndex);
+        if (!filename) return;
+        const url = getStorageUrl(getCoreMinerVideoPath(category, minerType, filename));
+        setVideoSrc(url);
+      },
+    );
   }, [category, minerType, minerIndex]);
 
   // Intersection Observer: detectar cuando el video está en viewport
@@ -241,9 +243,6 @@ export function MinerVideoPlayer({
       {isVisible ? (
         <VideoPlayer
           src={videoSrc}
-          fallbackSrcs={[
-            `/assets/videos/coreminers/default-${category}.mp4`,
-          ]}
           autoPlay={autoPlay}
           loop={loop}
           muted={true}

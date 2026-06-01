@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { GeodeCategory, AxieClass, CATEGORY_INFO, AXIE_CLASS_INFO } from '@/lib/constants/geodes';
+import {
+  getCoreMinerVideoPath,
+  getCoreMinerVideoFilename,
+  getStorageUrl,
+} from '@/lib/constants/storagePaths';
 import { createServiceLogger } from '@/lib/utils/logging/logger';
-import { getCIDForCategory } from '@/lib/utils/ipfs/ipfsCids';
-import { getLocalMinerVideo } from '@/lib/utils/data/localMinerData';
 import { Zap } from 'lucide-react';
 
 const log = createServiceLogger('CoreMinerVideo');
@@ -12,8 +15,7 @@ const log = createServiceLogger('CoreMinerVideo');
 interface CoreMinerVideoProps {
   category: GeodeCategory;
   axieClass: AxieClass;
-  minerIndex?: number; // Índice del miner (0-based) - CRÍTICO para video correcto
-  ipfsUrl?: string; // URL desde metadata IPFS (fallback)
+  minerIndex?: number;
   className?: string;
   autoPlay?: boolean;
   loop?: boolean;
@@ -21,142 +23,35 @@ interface CoreMinerVideoProps {
   showFallback?: boolean;
 }
 
-/**
- * Componente para renderizar video de CoreMiner con fallback local→IPFS
- * Prioridad: LOCAL primero, luego IPFS si local falla
- * 
- * Similar a GeodeVideo pero para CoreMiners
- */
-export function CoreMinerVideo({ 
+export function CoreMinerVideo({
   category,
   axieClass,
   minerIndex = 0,
-  ipfsUrl,
   className = '',
   autoPlay = true,
   loop = true,
   muted = true,
-  showFallback = true 
+  showFallback = true,
 }: CoreMinerVideoProps) {
   const categoryInfo = CATEGORY_INFO[category];
   const classInfo = AXIE_CLASS_INFO[axieClass];
-  
-  const [useIPFS, setUseIPFS] = useState(false);
-  const [gatewayIndex, setGatewayIndex] = useState(0);
   const [shouldHide, setShouldHide] = useState(false);
-  const [localVideoPath, setLocalVideoPath] = useState<string>('');
-  const [isLoadingPath, setIsLoadingPath] = useState(true);
-  
-  // Gateways IPFS en orden de prioridad (usados solo si local falla)
-  const GATEWAYS = [
-    'https://peach-tiny-crawdad-788.mypinata.cloud/ipfs',  // Pinata personalizado
-    'https://ipfs.io/ipfs',                                 // Gateway público oficial
-    'https://gateway.pinata.cloud/ipfs',                    // Pinata público
-    'https://dweb.link/ipfs',                               // Alternativo
-  ];
-  
-  // Obtener ruta de video local desde metadata real
-  useEffect(() => {
-    async function loadVideoPath() {
-      try {
-        const path = await getLocalMinerVideo(category, axieClass, minerIndex);
-        setLocalVideoPath(path);
-        log.info('Local CoreMiner video path loaded from metadata', {
-          path,
-          category: categoryInfo.name,
-          class: classInfo.name,
-          minerIndex
-        });
-      } catch (error) {
-        log.error('Failed to load video path from metadata', error);
-        setLocalVideoPath('');
-      } finally {
-        setIsLoadingPath(false);
-      }
-    }
-    loadVideoPath();
-  }, [category, axieClass, minerIndex, categoryInfo.name, classInfo.name]);
-  
-  // Construir URL de video: LOCAL primero, luego IPFS como fallback
+
   const videoUrl = useMemo(() => {
-    // Prioridad 1: Video local (más rápido)
-    if (!useIPFS) {
-      log.info('Using local CoreMiner video (first priority)', {
-        localPath: localVideoPath,
+    const filename = getCoreMinerVideoFilename(category, axieClass, minerIndex);
+    if (!filename) {
+      log.warn('No video filename mapped', {
         category: categoryInfo.name,
-        class: classInfo.name
-      });
-      return localVideoPath;
-    }
-    
-    // Prioridad 2: IPFS gateways (fallback si local falla)
-    // Construir URL usando el CID correcto de la categoría
-    const categoryCID = getCIDForCategory(category);
-    
-    if (!categoryCID) {
-      log.warn('No CID configured for category, falling back to ipfsUrl prop', {
-        category: categoryInfo.name
-      });
-      
-      // Fallback al ipfsUrl prop si está disponible
-      if (!ipfsUrl) return '';
-      if (ipfsUrl.startsWith('http')) return ipfsUrl;
-      
-      const cid = ipfsUrl.replace('ipfs://', '');
-      return `${GATEWAYS[gatewayIndex]}/${cid}`;
-    }
-    
-    // Construir path: [CID]/[CATEGORY]/[CATEGORY]_[CLASS]/[filename desde metadata]
-    // Si tenemos ipfsUrl, extraer el filename
-    let filename = '';
-    if (ipfsUrl) {
-      const parts = ipfsUrl.split('/');
-      filename = parts[parts.length - 1]; // último elemento es el filename
-    } else {
-      // Si no hay ipfsUrl, construir filename esperado
-      const categoryName = categoryInfo.name.toUpperCase();
-      const className = classInfo.name.toUpperCase();
-      // El filename exacto debería venir de metadata, pero podemos estimarlo
-      log.warn('No ipfsUrl provided, cannot construct full IPFS path', {
-        category: categoryInfo.name,
-        class: classInfo.name
+        class: classInfo.name,
+        minerIndex,
       });
       return '';
     }
-    
-    // Path completo en IPFS
-    const categoryUpper = categoryInfo.name.toUpperCase();
-    const classUpper = classInfo.name.toUpperCase();
-    const ipfsPath = `${categoryCID}/${categoryUpper}/${categoryUpper}_${classUpper}/${filename}`;
-    const url = `${GATEWAYS[gatewayIndex]}/${ipfsPath}`;
-    
-    log.info('Using IPFS gateway for CoreMiner (fallback)', {
-      categoryCID,
-      ipfsPath,
-      gateway: GATEWAYS[gatewayIndex],
-      gatewayIndex,
-      finalUrl: url,
-      category: categoryInfo.name,
-      class: classInfo.name
-    });
-    
-    return url;
-  }, [useIPFS, localVideoPath, ipfsUrl, gatewayIndex, categoryInfo, classInfo, category]);
+    const path = getCoreMinerVideoPath(category, axieClass, filename);
+    return getStorageUrl(path);
+  }, [category, axieClass, minerIndex, categoryInfo.name, classInfo.name]);
 
-  // Loading path
-  if (isLoadingPath) {
-    return (
-      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
-        <div className="text-center">
-          <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-cyan-300/25 border-t-ethereal-cyan" />
-          <p className="text-[0.65rem] text-cyan-50/38">Loading…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // All sources failed
-  if (shouldHide) {
+  if (shouldHide || !videoUrl) {
     if (!showFallback) return null;
     return (
       <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
@@ -181,61 +76,20 @@ export function CoreMinerVideo({
         playsInline
         preload="auto"
         className="w-full h-full object-contain"
-        onError={(e) => {
-          // Si ya se decidió ocultar, no hacer nada más
+        onError={() => {
           if (shouldHide) return;
-          
-          // Si estamos usando local y falla, cambiar a IPFS
-          if (!useIPFS) {
-            log.warn('Local CoreMiner video failed, trying IPFS gateways...', {
-              localPath: localVideoPath,
-              category: categoryInfo.name,
-              class: classInfo.name,
-              hasIpfsUrl: !!ipfsUrl
-            });
-            
-            // Solo intentar IPFS si tenemos una URL IPFS
-            if (ipfsUrl) {
-              setUseIPFS(true);
-            } else {
-              // Sin IPFS URL, ir directamente a fallback
-              log.warn('No IPFS URL available, showing fallback', {
-                localPath: localVideoPath,
-                category: categoryInfo.name,
-                class: classInfo.name
-              });
-              setShouldHide(true);
-            }
-            return;
-          }
-          
-          // Si estamos usando IPFS, intentar siguiente gateway
-          if (gatewayIndex < GATEWAYS.length - 1) {
-            log.warn(`IPFS Gateway ${GATEWAYS[gatewayIndex]} failed, trying next...`, { 
-              currentGateway: GATEWAYS[gatewayIndex],
-              nextGateway: GATEWAYS[gatewayIndex + 1],
-              videoUrl,
-            });
-            setGatewayIndex(prev => prev + 1);
-          } else {
-            // Todo falló (local + todos los gateways IPFS), mostrar fallback visual
-            log.warn('All CoreMiner video sources failed (local + all IPFS gateways), showing visual fallback', {
-              localPath: localVideoPath,
-              attemptedGateways: GATEWAYS,
-              category: categoryInfo.name,
-              class: classInfo.name
-            });
-            setShouldHide(true);
-          }
-        }}
-        onLoadStart={() => {
-          log.debug('CoreMiner video loading started', { videoUrl });
+          log.warn('Supabase video failed, showing fallback', {
+            url: videoUrl,
+            category: categoryInfo.name,
+            class: classInfo.name,
+          });
+          setShouldHide(true);
         }}
         onLoadedData={() => {
-          log.info('CoreMiner video loaded successfully', { 
-            videoUrl: useIPFS ? 'IPFS' : 'local',
+          log.info('CoreMiner video loaded', {
             category: categoryInfo.name,
-            class: classInfo.name
+            class: classInfo.name,
+            minerIndex,
           });
         }}
       >

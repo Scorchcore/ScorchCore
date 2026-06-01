@@ -66,6 +66,28 @@ export async function getLocalMinerVideo(
 }
 
 /**
+ * Obtiene solo el filename del video (e.g. 'CACHORRO_AGIL.mp4') sin ruta completa.
+ * Útil para construir URLs en servicios de storage externo.
+ */
+export async function getMinerVideoFilename(
+  category: number,
+  minerType: number,
+  minerIndex: number,
+): Promise<string> {
+  const metadata = await MetadataService.loadMinerMetadata(category, minerType, minerIndex);
+  if (!metadata?.name) return '';
+
+  const normalized = metadata.name
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Z0-9_]/g, '_');
+
+  return `${normalized}.mp4`;
+}
+
+/**
  * Obtiene el tipo de miner en formato legible
  */
 export function getLocalMinerType(minerType: number): string {

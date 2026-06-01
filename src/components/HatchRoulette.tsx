@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { GeodeCategory, AxieClass } from '@/lib/constants/geodes';
+import { getThumbnailPath, getStorageUrl } from '@/lib/constants/storagePaths';
 import { gsap } from 'gsap';
 import { thumbnailNames } from './thumbnailMappings';
 import type { HatchResult as ComponentHatchResult } from './types/HatchTypes';
@@ -21,13 +22,16 @@ interface HatchRouletteProps {
 }
 
 const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] => {
-  const categoryMap: Record<number, string> = {
-    [GeodeCategory.PETIT]: 'PETIT',
-    [GeodeCategory.ALTO]: 'ALTO',
-    [GeodeCategory.ANIMAL]: 'ANIMAL',
-    [GeodeCategory.ULTRAMECH]: 'ULTRAMECH',
-    [GeodeCategory.TANQUE]: 'TANK',
-  };
+  const subfolder = category === GeodeCategory.ULTRAMECH ? 'ULTRA' : (() => {
+    const map: Record<number, string> = {
+      [GeodeCategory.PETIT]: 'PETIT',
+      [GeodeCategory.ALTO]: 'ALTO',
+      [GeodeCategory.ANIMAL]: 'ANIMAL',
+      [GeodeCategory.ULTRAMECH]: 'ULTRAMECH',
+      [GeodeCategory.TANQUE]: 'TANK',
+    };
+    return map[category];
+  })();
 
   const classMap: Record<number, string> = {
     [AxieClass.AQUA]: 'AQUA',
@@ -41,11 +45,7 @@ const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] 
     [AxieClass.DAWN]: 'DAWN',
   };
 
-  const categoryFolder = categoryMap[category];
-  const subfolder = category === GeodeCategory.ULTRAMECH ? 'ULTRA' : categoryFolder;
   const className = classMap[axieClass];
-  const classFolder = `${subfolder}_${className}`;
-  const basePath = `/assets/miners-thumbnails/${categoryFolder}/${classFolder}`;
   const key = `${subfolder}_${className}`;
   const files = thumbnailNames[key];
 
@@ -54,7 +54,7 @@ const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] 
     return [];
   }
 
-  return files.map(f => `${basePath}/${f}`);
+  return files.map(f => getStorageUrl(getThumbnailPath(category, axieClass, f)));
 };
 
 interface MinerData {

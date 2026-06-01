@@ -136,7 +136,7 @@ export const AXIE_CLASS_INFO = {
   [AxieClass.BEAST]: {
     id: AxieClass.BEAST,
     name: "Beast",
-    displayName: "Bestia",
+    displayName: "Beast",
     icon: "/images/mementos/memento-beast.webp",
     color: "#f59e0b", // amber-500
   },
@@ -150,28 +150,28 @@ export const AXIE_CLASS_INFO = {
   [AxieClass.BIRD]: {
     id: AxieClass.BIRD,
     name: "Bird",
-    displayName: "Ave",
+    displayName: "Bird",
     icon: "/images/mementos/memento-bird.webp",
     color: "#ec4899", // pink-500
   },
   [AxieClass.REPTILE]: {
     id: AxieClass.REPTILE,
     name: "Reptile",
-    displayName: "Reptil",
+    displayName: "Reptile",
     icon: "/images/mementos/memento-reptile.webp",
     color: "#a855f7", // purple-500
   },
   [AxieClass.BUG]: {
     id: AxieClass.BUG,
     name: "Bug",
-    displayName: "Bicho",
+    displayName: "Bug",
     icon: "/images/mementos/memento-bug.webp",
     color: "#ef4444", // red-500
   },
   [AxieClass.PLANT]: {
     id: AxieClass.PLANT,
     name: "Plant",
-    displayName: "Planta",
+    displayName: "Plant",
     icon: "/images/mementos/memento-plant.webp",
     color: "#22c55e", // green-500
   },

@@ -32,3 +32,6 @@ export * from './tokenomics';
 
 // Application routes
 export * from './routes';
+
+// Supabase Storage paths and URL builders
+export * from './storagePaths';
