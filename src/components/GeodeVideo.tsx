@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  GeodeCategory, 
+import {
+  GeodeCategory,
   AxieClass,
   CATEGORY_INFO,
   AXIE_CLASS_INFO,
@@ -9,6 +9,7 @@ import {
 import { useGeodeMetadata } from '@/hooks/metadata/useGeodeMetadata';
 import { useIPFSUrl } from '@/hooks/web3/useIPFS';
 import { createServiceLogger } from '@/lib/utils/logging/logger';
+import { Gem } from 'lucide-react';
 
 const log = createServiceLogger('GeodeVideo');
 
@@ -92,49 +93,46 @@ export function GeodeVideo({
     return url;
   }, [useIPFS, localVideoPath, metadata?.animation_url, gatewayIndex, categoryInfo, classInfo]);
 
-  // Si está cargando, mostrar loader
+  // Loading
   if (loading) {
     return (
-      <div className={`flex items-center justify-center bg-slate-800/50 ${className}`}>
+      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
         <div className="text-center">
-          <div className="animate-pulse text-4xl mb-2">💎</div>
-          <p className="text-xs text-gray-400">Cargando...</p>
+          <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-cyan-300/25 border-t-ethereal-cyan" />
+          <p className="text-[0.65rem] text-cyan-50/38">Loading…</p>
         </div>
       </div>
     );
   }
 
-  // Si hay error o no está disponible, mostrar fallback
+  // Unavailable / no metadata fallback
   if (error || !isAvailable || !metadata || !metadata.animation_url) {
     if (!showFallback) return null;
-    
     return (
-      <div className={`flex items-center justify-center bg-slate-800/50 ${className}`}>
+      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
         <div className="text-center">
-          <div className="text-6xl mb-2">💎</div>
-          <p className="text-sm text-gray-400">
+          <Gem className="mx-auto mb-2 h-8 w-8 text-cyan-50/18" />
+          <p className="text-[0.65rem] text-cyan-50/35">
             {categoryInfo.name} {classInfo.displayName}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {error ? 'Video IPFS no disponible' : 'Próximamente'}
+          <p className="mt-1 text-[0.6rem] text-cyan-50/22">
+            {error ? 'Video unavailable' : 'Coming soon'}
           </p>
         </div>
       </div>
     );
   }
 
-  // Si todo falló, mostrar fallback visual
+  // All sources failed
   if (shouldHide) {
     return (
-      <div className={`flex items-center justify-center bg-slate-800/50 ${className}`}>
+      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
         <div className="text-center">
-          <div className="text-6xl mb-2">💎</div>
-          <p className="text-sm text-gray-400">
+          <Gem className="mx-auto mb-2 h-8 w-8 text-cyan-50/18" />
+          <p className="text-[0.65rem] text-cyan-50/35">
             {categoryInfo.name} {classInfo.displayName}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Video no disponible
-          </p>
+          <p className="mt-1 text-[0.6rem] text-cyan-50/22">Video unavailable</p>
         </div>
       </div>
     );
