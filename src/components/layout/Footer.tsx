@@ -9,7 +9,6 @@ import {
   Hammer,
   Instagram,
   type LucideIcon,
-  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,7 +62,7 @@ const primaryLinks: readonly FooterPrimaryLink[] = [
   },
 ] as const;
 
-const socialLinks: FooterSocialLink[] = [
+const socialLinks: readonly FooterSocialLink[] = [
   { label: "X", href: "https://x.com/ScorchCoreLatam", disabled: true },
   {
     label: "Instagram",
@@ -71,7 +70,6 @@ const socialLinks: FooterSocialLink[] = [
     icon: Instagram,
     disabled: true,
   },
-  //{ label: "Discord", href: "#", icon: MessageCircle, disabled: true },
 ] as const;
 
 const sparkPositions = [
@@ -129,19 +127,35 @@ function FooterLink({ item }: { item: FooterPrimaryLink }) {
 
 function SocialLink({ item }: { item: FooterSocialLink }) {
   const Icon = item.icon;
-
-  return (
-    <span
-      aria-disabled={item.disabled ? "true" : undefined}
-      className="scorch-footer-social"
-    >
+  const content = (
+    <>
       {Icon ? (
         <Icon className="h-6 w-6" />
       ) : (
         <span className="text-4xl">X</span>
       )}
       <span className="sr-only">{item.label}</span>
-    </span>
+    </>
+  );
+
+  if (item.disabled) {
+    return (
+      <span aria-disabled="true" className="scorch-footer-social">
+        {content}
+      </span>
+    );
+  }
+
+  return (
+    <a
+      href={item.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={item.label}
+      className="scorch-footer-social"
+    >
+      {content}
+    </a>
   );
 }
 

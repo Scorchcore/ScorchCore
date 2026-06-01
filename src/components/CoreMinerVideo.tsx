@@ -5,6 +5,7 @@ import { GeodeCategory, AxieClass, CATEGORY_INFO, AXIE_CLASS_INFO } from '@/lib/
 import { createServiceLogger } from '@/lib/utils/logging/logger';
 import { getCIDForCategory } from '@/lib/utils/ipfs/ipfsCids';
 import { getLocalMinerVideo } from '@/lib/utils/data/localMinerData';
+import { Zap } from 'lucide-react';
 
 const log = createServiceLogger('CoreMinerVideo');
 
@@ -142,32 +143,29 @@ export function CoreMinerVideo({
     return url;
   }, [useIPFS, localVideoPath, ipfsUrl, gatewayIndex, categoryInfo, classInfo, category]);
 
-  // Loading state mientras se carga la ruta del video
+  // Loading path
   if (isLoadingPath) {
     return (
-      <div className={`flex items-center justify-center bg-slate-800/50 ${className}`}>
+      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
         <div className="text-center">
-          <div className="animate-spin text-4xl mb-2">⚙️</div>
-          <p className="text-xs text-gray-400">Cargando video...</p>
+          <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-cyan-300/25 border-t-ethereal-cyan" />
+          <p className="text-[0.65rem] text-cyan-50/38">Loading…</p>
         </div>
       </div>
     );
   }
 
-  // Si todo falló, mostrar fallback visual
+  // All sources failed
   if (shouldHide) {
     if (!showFallback) return null;
-    
     return (
-      <div className={`flex items-center justify-center bg-slate-800/50 ${className}`}>
+      <div className={`flex items-center justify-center border border-cyan-100/8 bg-black/38 ${className}`}>
         <div className="text-center">
-          <div className="text-6xl mb-2">⚡</div>
-          <p className="text-sm text-gray-400">
+          <Zap className="mx-auto mb-2 h-8 w-8 text-cyan-50/18" />
+          <p className="text-[0.65rem] text-cyan-50/35">
             {categoryInfo.displayName} {classInfo.displayName}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Video no disponible
-          </p>
+          <p className="mt-1 text-[0.6rem] text-cyan-50/22">Video unavailable</p>
         </div>
       </div>
     );

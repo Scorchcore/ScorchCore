@@ -955,6 +955,25 @@ body {
 
 .problem-section {
   isolation: isolate;
+  margin-top: -36svh;
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    rgba(0, 0, 0, 0.36) 9svh,
+    #000 24svh
+  );
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  position: relative;
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    rgba(0, 0, 0, 0.36) 9svh,
+    #000 24svh
+  );
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
 }
 
 .problem-section::before,
@@ -970,8 +989,8 @@ body {
   background:
     linear-gradient(
       180deg,
-      #020607 0%,
-      transparent 13%,
+      rgba(2, 6, 7, 0.18) 0%,
+      transparent 8%,
       transparent 82%,
       #020607 100%
     ),
@@ -1381,11 +1400,19 @@ body {
 }
 
 .scorch-hero-scroll {
-  height: 190vh;
+  height: 136svh;
+  overflow: hidden;
 }
 
 .scorch-hero {
+  contain: paint;
   isolation: isolate;
+  opacity: 0.92;
+  transform: translate3d(0, 10px, 0);
+}
+
+.scorch-loader-ready .scorch-hero {
+  animation: scorch-hero-enter 820ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .scorch-hero::before {
@@ -1411,19 +1438,27 @@ body {
 }
 
 .scorch-hero__stone-wrap {
-  top: 50%;
+  top: 49%;
   left: 50%;
-  width: clamp(520px, 56vw, 960px);
+  width: clamp(500px, 52vw, 900px);
   aspect-ratio: 493 / 421;
   transform-origin: center;
+  backface-visibility: hidden;
   will-change: transform, opacity;
 }
 
 .scorch-hero__stone {
   object-position: center center;
-  filter: drop-shadow(0 0 26px rgba(255, 104, 20, 0.58))
-    drop-shadow(0 0 58px rgba(255, 67, 4, 0.28));
-  will-change: opacity, filter;
+  filter: drop-shadow(0 0 20px rgba(255, 104, 20, 0.5));
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: opacity;
+}
+
+.scorch-hero__stone-glow {
+  transform: translate3d(-50%, 0, 0);
+  backface-visibility: hidden;
+  will-change: opacity, transform;
 }
 
 .scorch-hero__eclipse {
@@ -1696,20 +1731,54 @@ body {
   }
 }
 
+@keyframes scorch-hero-enter {
+  from {
+    opacity: 0.92;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (max-width: 767px) {
   .scorch-hero-scroll {
-    height: 132vh;
+    height: auto;
+    margin-top: -5rem;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .scorch-hero {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100svh;
+    padding-top: 5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .scorch-hero__content {
+    min-height: calc(100svh - 7.5rem);
   }
 
   .scorch-hero__stone-wrap {
-    top: 60%;
-    width: clamp(360px, 112vw, 520px);
+    top: clamp(35%, 39svh, 43%);
+    width: clamp(340px, 108vw, 500px);
     aspect-ratio: 493 / 421;
+    will-change: auto;
   }
 
   .scorch-hero__stone {
-    filter: drop-shadow(0 0 22px rgba(255, 104, 20, 0.46))
-      drop-shadow(0 0 42px rgba(255, 67, 4, 0.2));
+    filter: drop-shadow(0 0 16px rgba(255, 104, 20, 0.42));
+    will-change: auto;
+  }
+
+  .scorch-hero__stone-glow,
+  .scorch-hero__eclipse {
+    will-change: auto;
   }
 
   .scorch-hero__circuit,
@@ -1738,6 +1807,63 @@ body {
         rgba(0, 0, 0, 0.82) 100%
       );
   }
+
+  .problem-section {
+    margin-top: 0;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0, #000 14svh);
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.12) 0,
+      #000 14svh
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scorch-loader-ready .scorch-hero {
+    animation: none;
+  }
+
+  .scorch-hero {
+    opacity: 1;
+    transform: none;
+  }
+
+  .scorch-hero-scroll {
+    height: 112svh;
+  }
+
+  .scorch-hero__stone-wrap,
+  .scorch-hero__stone,
+  .scorch-hero__stone-glow,
+  .scorch-hero__eclipse {
+    will-change: auto;
+  }
+
+  .scorch-hero__embers span,
+  .scorch-hero__circuit,
+  .scorch-hero__rune,
+  .scorch-hero__scroll-line {
+    animation: none;
+  }
+
+  .scorch-hero__embers,
+  .scorch-hero__circuit,
+  .scorch-hero__rune {
+    opacity: 0.2;
+  }
+}
+
+.alchemical-loader {
+  transition:
+    opacity 650ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.alchemical-loader--exiting {
+  opacity: 0;
+  transform: scale(1.025);
+  pointer-events: none;
 }
 
 .alchemical-loader .draw {

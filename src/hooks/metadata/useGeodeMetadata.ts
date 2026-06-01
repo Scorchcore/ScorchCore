@@ -29,6 +29,8 @@ export function useGeodeMetadata(category?: GeodeCategory, axieClass?: AxieClass
   useEffect(() => {
     if (category === undefined || axieClass === undefined) {
       setMetadata(null);
+      setError(null);
+      setLoading(false);
       return;
     }
 

@@ -31,6 +31,27 @@ export const metadata: Metadata = {
     "Blockchain",
   ],
   authors: [{ name: "ScorchCore Team" }],
+  icons: {
+    icon: [
+      {
+        url: "/favicon.png",
+        sizes: "48x48",
+        type: "image/png",
+      },
+      {
+        url: "/icon.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  },
   openGraph: {
     title: "ScorchCore Protocol",
     description: "Sé un Prospector - Forja CoreMiners y mina $CORE",

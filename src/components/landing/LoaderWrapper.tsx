@@ -1,17 +1,54 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import AlchemicalLoader from '@/components/landing/AlchemicalLoader';
+import { useEffect, useState } from "react";
+import AlchemicalLoader from "@/components/landing/AlchemicalLoader";
 
 export default function LoaderWrapper() {
-    const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(true);
+  const [exiting, setExiting] = useState(false);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 4600);
-        return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    const minimumMs = 2600;
+    const maximumMs = 4600;
+    const fadeMs = 650;
+    let finished = false;
+    let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
-    if (!loading) return null;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      document.documentElement.classList.add("scorch-loader-ready");
+      setExiting(true);
+      fadeTimer = setTimeout(() => setMounted(false), fadeMs);
+    };
 
-    return <AlchemicalLoader />;
+    const minimumTimer = setTimeout(() => {
+      if (document.readyState === "complete") {
+        finish();
+      }
+    }, minimumMs);
+
+    const maximumTimer = setTimeout(finish, maximumMs);
+
+    const handleLoad = () => {
+      setTimeout(finish, minimumMs);
+    };
+
+    if (document.readyState === "complete") {
+      handleLoad();
+    } else {
+      window.addEventListener("load", handleLoad, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+      clearTimeout(minimumTimer);
+      clearTimeout(maximumTimer);
+      if (fadeTimer) clearTimeout(fadeTimer);
+    };
+  }, []);
+
+  if (!mounted) return null;
+
+  return <AlchemicalLoader exiting={exiting} />;
 }

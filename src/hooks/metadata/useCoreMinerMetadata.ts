@@ -88,17 +88,15 @@ export function useCoreMinerMetadata(
  * ```
  */
 export function useMultipleCoreMinerMetadata(
-  miners: Array<{
+  _miners: Array<{
     category: GeodeCategory;
     className: string;
     index: number;
   }>
 ) {
-  // Por ahora devolver array vacío, implementar cuando sea necesario
-  // Esto requeriría cargar múltiples metadata en paralelo
-  return miners.map(miner => 
-    useCoreMinerMetadata(miner.category, miner.className, miner.index)
-  );
+  // TODO: implementar carga paralela de metadata sin violar reglas de hooks
+  // return miners.map(miner => useCoreMinerMetadata(...)) <- NO: viola Rules of Hooks
+  return [] as ReturnType<typeof useCoreMinerMetadata>[];
 }
 
 /**
