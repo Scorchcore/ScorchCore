@@ -30,9 +30,8 @@ export default function AlchemicalLoader({
 
   return (
     <div
-      className={`alchemical-loader fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-hidden bg-[#020607] text-cyan-200 ${
-        exiting ? "alchemical-loader--exiting" : ""
-      }`}
+      className={`alchemical-loader fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-hidden bg-[#020607] text-cyan-200 ${exiting ? "alchemical-loader--exiting" : ""
+        }`}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.18),rgba(0,40,44,0.08)_34%,rgba(0,0,0,0.96)_72%)]" />
       <div className="absolute h-[620px] w-[620px] rounded-full border border-cyan-300/10 blur-[1px] animate-orb-1" />
@@ -382,7 +381,7 @@ export default function AlchemicalLoader({
         </svg>
 
         <div className="mt-[-20px] flex max-w-[92vw] items-center gap-1 overflow-hidden font-mono text-sm uppercase tracking-[0.34em] text-cyan-200 drop-shadow-[0_0_12px_rgba(0,245,255,0.95)] md:text-base">
-          <span className="typing-text">INITIALIZING ALCHEMICAL PROTOCOL</span>
+          <span className="typing-text">INITIALIZING REBIRD</span>
           <span className="animate-caret">_</span>
         </div>
       </div>
