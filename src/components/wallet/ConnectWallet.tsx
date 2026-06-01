@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   Check,
   ChevronDown,
   Copy,
@@ -15,7 +16,7 @@ import { useAccount, useBalance, useConnect, useDisconnect } from "wagmi";
 
 export const ConnectWallet: React.FC = () => {
   const { address, isConnected, chain } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connect, connectors, isPending, error: connectError } = useConnect();
   const { disconnect } = useDisconnect();
   const { data: balance } = useBalance({ address });
 
@@ -97,7 +98,7 @@ export const ConnectWallet: React.FC = () => {
                     className="flex w-full items-center gap-3 rounded-lg border border-transparent p-3 text-left transition-colors hover:border-orange-300/35 hover:bg-orange-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-orange-300/25 bg-black/45 text-magma-gold">
-                      {connector.name === "Waypoint" ? (
+                      {connector.name.toLowerCase().includes("waypoint") ? (
                         <KeyRound className="h-5 w-5" />
                       ) : (
                         <Wallet className="h-5 w-5" />
@@ -106,9 +107,9 @@ export const ConnectWallet: React.FC = () => {
                     <div className="text-left">
                       <p className="font-medium text-white">{connector.name}</p>
                       <p className="text-xs text-cyan-100/55">
-                        {connector.name === "Ronin Wallet"
+                        {connector.name.toLowerCase().includes("ronin")
                           ? "Browser extension or mobile app"
-                          : connector.name === "Waypoint"
+                          : connector.name.toLowerCase().includes("waypoint")
                             ? "Email or social login"
                             : "Connect with wallet"}
                       </p>
@@ -116,6 +117,14 @@ export const ConnectWallet: React.FC = () => {
                   </button>
                 ))}
               </div>
+              {connectError && (
+                <div className="border-t border-red-500/20 p-3">
+                  <div className="flex items-start gap-2 rounded-md bg-red-500/10 p-2 text-xs text-red-200">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                    <span>{connectError.message || "Connection failed"}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}

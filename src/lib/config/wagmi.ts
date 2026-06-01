@@ -1,38 +1,43 @@
-import { createConfig, http, type CreateConnectorFn } from "wagmi";
-import { ronin, saigon } from "viem/chains";
-import { roninWallet, waypoint } from "@sky-mavis/tanto-wagmi";
+import { createConfig, http } from "wagmi";
+import { injected } from "wagmi/connectors";
+import { ronin } from "viem/chains";
+import { defineChain } from "viem";
+import { roninWaypointConnector } from "./WaypointWagmiConnector"; // Importa tu nuevo conector personalizado
 
-// Waypoint configuration
-// NOTE: Waypoint SDK bundles viem 2.9.2 which only recognizes saigon.id = 2021.
-// The rest of the app uses 202601 (current Saigon testnet chain ID).
-const waypointConfig = {
-  clientId: process.env.NEXT_PUBLIC_WAYPOINT_CLIENT_ID || "",
-  chainId: 2021, // Waypoint SDK internal chain ID (old Saigon)
-};
+// 1. Forzar definición limpia de la red Saigon L2 libre de bugs antiguos
+export const saigonL2 = defineChain({
+  id: 202601,
+  name: "Ronin Saigon Testnet",
+  nativeCurrency: { name: "RON", symbol: "RON", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://saigon-testnet.roninchain.com/rpc"] },
+  },
+  blockExplorers: {
+    default: { name: "Saigon Explorer", url: "https://saigon-explorer.roninchain.com/" },
+  },
+});
 
-// Type assertion needed due to wagmi v2.19+ type changes
-// tanto-wagmi connectors work at runtime but have outdated type definitions
-const roninWalletConnector = roninWallet() as unknown as CreateConnectorFn;
-const waypointConnector = waypoint(
-  waypointConfig,
-) as unknown as CreateConnectorFn;
-
-// Create wagmi config with Ronin connectors
-// IMPORTANT: saigon (testnet) is first to be default when no wallet connected
+// 2. Configuración limpia y modular de Wagmi compatible con Next.js Turbopack
 export const config = createConfig({
-  chains: [saigon, ronin], // Testnet first for development
+  chains: [saigonL2, ronin],
   transports: {
     [ronin.id]: http("https://api.roninchain.com/rpc"),
-    [saigon.id]: http("https://saigon-testnet.roninchain.com/rpc"),
+    [saigonL2.id]: http("https://saigon-testnet.roninchain.com/rpc"),
   },
   multiInjectedProviderDiscovery: false,
-  connectors: [roninWalletConnector, waypointConnector],
+  connectors: [
+    injected({
+      target: "ronin",
+      shimDisconnect: true,
+    }),
+    roninWaypointConnector({
+      clientId: process.env.NEXT_PUBLIC_WAYPOINT_CLIENT_ID || "",
+      chainId: 202601,
+    }),
+  ],
   ssr: true,
 });
 
-// Re-export chains for convenience
-export { ronin, saigon as roninTestnet };
-
-// Chain IDs
+export { ronin, saigonL2 as roninTestnet };
 export const RONIN_MAINNET_ID = ronin.id;
-export const RONIN_TESTNET_ID = saigon.id;
+export const RONIN_TESTNET_ID = saigonL2.id;
