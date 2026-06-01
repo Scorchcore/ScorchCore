@@ -1,33 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useWallet } from "@/lib/hooks/user/useWallet";
-import { Loading, Toast, useToast } from "@/components/ui";
+import type React from "react";
+import { useEffect, useState } from "react";
+import Lightbox from "yet-another-react-lightbox";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import { HatchRoulette } from "@/components/HatchRoulette";
 import { HatchSuccessModal } from "@/components/HatchSuccessModal";
-import Link from "next/link";
-import { useAccount } from "wagmi";
-import Lightbox from "yet-another-react-lightbox";
+import { Loading, Toast, useToast } from "@/components/ui";
+import { useWallet } from "@/lib/hooks/user/useWallet";
 import "yet-another-react-lightbox/styles.css";
-import { useInventoryFacade } from "@/lib/hooks/facades/useInventoryFacade";
-import { useForgeFacade } from "@/lib/hooks/facades/useForgeFacade";
-import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
-import { useNFTFacade } from "@/lib/hooks/facades/useNFTFacade";
-import { createServiceLogger } from "@/lib/utils/logging/logger";
-import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
-import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
-import { MinerVideoPlayer } from "@/components/ui/VideoPlayer";
-import type { HatchResult } from "@/lib/contracts/interfaces/IGeodeHatcher";
-import type { HatchResult as ComponentHatchResult } from "@/components/types/HatchTypes";
-import {
-  GeodeCategory,
-  AxieClass,
-  CATEGORY_INFO,
-  AXIE_CLASS_INFO,
-} from "@/lib/constants/geodes";
-import { Footer } from "@/components/layout";
 import {
   Backpack,
   Calendar,
@@ -44,6 +27,21 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
+import { Footer } from "@/components/layout";
+import type { HatchResult as ComponentHatchResult } from "@/components/types/HatchTypes";
+import { MinerVideoPlayer } from "@/components/ui/VideoPlayer";
+import {
+  AXIE_CLASS_INFO,
+  type AxieClass,
+  CATEGORY_INFO,
+  type GeodeCategory,
+} from "@/lib/constants/geodes";
+import type { HatchResult } from "@/lib/contracts/interfaces/IGeodeHatcher";
+import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
+import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
+import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
+import { useInvalidateOnTx, useUserGeodes, useUserMiners } from "@/lib/queries";
+import { createServiceLogger } from "@/lib/utils/logging/logger";
 
 const logger = createServiceLogger("InventoryPage");
 type TabValue = "all" | "geodes" | "miners";
@@ -105,7 +103,9 @@ function TabButton({
     >
       <Icon className="h-3.5 w-3.5" />
       <span>{label}</span>
-      <span className={active ? "text-magma-gold/60" : "text-cyan-50/38"}>{count}</span>
+      <span className={active ? "text-magma-gold/60" : "text-cyan-50/38"}>
+        {count}
+      </span>
     </button>
   );
 }
@@ -213,7 +213,9 @@ function GeodeCard({
               <Zap className="h-3.5 w-3.5 text-magma-gold/70" />
               Power
             </span>
-            <span className="text-xs font-semibold text-white">{geode.miningPower}</span>
+            <span className="text-xs font-semibold text-white">
+              {geode.miningPower}
+            </span>
           </div>
           {!geode.isHatched && (
             <div className="flex items-center justify-between px-3 py-2.5">
@@ -330,7 +332,9 @@ function MinerCard({
         {/* Name + status */}
         <div className="mb-4 flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="alchemy-heading truncate text-base leading-tight">{miner.name}</h3>
+            <h3 className="alchemy-heading truncate text-base leading-tight">
+              {miner.name}
+            </h3>
             <p className="mt-0.5 text-[0.65rem] text-cyan-50/38">
               ID #{miner.tokenId.toString()}
             </p>
@@ -345,14 +349,18 @@ function MinerCard({
               <Zap className="h-3.5 w-3.5 text-magma-gold/70" />
               Power
             </span>
-            <span className="text-xs font-semibold text-white">{miner.miningPower}</span>
+            <span className="text-xs font-semibold text-white">
+              {miner.miningPower}
+            </span>
           </div>
           <div className="flex items-center justify-between px-3 py-2.5">
             <span className="flex items-center gap-1.5 text-xs text-cyan-50/52">
               <TrendingUp className="h-3.5 w-3.5 text-ethereal-cyan/55" />
               Efficiency
             </span>
-            <span className="text-xs font-semibold text-white">{miner.efficiency}%</span>
+            <span className="text-xs font-semibold text-white">
+              {miner.efficiency}%
+            </span>
           </div>
         </div>
 
@@ -395,8 +403,8 @@ function EmptyState() {
       <Backpack className="mx-auto mb-5 h-9 w-9 text-magma-gold/55" />
       <h2 className="alchemy-heading mb-3 text-2xl">Empty Vault</h2>
       <p className="alchemy-copy mx-auto max-w-md text-sm leading-6 text-cyan-50/58">
-        Forge Crystalline Geodes or hatch CoreMiners to begin your expedition
-        in Lunacia.
+        Forge Crystalline Geodes or hatch CoreMiners to begin your expedition in
+        Lunacia.
       </p>
       <Link href="/forge">
         <span className="mx-auto mt-8 inline-flex items-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-7 py-3 text-sm font-semibold uppercase tracking-wider text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:text-white">
@@ -424,21 +432,39 @@ function ErrorPanel({ message }: { message: string }) {
 export default function InventoryPage() {
   const router = useRouter();
   const { isConnected } = useWallet();
-  const { address } = useAccount();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
   const { contractManager } = useContractManager();
-  const inventoryFacade = useInventoryFacade();
-  const forgeFacade = useForgeFacade();
-  const nftFacade = useNFTFacade();
+  const { afterHatch, invalidateAll } = useInvalidateOnTx();
 
-  const [geodes, setGeodes] = useState<GeodeInventoryInfo[]>([]);
-  const [miners, setMiners] = useState<CoreMinerNFT[]>([]);
+  const {
+    data: geodes = [],
+    isLoading: isLoadingGeodes,
+    isFetching: isFetchingGeodes,
+    error: geodesError,
+  } = useUserGeodes();
+
+  const {
+    data: miners = [],
+    isLoading: isLoadingMiners,
+    isFetching: isFetchingMiners,
+    error: minersError,
+  } = useUserMiners();
+
+  const isLoading = isLoadingGeodes || isLoadingMiners;
+  const isFetching = isFetchingGeodes || isFetchingMiners;
+  const error =
+    geodesError || minersError
+      ? geodesError?.message ||
+        minersError?.message ||
+        "Error loading inventory"
+      : null;
+
   const [activeTab, setActiveTab] = useState<TabValue>("all");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showHatchAnimation, setShowHatchAnimation] = useState(false);
   const [hatchingGeodeId, setHatchingGeodeId] = useState<bigint | null>(null);
-  const [hatchingGeode, setHatchingGeode] = useState<GeodeInventoryInfo | null>(null);
+  const [hatchingGeode, setHatchingGeode] = useState<GeodeInventoryInfo | null>(
+    null,
+  );
   const [isTxConfirmed, setIsTxConfirmed] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [hatchedMiner, setHatchedMiner] = useState<{
@@ -451,49 +477,17 @@ export default function InventoryPage() {
     category: GeodeCategory;
     axieClass: AxieClass;
   } | null>(null);
-  const [realHatchResult, setRealHatchResult] = useState<HatchResult | null>(null);
+  const [realHatchResult, setRealHatchResult] = useState<HatchResult | null>(
+    null,
+  );
 
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [selectedGeode, setSelectedGeode] = useState<GeodeInventoryInfo | null>(null);
+  const [selectedGeode, setSelectedGeode] = useState<GeodeInventoryInfo | null>(
+    null,
+  );
   const [selectedMiner, setSelectedMiner] = useState<CoreMinerNFT | null>(null);
   const [lightboxVideoUrl, setLightboxVideoUrl] = useState<string>("");
-
-  const loadInventory = async () => {
-    if (!address || !inventoryFacade || !nftFacade) {
-      logger.debug("Carga de inventario omitida - falta address o facades");
-      return;
-    }
-
-    logger.info("Iniciando carga de inventario del usuario");
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [geodesData, minersData] = await Promise.all([
-        inventoryFacade.getUserGeodes(address),
-        nftFacade.getMinersFromWallet(address),
-      ]);
-
-      logger.info(
-        `Inventario cargado: ${geodesData.length} geodas, ${minersData.length} miners`,
-      );
-      setGeodes(geodesData);
-      setMiners(minersData);
-    } catch (err) {
-      logger.error("Error cargando inventario", err);
-      setError(err instanceof Error ? err.message : "Error loading inventory");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isConnected && address && inventoryFacade && nftFacade) {
-      logger.debug("Condiciones OK - cargando inventario");
-      loadInventory();
-    }
-  }, [isConnected, address, inventoryFacade, nftFacade]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -732,7 +726,6 @@ export default function InventoryPage() {
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.72),transparent_18%,transparent_82%,rgba(0,0,0,0.72))]" />
 
         <div className="relative z-1 mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
-
           {/* ── Hero ── */}
           <header className="mb-10">
             <p className="alchemy-eyebrow mb-3 text-xs">Prospector Vault</p>
@@ -743,7 +736,8 @@ export default function InventoryPage() {
                 </h1>
                 {!isLoading && (
                   <p className="mt-2 text-sm text-cyan-50/42">
-                    {totalItems} {totalItems === 1 ? "item" : "items"} — Geodes &amp; CoreMiners
+                    {totalItems} {totalItems === 1 ? "item" : "items"} — Geodes
+                    &amp; CoreMiners
                   </p>
                 )}
               </div>
@@ -752,11 +746,13 @@ export default function InventoryPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={loadInventory}
+                  onClick={() => invalidateAll()}
                   disabled={isLoading}
                   className="inline-flex items-center gap-2 border border-cyan-100/12 bg-black/42 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-cyan-50/58 transition-all hover:border-ethereal-cyan/45 hover:text-cyan-50 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`}
+                  />
                   Refresh
                 </button>
                 <Link href="/dashboard">
@@ -777,7 +773,10 @@ export default function InventoryPage() {
 
           {/* ── Tabs ── */}
           {!isLoading && !error && totalItems > 0 && (
-            <nav className="mb-8 flex flex-wrap gap-2" aria-label="Inventory filter">
+            <nav
+              className="mb-8 flex flex-wrap gap-2"
+              aria-label="Inventory filter"
+            >
               <TabButton
                 active={activeTab === "all"}
                 onClick={() => setActiveTab("all")}
@@ -818,85 +817,88 @@ export default function InventoryPage() {
           {/* ── Content ── */}
           {!isLoading && !error && totalItems > 0 && (
             <div className="space-y-14">
-
               {/* Geodes */}
-              {(activeTab === "all" || activeTab === "geodes") && geodes.length > 0 && (
-                <section>
-                  <header className="mb-6 flex items-center gap-3">
-                    <Egg className="h-5 w-5 text-magma-gold" />
-                    <h2 className="alchemy-heading text-xl">Crystalline Geodes</h2>
-                    <span className="border border-magma-gold/35 bg-orange-500/8 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-widest text-magma-gold/75">
-                      {geodes.length}
-                    </span>
-                  </header>
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {geodes.map((geode) => (
-                      <GeodeCard
-                        key={geode.id.toString()}
-                        geode={geode}
-                        isHatching={hatchingGeodeId === geode.id}
-                        onHatch={handleHatchGeode}
-                        onOpenLightbox={(g) => {
-                          const categoryName =
-                            CATEGORY_INFO[g.category].name.toLowerCase();
-                          const categoryUpper =
-                            CATEGORY_INFO[g.category].name.toUpperCase();
-                          const classUpper =
-                            AXIE_CLASS_INFO[g.axieClass].name.toUpperCase();
-                          setLightboxVideoUrl(
-                            `/assets/geodes/${categoryName}/GEODA_${categoryUpper}_${classUpper}.mp4`,
-                          );
-                          setSelectedGeode(g);
-                          setLightboxOpen(true);
-                        }}
-                        getTimeRemaining={getTimeRemaining}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+              {(activeTab === "all" || activeTab === "geodes") &&
+                geodes.length > 0 && (
+                  <section>
+                    <header className="mb-6 flex items-center gap-3">
+                      <Egg className="h-5 w-5 text-magma-gold" />
+                      <h2 className="alchemy-heading text-xl">
+                        Crystalline Geodes
+                      </h2>
+                      <span className="border border-magma-gold/35 bg-orange-500/8 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-widest text-magma-gold/75">
+                        {geodes.length}
+                      </span>
+                    </header>
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                      {geodes.map((geode) => (
+                        <GeodeCard
+                          key={geode.id.toString()}
+                          geode={geode}
+                          isHatching={hatchingGeodeId === geode.id}
+                          onHatch={handleHatchGeode}
+                          onOpenLightbox={(g) => {
+                            const categoryName =
+                              CATEGORY_INFO[g.category].name.toLowerCase();
+                            const categoryUpper =
+                              CATEGORY_INFO[g.category].name.toUpperCase();
+                            const classUpper =
+                              AXIE_CLASS_INFO[g.axieClass].name.toUpperCase();
+                            setLightboxVideoUrl(
+                              `/assets/geodes/${categoryName}/GEODA_${categoryUpper}_${classUpper}.mp4`,
+                            );
+                            setSelectedGeode(g);
+                            setLightboxOpen(true);
+                          }}
+                          getTimeRemaining={getTimeRemaining}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
               {/* CoreMiners */}
-              {(activeTab === "all" || activeTab === "miners") && miners.length > 0 && (
-                <section>
-                  <header className="mb-6 flex items-center gap-3">
-                    <Pickaxe className="h-5 w-5 text-ethereal-cyan" />
-                    <h2 className="alchemy-heading text-xl">CoreMiners</h2>
-                    <span className="border border-ethereal-cyan/35 bg-cyan-300/6 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-widest text-ethereal-cyan/65">
-                      {miners.length}
-                    </span>
-                  </header>
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {miners.map((miner) => (
-                      <MinerCard
-                        key={miner.tokenId.toString()}
-                        miner={miner}
-                        onOpenLightbox={async (m) => {
-                          try {
-                            const { getLocalMinerVideo } = await import(
-                              "@/lib/utils/data/localMinerData"
-                            );
-                            const videoUrl = await getLocalMinerVideo(
-                              m.category,
-                              m.minerType,
-                              m.minerIndex,
-                            );
-                            setLightboxVideoUrl(videoUrl);
-                            setSelectedMiner(m);
-                            setLightboxOpen(true);
-                          } catch (err) {
-                            logger.error("Error loading miner video", err);
+              {(activeTab === "all" || activeTab === "miners") &&
+                miners.length > 0 && (
+                  <section>
+                    <header className="mb-6 flex items-center gap-3">
+                      <Pickaxe className="h-5 w-5 text-ethereal-cyan" />
+                      <h2 className="alchemy-heading text-xl">CoreMiners</h2>
+                      <span className="border border-ethereal-cyan/35 bg-cyan-300/6 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-widest text-ethereal-cyan/65">
+                        {miners.length}
+                      </span>
+                    </header>
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                      {miners.map((miner) => (
+                        <MinerCard
+                          key={miner.tokenId.toString()}
+                          miner={miner}
+                          onOpenLightbox={async (m) => {
+                            try {
+                              const { getLocalMinerVideo } = await import(
+                                "@/lib/utils/data/localMinerData"
+                              );
+                              const videoUrl = await getLocalMinerVideo(
+                                m.category,
+                                m.minerType,
+                                m.minerIndex,
+                              );
+                              setLightboxVideoUrl(videoUrl);
+                              setSelectedMiner(m);
+                              setLightboxOpen(true);
+                            } catch (err) {
+                              logger.error("Error loading miner video", err);
+                            }
+                          }}
+                          onShowInfo={showInfo}
+                          onNavigate={(tokenId) =>
+                            router.push(`/coreminer/${tokenId}`)
                           }
-                        }}
-                        onShowInfo={showInfo}
-                        onNavigate={(tokenId) =>
-                          router.push(`/coreminer/${tokenId}`)
-                        }
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
             </div>
           )}
         </div>
@@ -926,8 +928,8 @@ export default function InventoryPage() {
             setHatchingGeodeId(null);
             setHatchingGeode(null);
             setRealHatchResult(null);
-            logger.debug("Modal cerrado - recargando inventario");
-            loadInventory();
+            logger.debug("Modal cerrado - invalidando queries de inventario");
+            afterHatch();
           }}
           category={hatchedMiner.category}
           axieClass={hatchedMiner.axieClass}

@@ -39,10 +39,13 @@ import {
 import type { MaterialInput } from "@/lib/contracts/interfaces/IForgeContract";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import { useContracts } from "@/lib/hooks/contracts/useContracts";
-import { useMementoBalances } from "@/lib/hooks/economy/useMementoBalances";
-import { useAxies } from "@/lib/hooks/nfts/useAxies";
-import { useTrustScore } from "@/lib/hooks/user/useTrustScore";
 import { useWallet } from "@/lib/hooks/user/useWallet";
+import {
+  useInvalidateOnTx,
+  useMementoBalancesQuery,
+  useTrustScoreQuery,
+  useUserAxies,
+} from "@/lib/queries";
 import { ForgeFacade } from "@/lib/services/forge/ForgeFacade";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 
@@ -58,10 +61,10 @@ export default function ForgePage() {
   const contracts = useContracts();
   const { contractManager, signer } = useContractManager();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
-  const { balances: mementoBalances, reload: reloadMementoBalances } =
-    useMementoBalances();
-  const { trustScoreInfo } = useTrustScore();
-  const { axies } = useAxies();
+  const { data: mementoBalances } = useMementoBalancesQuery();
+  const { trustScoreInfo } = useTrustScoreQuery();
+  const { data: axies = [] } = useUserAxies();
+  const { afterForge } = useInvalidateOnTx();
 
   // ForgeFacade para toda la lógica de forja
   // Solo crear si hay contractManager, signer Y provider disponible
@@ -417,8 +420,7 @@ export default function ForgePage() {
           txHash: result.transaction.hash,
         });
 
-        // Refrescar balances de mementos en la UI
-        await reloadMementoBalances();
+        afterForge();
       } else {
         // La forja falló por RNG
         setForgeFailed(true);

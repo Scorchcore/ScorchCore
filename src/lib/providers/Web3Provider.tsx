@@ -40,7 +40,18 @@ const log = createServiceLogger("Web3Provider");
  * @see WAYPOINT-MIGRATION.md para detalles de arquitectura
  */
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+  },
+});
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
