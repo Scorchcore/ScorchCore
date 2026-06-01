@@ -1,27 +1,27 @@
-import { GeodeCategory, AxieClass } from './geodes';
+import { GeodeCategory, AxieClass } from "./geodes";
 
-export const STORAGE_BUCKET = 'Scorchcore-storage';
+export const STORAGE_BUCKET = "Scorchcore-storage";
 
 // Supabase folder names per category
 export const SUPABASE_CATEGORY_MAP: Record<GeodeCategory, string> = {
-  [GeodeCategory.PETIT]: 'PETIT',
-  [GeodeCategory.ALTO]: 'HIGH',
-  [GeodeCategory.ANIMAL]: 'ANIMAL',
-  [GeodeCategory.ULTRAMECH]: 'ULTRAMECH',
-  [GeodeCategory.TANQUE]: 'TANK',
+  [GeodeCategory.PETIT]: "PETIT",
+  [GeodeCategory.ALTO]: "HIGH",
+  [GeodeCategory.ANIMAL]: "ANIMAL",
+  [GeodeCategory.ULTRAMECH]: "ULTRAMECH",
+  [GeodeCategory.TANQUE]: "TANK",
 };
 
 // Supabase folder names per class
 export const SUPABASE_CLASS_MAP: Record<AxieClass, string> = {
-  [AxieClass.BEAST]: 'BEAST',
-  [AxieClass.AQUA]: 'AQUA',
-  [AxieClass.BIRD]: 'BIRD',
-  [AxieClass.REPTILE]: 'REPTILE',
-  [AxieClass.BUG]: 'BUG',
-  [AxieClass.PLANT]: 'PLANT',
-  [AxieClass.MECH]: 'MECH',
-  [AxieClass.DUSK]: 'DUSK',
-  [AxieClass.DAWN]: 'DAWN',
+  [AxieClass.BEAST]: "BEAST",
+  [AxieClass.AQUA]: "AQUA",
+  [AxieClass.BIRD]: "BIRD",
+  [AxieClass.REPTILE]: "REPTILE",
+  [AxieClass.BUG]: "BUG",
+  [AxieClass.PLANT]: "PLANT",
+  [AxieClass.MECH]: "MECH",
+  [AxieClass.DUSK]: "DUSK",
+  [AxieClass.DAWN]: "DAWN",
 };
 
 // ---------------------------------------------------------------------------
@@ -32,70 +32,70 @@ export const SUPABASE_CLASS_MAP: Record<AxieClass, string> = {
 // ---------------------------------------------------------------------------
 export const MINER_VIDEO_NAMES: Record<string, string[]> = {
   // --- PETIT ---
-  'PETIT_BEAST': [
-    'AGILE_CUB.mp4',           // minerIndex 0
-    'ALPHA_CUB.mp4',           // minerIndex 1
-    'BOLD_EXPLORER.mp4',       // minerIndex 2
-    'FIERCE_HATCHLING.mp4',    // minerIndex 3
-    'IMPATIENTE_CLAW.mp4',     // minerIndex 4
-    'TENACIOUS_TRACKER.mp4',   // minerIndex 5
-    'YOUNG_HUNTER.mp4',        // minerIndex 6
+  PETIT_BEAST: [
+    "AGILE_CUB.mp4", // minerIndex 0
+    "ALPHA_CUB.mp4", // minerIndex 1
+    "BOLD_EXPLORER.mp4", // minerIndex 2
+    "FIERCE_HATCHLING.mp4", // minerIndex 3
+    "IMPATIENTE_CLAW.mp4", // minerIndex 4
+    "TENACIOUS_TRACKER.mp4", // minerIndex 5
+    "YOUNG_HUNTER.mp4", // minerIndex 6
   ],
-  'PETIT_AQUA': [
-    'DEW_DROP.mp4',            // minerIndex 0
-    'LIGHT_CURRENT.mp4',       // minerIndex 1
-    'SERENE_FLOW.mp4',         // minerIndex 2
-    'PRECISE_JET.mp4',         // minerIndex 3
-    'QUICK_DROP.mp4',          // minerIndex 4
-    'EFFICIENT_BUBBLE.mp4',    // minerIndex 5
-    'TSUNAMI_CURRENT.mp4',     // minerIndex 6 (placeholder — verify name in Supabase)
+  PETIT_AQUA: [
+    "DEW_DROP.mp4", // minerIndex 0
+    "LIGHT_CURRENT.mp4", // minerIndex 1
+    "SERENE_FLOW.mp4", // minerIndex 2
+    "PRECISE_JET.mp4", // minerIndex 3
+    "QUICK_DROP.mp4", // minerIndex 4
+    "EFFICIENT_BUBBLE.mp4", // minerIndex 5
+    "TSUNAMI_CURRENT.mp4", // minerIndex 6 (placeholder — verify name in Supabase)
   ],
-  'PETIT_BIRD': [
-    'LIGHT_FEATHER.mp4',       // minerIndex 0
-    'LOOKOUT_CHICK.mp4',       // minerIndex 1
-    'PRECISE_PECK.mp4',        // minerIndex 2
-    'RISING_CURRENT.mp4',      // minerIndex 3
-    'SMALL_RAPTOR.mp4',        // minerIndex 4
-    'SONIC_SPARROW.mp4',       // minerIndex 5
-    'SWIFT_WING.mp4',          // minerIndex 6
+  PETIT_BIRD: [
+    "LIGHT_FEATHER.mp4", // minerIndex 0
+    "LOOKOUT_CHICK.mp4", // minerIndex 1
+    "PRECISE_PECK.mp4", // minerIndex 2
+    "RISING_CURRENT.mp4", // minerIndex 3
+    "SMALL_RAPTOR.mp4", // minerIndex 4
+    "SONIC_SPARROW.mp4", // minerIndex 5
+    "SWIFT_WING.mp4", // minerIndex 6
   ],
-  'PETIT_REPTILE': [
-    'CAIMAN_HATCHLING.mp4',   // minerIndex 0
-    'COLD_BLOOD.mp4',         // minerIndex 1
-    'CUNNING_GECKO.mp4',      // minerIndex 2
-    'POISSONOUS_SCALE.mp4',   // minerIndex 3
-    'QUICK_BITE.mp4',         // minerIndex 4
-    'SLIPPERY_SHIELD.mp4',    // minerIndex 5
-    'SOVEREIGN_CAIMAN.mp4',   // minerIndex 6
+  PETIT_REPTILE: [
+    "CAIMAN_HATCHLING.mp4", // minerIndex 0
+    "COLD_BLOOD.mp4", // minerIndex 1
+    "CUNNING_GECKO.mp4", // minerIndex 2
+    "POISSONOUS_SCALE.mp4", // minerIndex 3
+    "QUICK_BITE.mp4", // minerIndex 4
+    "SLIPPERY_SHIELD.mp4", // minerIndex 5
+    "SOVEREIGN_CAIMAN.mp4", // minerIndex 6
   ],
-  'PETIT_BUG': [
-    'EFFICIENT_PUPA.mp4',
-    'PROTECTED_LARVA.mp4',
-    'QUEEN_DRONE.mp4',
-    'RESILIENT_BEETLE.mp4',
-    'SCOUT_ANT.mp4',
-    'SILENT_BUZZ.mp4',
-    'WORKER_DRONE.mp4',
+  PETIT_BUG: [
+    "EFFICIENT_PUPA.mp4",
+    "PROTECTED_LARVA.mp4",
+    "QUEEN_DRONE.mp4",
+    "RESILIENT_BEETLE.mp4",
+    "SCOUT_ANT.mp4",
+    "SILENT_BUZZ.mp4",
+    "WORKER_DRONE.mp4",
   ],
-  'PETIT_MECH': [
-    'NANO_BUILDER.mp4',
-    'NANO_BUILDER-ALPHA.mp4',
-    'PRECISE_SPARK.mp4',
-    'PROSPECTING_DRONE.mp4',
-    'SMALL_WOLF.mp4',
-    'STABLE_CIRCUIT.mp4',
-    'TITANIUM_SCREW.mp4',
+  PETIT_MECH: [
+    "NANO_BUILDER.mp4",
+    "NANO_BUILDER-ALPHA.mp4",
+    "PRECISE_SPARK.mp4",
+    "PROSPECTING_DRONE.mp4",
+    "SMALL_WOLF.mp4",
+    "STABLE_CIRCUIT.mp4",
+    "TITANIUM_SCREW.mp4",
   ],
 
-  'PETIT_PLANT': [
-    'CONSTANT_SPROUT.mp4',
-    'DORMANT_SEED.mp4',
-    'EVERGREEN_LEAF.mp4',
-    'MILLENNIAL_SPROUT.mp4',
-    'SAP_FLOW.mp4',
-    'SHARP_THORN.mp4',
-    'YOUNG_ROOT.mp4',
-  ]
+  PETIT_PLANT: [
+    "CONSTANT_SPROUT.mp4",
+    "DORMANT_SEED.mp4",
+    "EVERGREEN_LEAF.mp4",
+    "MILLENNIAL_SPROUT.mp4",
+    "SAP_FLOW.mp4",
+    "SHARP_THORN.mp4",
+    "YOUNG_ROOT.mp4",
+  ],
   // ...
 
   // --- HIGH (Alto) ---
@@ -134,7 +134,7 @@ export function getCoreMinerVideoFilename(
 ): string {
   const key = `${SUPABASE_CATEGORY_MAP[category]}_${SUPABASE_CLASS_MAP[axieClass]}`;
   const files = MINER_VIDEO_NAMES[key];
-  if (!files || minerIndex < 0 || minerIndex >= files.length) return '';
+  if (!files || minerIndex < 0 || minerIndex >= files.length) return "";
   return files[minerIndex];
 }
 
@@ -166,14 +166,15 @@ export function getThumbnailFilename(
 ): string {
   const key = `${SUPABASE_CATEGORY_MAP[category]}_${SUPABASE_CLASS_MAP[axieClass]}`;
   const files = MINER_VIDEO_NAMES[key];
-  if (!files || minerIndex < 0 || minerIndex >= files.length) return '';
-  return files[minerIndex].replace(/\.mp4$/i, '.webp');
+  if (!files || minerIndex < 0 || minerIndex >= files.length) return "";
+  return files[minerIndex].replace(/\.mp4$/i, ".webp");
 }
 
 // --- URL builder ---
 
 export function getStorageUrl(objectPath: string): string {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return '';
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return "";
+  supabaseUrl = supabaseUrl.replace(/\/$/, ""); // strip trailing slash to avoid //
   return `${supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}/${objectPath}`;
 }
