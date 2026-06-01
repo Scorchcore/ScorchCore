@@ -12,6 +12,7 @@ export {
   useMinerStatsQuery,
 } from "./useMinerStatsQuery";
 export { useTrustScoreQuery } from "./useTrustScoreQuery";
+export { useGeodeVideoUrl } from "./useGeodeVideoUrl";
 export { useMinerVideoUrl } from "./useMinerVideoUrl";
 export { useUserAxies } from "./useUserAxies";
 export { useUserGeodes } from "./useUserGeodes";

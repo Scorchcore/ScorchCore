@@ -35,47 +35,47 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
   'PETIT_BEAST': [
     'AGILE_CUB.mp4',           // minerIndex 0
     'ALPHA_CUB.mp4',           // minerIndex 1
-    'BOLD_EXPLORER.mp4',
-    'FIERCE_HATCHLING.mp4',
-    'IMPATIENTE_CLAW.mp4',       // minerIndex 3
-    'TENACIOUS_TRACKER.mp4',  // minerIndex 1
-    'YOUNG_HUNTER.mp4',  // minerIndex 2
+    'BOLD_EXPLORER.mp4',       // minerIndex 2
+    'FIERCE_HATCHLING.mp4',    // minerIndex 3
+    'IMPATIENTE_CLAW.mp4',     // minerIndex 4
+    'TENACIOUS_TRACKER.mp4',   // minerIndex 5
+    'YOUNG_HUNTER.mp4',        // minerIndex 6
   ],
   'PETIT_AQUA': [
     'DEW_DROP.mp4',            // minerIndex 0
     'LIGHT_CURRENT.mp4',       // minerIndex 1
-    'SERENE_FLOW.mp4',        // minerIndex 2
-    'PRECISE_JET.mp4',       // minerIndex 3
-    'QUICK_DROP.mp4',        // minerIndex 4
-    'EFFICIENT_BUBBLE.mp4',  // minerIndex 5
+    'SERENE_FLOW.mp4',         // minerIndex 2
+    'PRECISE_JET.mp4',         // minerIndex 3
+    'QUICK_DROP.mp4',          // minerIndex 4
+    'EFFICIENT_BUBBLE.mp4',    // minerIndex 5
+    'TSUNAMI_CURRENT.mp4',     // minerIndex 6 (placeholder — verify name in Supabase)
   ],
   'PETIT_BIRD': [
     'LIGHT_FEATHER.mp4',       // minerIndex 0
-    'LOOKOUT_CHICK.mp4',        // minerIndex 1
+    'LOOKOUT_CHICK.mp4',       // minerIndex 1
     'PRECISE_PECK.mp4',        // minerIndex 2
-    'RISING_CURRENT.mp4',
-    'SMALL_RAPTOR.mp4',
+    'RISING_CURRENT.mp4',      // minerIndex 3
+    'SMALL_RAPTOR.mp4',        // minerIndex 4
     'SONIC_SPARROW.mp4',       // minerIndex 5
-    'SWIFT_WING.mp4',        // minerIndex 6
+    'SWIFT_WING.mp4',          // minerIndex 6
   ],
   'PETIT_REPTILE': [
     'CAIMAN_HATCHLING.mp4',   // minerIndex 0
-    'COLD_BLOOD.mp4',
-    'CUNNING_GECKO.mp4',       // minerIndex 2
-    'POISSONOUS_SCALE.mp4',
-    'QUICK_BITE.mp4',
-    'SLIPPERY_SHIELD.mp4',
-    'SOVEREIGN_CAIMAN.mp4',  // minerIndex 3
-    // minerIndex 1
+    'COLD_BLOOD.mp4',         // minerIndex 1
+    'CUNNING_GECKO.mp4',      // minerIndex 2
+    'POISSONOUS_SCALE.mp4',   // minerIndex 3
+    'QUICK_BITE.mp4',         // minerIndex 4
+    'SLIPPERY_SHIELD.mp4',    // minerIndex 5
+    'SOVEREIGN_CAIMAN.mp4',   // minerIndex 6
   ],
   'PETIT_BUG': [
     'EFFICIENT_PUPA.mp4',
     'PROTECTED_LARVA.mp4',
-    'QUEEN_DRON.mp4',
-    'RESILIENT_BETTLE.mp4',
+    'QUEEN_DRONE.mp4',
+    'RESILIENT_BEETLE.mp4',
     'SCOUT_ANT.mp4',
     'SILENT_BUZZ.mp4',
-    'WORKER_DRON.mp4',
+    'WORKER_DRONE.mp4',
   ],
   'PETIT_MECH': [
     'NANO_BUILDER.mp4',
@@ -89,12 +89,12 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
 
   'PETIT_PLANT': [
     'CONSTANT_SPROUT.mp4',
-    'DOMANT_SEED.mp4',
+    'DORMANT_SEED.mp4',
     'EVERGREEN_LEAF.mp4',
     'MILLENNIAL_SPROUT.mp4',
     'SAP_FLOW.mp4',
     'SHARP_THORN.mp4',
-    'YOUNG_ROOT'
+    'YOUNG_ROOT.mp4',
   ]
   // ...
 

@@ -44,4 +44,9 @@ export const queryKeys = {
     single: (category: number, minerType: number, minerIndex: number) =>
       ["minerVideoUrl", category, minerType, minerIndex] as const,
   },
+
+  geodeVideoUrl: {
+    single: (category: number, axieClass: number) =>
+      ["geodeVideoUrl", category, axieClass] as const,
+  },
 } as const;

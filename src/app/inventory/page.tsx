@@ -41,6 +41,7 @@ import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
 import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import {
+  useGeodeVideoUrl,
   useInvalidateOnTx,
   useMinerVideoUrl,
   useUserGeodes,
@@ -127,9 +128,13 @@ function GeodeCard({
   geode: GeodeInventoryInfo;
   isHatching: boolean;
   onHatch: (id: bigint) => void;
-  onOpenLightbox: (geode: GeodeInventoryInfo) => void;
+  onOpenLightbox: (geode: GeodeInventoryInfo, videoUrl: string) => void;
   getTimeRemaining: (hatchTime: number) => string;
 }) {
+  const { data: videoUrl = "" } = useGeodeVideoUrl(
+    geode.category,
+    geode.axieClass,
+  );
   const status: StatusKind = geode.isHatched
     ? "hatched"
     : geode.canHatch
@@ -162,7 +167,7 @@ function GeodeCard({
         type="button"
         aria-label={`View ${geode.fullName} fullscreen`}
         className="relative mx-4 mt-4 flex h-52 w-[calc(100%-2rem)] cursor-pointer items-center justify-center overflow-hidden border border-cyan-100/8 bg-black/30 transition-colors hover:border-ethereal-cyan/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
-        onClick={() => onOpenLightbox(geode)}
+        onClick={() => onOpenLightbox(geode, videoUrl)}
       >
         <GeodeVideo
           category={geode.category}
@@ -847,16 +852,8 @@ export default function InventoryPage() {
                           geode={geode}
                           isHatching={hatchingGeodeId === geode.id}
                           onHatch={handleHatchGeode}
-                          onOpenLightbox={(g) => {
-                            const categoryName =
-                              CATEGORY_INFO[g.category].name.toLowerCase();
-                            const categoryUpper =
-                              CATEGORY_INFO[g.category].name.toUpperCase();
-                            const classUpper =
-                              AXIE_CLASS_INFO[g.axieClass].name.toUpperCase();
-                            setLightboxVideoUrl(
-                              `/assets/geodes/${categoryName}/GEODA_${categoryUpper}_${classUpper}.mp4`,
-                            );
+                          onOpenLightbox={(g, videoUrl) => {
+                            setLightboxVideoUrl(videoUrl);
                             setSelectedGeode(g);
                             setLightboxOpen(true);
                           }}
