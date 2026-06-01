@@ -27,6 +27,17 @@ export const config = createConfig({
   multiInjectedProviderDiscovery: false,
   connectors: [
     injected({
+      target: () => {
+        const provider =
+          typeof window !== "undefined" && (window as any).ronin
+            ? (window as any).ronin
+            : undefined;
+        return {
+          id: "ronin",
+          name: "Ronin Extension",
+          provider,
+        };
+      },
       shimDisconnect: true,
     }),
     roninWaypointConnector({
