@@ -27,7 +27,6 @@ export const config = createConfig({
   multiInjectedProviderDiscovery: false,
   connectors: [
     injected({
-      target: "ronin",
       shimDisconnect: true,
     }),
     roninWaypointConnector({
