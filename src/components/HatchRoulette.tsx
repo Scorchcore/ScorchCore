@@ -30,7 +30,9 @@ const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] 
   for (let i = 0; i < 7; i++) {
     const filename = getThumbnailFilename(category, axieClass, i);
     if (filename) {
-      thumbnails.push(getStorageUrl(getThumbnailPath(category, axieClass, filename)));
+      const url = getStorageUrl(getThumbnailPath(category, axieClass, filename));
+      console.log(`[HatchRoulette] thumbnail ${i}: ${url}`);
+      thumbnails.push(url);
     } else {
       logger.warn('Missing thumbnail mapping', { category, axieClass, minerIndex: i });
     }
@@ -338,6 +340,14 @@ export function HatchRoulette({
                           alt={`Miner ${thumbIndex}`}
                           className="h-full w-full object-cover"
                           loading="lazy"
+                          onError={(e) => {
+                            console.error(`[HatchRoulette] Failed to load image: ${thumbPath}`);
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<div class="flex h-full w-full items-center justify-center bg-black/60 text-xs text-red-400">Broken<br/>${thumbPath.split('/').pop()}</div>`;
+                            }
+                          }}
                         />
                       </div>
                       {/* Rarity bar */}
