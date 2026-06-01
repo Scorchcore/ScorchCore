@@ -7,6 +7,8 @@ import Problem from "@/components/landing/Problem";
 import Transmute from "@/components/landing/Transmute";
 import { Footer } from "@/components/layout";
 import { useWallet } from "@/lib/hooks/user/useWallet";
+import Link from "next/link";
+import { Flame, X, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const [showBanner, setShowBanner] = useState(false);
@@ -25,25 +27,39 @@ export default function Home() {
 
   return (
     <div className="bg-black text-white">
-      {/* Banner temporal para usuarios conectados */}
+      {/* Wallet connected banner */}
       {showBanner && (
-        <div className="sticky top-16 z-30 bg-linear-to-r from-orange-600 to-red-600 border-b border-orange-500 animate-in slide-in-from-top duration-300">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔥</span>
-                <p className="text-white font-medium">
-                  ¡Wallet conectada! Puedes acceder a tu dashboard desde el
-                  botón en el header
-                </p>
+        <div className="alchemy-copy sticky top-16 z-30 border-b border-magma-gold/30 bg-black/92 backdrop-blur-md [background-image:linear-gradient(90deg,rgba(247,198,90,0.07),transparent_45%,rgba(125,249,255,0.04))]">
+          {/* Top gold line */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-magma-gold/55 to-transparent" />
+
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
+            {/* Left: icon + message */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-magma-gold/40 bg-orange-500/10">
+                <Flame className="h-4 w-4 text-magma-gold" />
               </div>
+              <p className="text-sm text-cyan-50/80">
+                Wallet connected —{" "}
+                <span className="text-magma-gold">your CoreMiners are ready to mine.</span>
+              </p>
+            </div>
+
+            {/* Right: CTA + close */}
+            <div className="flex shrink-0 items-center gap-2">
+              <Link href="/dashboard">
+                <span className="inline-flex items-center gap-1.5 border border-ethereal-cyan/50 bg-cyan-300/12 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-50 shadow-[0_0_20px_rgba(125,249,255,0.12)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/20 hover:text-white">
+                  Dashboard
+                  <ArrowRight className="h-3 w-3" />
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={() => setShowBanner(false)}
-                className="text-white hover:text-gray-200 shrink-0"
-                aria-label="Cerrar banner"
+                aria-label="Close banner"
+                className="flex h-8 w-8 items-center justify-center border border-cyan-100/10 bg-black/30 text-cyan-50/40 transition-all hover:border-cyan-100/25 hover:text-cyan-50/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
               >
-                ✕
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
