@@ -1,13 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Lightbox from "yet-another-react-lightbox";
 import Video from "yet-another-react-lightbox/plugins/video";
 import "yet-another-react-lightbox/styles.css";
 import { useCoreMinerMetadata, getMiningPower, getRarity } from '@/hooks/metadata/useCoreMinerMetadata';
 import { Card } from '@/components/ui/Card';
-import { GeodeCategory } from '@/lib/constants/geodes';
+import { GeodeCategory, AxieClass, AXIE_CLASS_INFO } from '@/lib/constants/geodes';
+import { CoreMinerVideo } from '@/components/CoreMinerVideo';
+import {
+  getCoreMinerVideoFilename,
+  getCoreMinerVideoPath,
+  getStorageUrl,
+} from '@/lib/constants/storagePaths';
+
+const CLASS_NAME_TO_ENUM: Record<string, AxieClass> = Object.fromEntries(
+  Object.entries(AXIE_CLASS_INFO).map(([key, info]) => [info.name.toLowerCase(), Number(key) as AxieClass]),
+);
 
 interface CoreMinerCardProps {
   tokenId: bigint;
@@ -19,17 +29,24 @@ interface CoreMinerCardProps {
   showDetails?: boolean;
 }
 
-export function CoreMinerCard({ 
-  tokenId, 
-  category, 
-  className, 
+export function CoreMinerCard({
+  tokenId,
+  category,
+  className,
   index,
   isVoracious = false,
   level,
-  showDetails = true 
+  showDetails = true
 }: CoreMinerCardProps) {
+  const axieClass = CLASS_NAME_TO_ENUM[className.toLowerCase()] ?? AxieClass.BEAST;
   const { metadata, loading, error } = useCoreMinerMetadata(category, className, index);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const lightboxVideoUrl = useMemo(() => {
+    const filename = getCoreMinerVideoFilename(category, axieClass, index);
+    if (!filename) return '';
+    return getStorageUrl(getCoreMinerVideoPath(category, axieClass, filename));
+  }, [category, axieClass, index]);
 
   if (loading) {
     return <CoreMinerCardSkeleton />;
@@ -41,7 +58,6 @@ export function CoreMinerCard({
 
   const power = getMiningPower(metadata);
   const rarity = getRarity(metadata);
-  const videoUrl = metadata.animation_url.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/');
 
   const rarityColors: Record<string, string> = {
     Common: 'text-gray-400',
@@ -61,16 +77,18 @@ export function CoreMinerCard({
     <>
     <Link href={`/coreminer/${tokenId.toString()}`}>
       <Card className="overflow-hidden hover:scale-105 transition-transform cursor-pointer bg-gray-800 border-gray-700">
-        {/* Video preview con overlay */}
+        {/* Video preview */}
         <div className="aspect-square bg-gray-900 relative group">
           <div onClick={handleVideoClick} className="relative w-full h-full cursor-zoom-in">
-            <video
-              src={videoUrl}
+            <CoreMinerVideo
+              category={category}
+              axieClass={axieClass}
+              minerIndex={index}
               autoPlay
               loop
               muted
-              playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              showFallback
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
               <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
@@ -80,19 +98,17 @@ export function CoreMinerCard({
               </div>
             </div>
           </div>
-          
-          {/* Badge voraz */}
+
           {isVoracious && (
             <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium shadow-lg">
-              ⚠️ Voraz
+              Voraz
             </div>
           )}
 
-          {/* Overlay con quick stats */}
           <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/90 via-black/50 to-transparent p-3">
             <div className="flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-green-400">⚡ {power}</span>
+                <span className="text-lg font-bold text-green-400">{power}</span>
                 {level && (
                   <span className="text-xs bg-blue-500/80 px-2 py-1 rounded">
                     Nv. {level.toString()}
@@ -107,7 +123,6 @@ export function CoreMinerCard({
 
         </div>
 
-        {/* Info del CoreMiner */}
         {showDetails && (
           <div className="p-4">
             <h3 className="font-bold text-lg text-white mb-1 truncate">
@@ -116,8 +131,6 @@ export function CoreMinerCard({
             <p className="text-sm text-gray-400 line-clamp-2 min-h-[40px]">
               {metadata.description}
             </p>
-            
-            {/* Token ID */}
             <div className="mt-2 text-xs text-gray-500">
               Token ID: #{tokenId.toString()}
             </div>
@@ -131,7 +144,7 @@ export function CoreMinerCard({
       close={() => setLightboxOpen(false)}
       slides={[
         {
-          src: videoUrl,
+          src: lightboxVideoUrl,
           width: 1920,
           height: 1080,
         }
@@ -140,7 +153,7 @@ export function CoreMinerCard({
         slide: () => (
           <div className="relative w-full h-full flex flex-col items-center justify-center bg-black">
             <video
-              src={videoUrl}
+              src={lightboxVideoUrl}
               autoPlay
               loop
               controls
@@ -151,19 +164,19 @@ export function CoreMinerCard({
               <div className="max-w-4xl mx-auto">
                 <h2 className="text-3xl font-bold text-white mb-2">{metadata.name}</h2>
                 <div className="flex items-center gap-4 text-lg">
-                  <span className="text-green-400 font-semibold">⚡ {power} Power</span>
+                  <span className="text-green-400 font-semibold">{power} Power</span>
                   <span className={`font-semibold ${rarityColors[rarity]}`}>{rarity}</span>
                   {level && (
                     <span className="text-blue-400">Nivel {level.toString()}</span>
                   )}
                 </div>
                 <p className="text-gray-300 mt-3 text-sm line-clamp-2">{metadata.description}</p>
-                <Link 
+                <Link
                   href={`/coreminer/${tokenId.toString()}`}
                   className="inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                   onClick={() => setLightboxOpen(false)}
                 >
-                  Ver Detalles Completos →
+                  Ver Detalles Completos
                 </Link>
               </div>
             </div>
@@ -198,7 +211,7 @@ function CoreMinerCardError({ tokenId }: { tokenId: bigint }) {
   return (
     <Card className="overflow-hidden bg-red-900/20 border-red-500/50">
       <div className="aspect-square bg-red-900/30 flex items-center justify-center">
-        <span className="text-4xl">❌</span>
+        <span className="text-4xl">X</span>
       </div>
       <div className="p-4">
         <p className="text-red-400 font-semibold">Error al cargar metadata</p>

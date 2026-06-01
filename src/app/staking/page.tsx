@@ -12,7 +12,7 @@ import { useNFTs } from "@/lib/hooks/nfts/useNFTs";
 import { useMining } from "@/lib/hooks/mining/useMining";
 import { useContracts } from "@/lib/hooks/contracts/useContracts";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
-import { useMetadataService } from "@/lib/hooks/services/useMetadataService";
+
 import {
   useCycleManager,
   useGeodeStaking,
@@ -26,8 +26,8 @@ import {
 import { MinerStatsHistoryCardCompact } from "@/components/minerstats";
 import { useMinerStatsHistory } from "@/lib/hooks/mining/useMinerStatsHistory";
 import { CycleDuration } from "@/lib/contracts/interfaces/ICycleContract";
-import { getMinerVideoUrl } from "@/lib/utils/data/minerNames";
 import { GeodeVideo } from "@/components/GeodeVideo";
+import { CoreMinerVideo } from "@/components/CoreMinerVideo";
 import {
   CATEGORY_INFO,
   AXIE_CLASS_INFO,
@@ -631,40 +631,19 @@ function MinerCard({
     isLoading: isLoadingStats,
   } = useMinerStatsHistory(miner.tokenId, true, 30000);
 
-  // Construir ruta del video
-  const classNames = {
-    0: "BESTIA",
-    1: "AQUA",
-    2: "AVE",
-    3: "REPTIL",
-    4: "BICHO",
-    5: "PLANTA",
-    6: "MECH",
-    7: "DUSK",
-    8: "DAWN",
-  } as const;
-
-  // Obtener video URL desde Piñata metadata con servicio compartido
-  const metadataService = useMetadataService();
-  const [videoUrl, setVideoUrl] = useState<string>(
-    "/assets/miners/fallback.mp4",
-  );
-
-  useEffect(() => {
-    getMinerVideoUrl(miner.tokenId, metadataService).then(setVideoUrl);
-  }, [miner.tokenId, metadataService]);
-
   return (
     <Card variant="gradient" className="p-4">
       {/* Video del CoreMiner */}
       <div className="aspect-square rounded-lg overflow-hidden bg-black/20 mb-4 relative">
-        <video
-          src={videoUrl}
+        <CoreMinerVideo
+          category={miner.category as GeodeCategory}
+          axieClass={miner.minerType as AxieClass}
+          minerIndex={miner.minerIndex}
           autoPlay
           loop
           muted
-          playsInline
-          className="w-full h-full object-contain"
+          className="w-full h-full"
+          showFallback
         />
         {/* Badge de Estado sobre el video */}
         <div className="absolute top-2 right-2">
