@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { GeodeCategory, AxieClass } from '@/lib/constants/geodes';
-import { getThumbnailPath, getStorageUrl } from '@/lib/constants/storagePaths';
+import {
+  getThumbnailPath,
+  getStorageUrl,
+  getThumbnailFilename,
+} from '@/lib/constants/storagePaths';
 import { gsap } from 'gsap';
-import { thumbnailNames } from './thumbnailMappings';
 import type { HatchResult as ComponentHatchResult } from './types/HatchTypes';
 import { createServiceLogger } from '@/lib/utils/logging/logger';
 import { Egg } from 'lucide-react';
@@ -22,39 +25,17 @@ interface HatchRouletteProps {
 }
 
 const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] => {
-  const subfolder = category === GeodeCategory.ULTRAMECH ? 'ULTRA' : (() => {
-    const map: Record<number, string> = {
-      [GeodeCategory.PETIT]: 'PETIT',
-      [GeodeCategory.ALTO]: 'ALTO',
-      [GeodeCategory.ANIMAL]: 'ANIMAL',
-      [GeodeCategory.ULTRAMECH]: 'ULTRAMECH',
-      [GeodeCategory.TANQUE]: 'TANK',
-    };
-    return map[category];
-  })();
-
-  const classMap: Record<number, string> = {
-    [AxieClass.AQUA]: 'AQUA',
-    [AxieClass.BIRD]: 'BIRD',
-    [AxieClass.BUG]: 'BUG',
-    [AxieClass.DUSK]: 'DUSK',
-    [AxieClass.MECH]: 'MECH',
-    [AxieClass.PLANT]: 'PLANT',
-    [AxieClass.REPTILE]: 'REPTILE',
-    [AxieClass.BEAST]: 'BEAST',
-    [AxieClass.DAWN]: 'DAWN',
-  };
-
-  const className = classMap[axieClass];
-  const key = `${subfolder}_${className}`;
-  const files = thumbnailNames[key];
-
-  if (!files) {
-    logger.warn('No hay thumbnails mapeados', { key });
-    return [];
+  const thumbnails: string[] = [];
+  // Each category/class combo has 7 miners (indices 0-6)
+  for (let i = 0; i < 7; i++) {
+    const filename = getThumbnailFilename(category, axieClass, i);
+    if (filename) {
+      thumbnails.push(getStorageUrl(getThumbnailPath(category, axieClass, filename)));
+    } else {
+      logger.warn('Missing thumbnail mapping', { category, axieClass, minerIndex: i });
+    }
   }
-
-  return files.map(f => getStorageUrl(getThumbnailPath(category, axieClass, f)));
+  return thumbnails;
 };
 
 interface MinerData {

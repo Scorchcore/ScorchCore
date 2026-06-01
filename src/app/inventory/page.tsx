@@ -40,7 +40,12 @@ import type { HatchResult } from "@/lib/contracts/interfaces/IGeodeHatcher";
 import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
 import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
-import { useInvalidateOnTx, useUserGeodes, useUserMiners } from "@/lib/queries";
+import {
+  useInvalidateOnTx,
+  useMinerVideoUrl,
+  useUserGeodes,
+  useUserMiners,
+} from "@/lib/queries";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 
 const logger = createServiceLogger("InventoryPage");
@@ -286,10 +291,15 @@ function MinerCard({
   onNavigate,
 }: {
   miner: CoreMinerNFT;
-  onOpenLightbox: (miner: CoreMinerNFT) => void;
+  onOpenLightbox: (miner: CoreMinerNFT, videoUrl: string) => void;
   onShowInfo: (msg: string) => void;
   onNavigate: (tokenId: string) => void;
 }) {
+  const { data: videoUrl = "" } = useMinerVideoUrl(
+    miner.category,
+    miner.minerType,
+    miner.minerIndex,
+  );
   const borderClass = miner.isMining
     ? "border-ethereal-cyan/35"
     : "border-cyan-100/12";
@@ -314,7 +324,7 @@ function MinerCard({
         className="relative mx-4 mt-4 flex h-52 w-[calc(100%-2rem)] cursor-pointer items-center justify-center overflow-hidden border border-cyan-100/8 bg-black/30 transition-colors hover:border-blue-400/28 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
         onClick={(e) => {
           e.stopPropagation();
-          onOpenLightbox(miner);
+          onOpenLightbox(miner, videoUrl);
         }}
       >
         <MinerVideoPlayer
@@ -873,22 +883,10 @@ export default function InventoryPage() {
                         <MinerCard
                           key={miner.tokenId.toString()}
                           miner={miner}
-                          onOpenLightbox={async (m) => {
-                            try {
-                              const { getLocalMinerVideo } = await import(
-                                "@/lib/utils/data/localMinerData"
-                              );
-                              const videoUrl = await getLocalMinerVideo(
-                                m.category,
-                                m.minerType,
-                                m.minerIndex,
-                              );
-                              setLightboxVideoUrl(videoUrl);
-                              setSelectedMiner(m);
-                              setLightboxOpen(true);
-                            } catch (err) {
-                              logger.error("Error loading miner video", err);
-                            }
+                          onOpenLightbox={(m, videoUrl) => {
+                            setLightboxVideoUrl(videoUrl);
+                            setSelectedMiner(m);
+                            setLightboxOpen(true);
                           }}
                           onShowInfo={showInfo}
                           onNavigate={(tokenId) =>

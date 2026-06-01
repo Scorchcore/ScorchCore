@@ -39,4 +39,9 @@ export const queryKeys = {
     mementos: (chainId: number, address: string) =>
       ["balances", chainId, "mementos", address] as const,
   },
+
+  minerVideoUrl: {
+    single: (category: number, minerType: number, minerIndex: number) =>
+      ["minerVideoUrl", category, minerType, minerIndex] as const,
+  },
 } as const;

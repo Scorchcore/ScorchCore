@@ -149,11 +149,25 @@ export function getGeodeStoragePath(
 }
 
 export function getThumbnailPath(
-  category: GeodeCategory,
+  _category: GeodeCategory,
   axieClass: AxieClass,
   filename: string,
 ): string {
-  return `CoreMiners/${SUPABASE_CATEGORY_MAP[category]}/${SUPABASE_CLASS_MAP[axieClass]}/${filename}`;
+  // Bucket CoreMiners-thumbnails is organized by class only (e.g. AQUA/, BEAST/)
+  return `CoreMiners-thumbnails/${SUPABASE_CLASS_MAP[axieClass]}/${filename}`;
+}
+
+// Resolves the thumbnail filename for a specific miner from MINER_VIDEO_NAMES.
+// Replaces .mp4 with .webp. Returns empty string if not mapped.
+export function getThumbnailFilename(
+  category: GeodeCategory,
+  axieClass: AxieClass,
+  minerIndex: number,
+): string {
+  const key = `${SUPABASE_CATEGORY_MAP[category]}_${SUPABASE_CLASS_MAP[axieClass]}`;
+  const files = MINER_VIDEO_NAMES[key];
+  if (!files || minerIndex < 0 || minerIndex >= files.length) return '';
+  return files[minerIndex].replace(/\.mp4$/i, '.webp');
 }
 
 // --- URL builder ---
