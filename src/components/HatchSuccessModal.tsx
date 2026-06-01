@@ -86,7 +86,6 @@ export function HatchSuccessModal({
             category={category}
             axieClass={axieClass}
             minerIndex={minerIndex}
-            ipfsUrl={minerVideoUrl}
             autoPlay={true}
             loop={true}
             muted={true}

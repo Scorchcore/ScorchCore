@@ -4,6 +4,8 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@/lib/hooks/user/useWallet";
 import { useUserData } from "@/lib/hooks/user/useUserData";
+import { CoreMinerVideo } from "@/components/CoreMinerVideo";
+import { GeodeCategory, AxieClass } from "@/lib/constants/geodes";
 import { useCycleManager, usefCoreBalance } from "@/lib/hooks";
 import { Loading, Toast, useToast } from "@/components/ui";
 import { MinerLockedIndicator } from "@/components/cycle";
@@ -56,11 +58,12 @@ interface DisplayMiner {
   name: string;
   type: string;
   category: number;
+  minerType: number;
+  minerIndex: number;
   power: number;
   status: string;
   efficiency: number;
   dailyOutput: string;
-  videoUrl: string;
 }
 
 // ─── Tab Button ───────────────────────────────────────────────────────────────
@@ -149,20 +152,16 @@ function MinerCard({
 
       {/* Video */}
       <div className="relative aspect-square border-b border-cyan-100/8 bg-black/30">
-        {miner.videoUrl ? (
-          <video
-            src={miner.videoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Gem className="h-16 w-16 text-cyan-50/12" />
-          </div>
-        )}
+        <CoreMinerVideo
+          category={miner.category as GeodeCategory}
+          axieClass={miner.minerType as AxieClass}
+          minerIndex={miner.minerIndex}
+          autoPlay
+          loop
+          muted
+          className="h-full w-full"
+          showFallback
+        />
         <MinerLockedIndicator minerId={BigInt(miner.id)} variant="overlay" />
       </div>
 
@@ -418,11 +417,12 @@ export default function DashboardPage() {
         name: miner.name,
         type: String(miner.metadata?.attributes?.find((a) => a.trait_type === "Type")?.value ?? "Unknown"),
         category: Number(miner.metadata?.attributes?.find((a) => a.trait_type === "Category")?.value ?? 0),
+        minerType: miner.minerType ?? 0,
+        minerIndex: miner.minerIndex ?? 0,
         power: basePower,
         status: isInCycle ? "Mining" : "Idle",
         efficiency,
         dailyOutput,
-        videoUrl: miner.videoUrl || "",
       };
     });
   }, [miners, activeCycles]);

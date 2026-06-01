@@ -661,16 +661,22 @@ export default function InventoryPage() {
       minerIndex,
     });
 
-    const { getLocalMinerName, getLocalMinerVideo } = await import(
+    const { getLocalMinerName } = await import(
       "@/lib/utils/data/localMinerData"
     );
     const { getMinerPower, getMinerAttribute } = await import(
       "@/lib/services/LocalMetadataService"
     );
+    const { getCoreMinerVideoFilename, getCoreMinerVideoPath, getStorageUrl } =
+      await import("@/lib/constants/storagePaths");
 
-    const [realName, realVideoUrl, realPower, realRarity] = await Promise.all([
+    const filename = getCoreMinerVideoFilename(category, minerType, minerIndex);
+    const realVideoUrl = filename
+      ? getStorageUrl(getCoreMinerVideoPath(category, minerType, filename))
+      : "";
+
+    const [realName, realPower, realRarity] = await Promise.all([
       getLocalMinerName(category, minerType, minerIndex),
-      getLocalMinerVideo(category, minerType, minerIndex),
       getMinerPower(category, minerType, minerIndex),
       getMinerAttribute(category, minerType, minerIndex, "Rarity"),
     ]);
