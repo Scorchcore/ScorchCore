@@ -553,17 +553,8 @@ body {
 }
 
 .forge-process-section {
-  min-height: 520vh;
+  min-height: 440vh;
   isolation: isolate;
-}
-
-.forge-process-stage {
-  opacity: 0;
-}
-
-.forge-process-intro,
-.forge-process-stage,
-.forge-process-mobile {
   background:
     radial-gradient(
       circle at 50% 40%,
@@ -572,6 +563,16 @@ body {
     ),
     radial-gradient(circle at 52% 72%, rgba(240, 106, 18, 0.1), transparent 36%),
     linear-gradient(180deg, #020607 0%, #030b0e 44%, #010203 100%);
+}
+
+.forge-process-stage {
+  opacity: 1;
+}
+
+.forge-process-intro,
+.forge-process-stage,
+.forge-process-mobile {
+  background: transparent;
 }
 
 .forge-process-stage::before,
@@ -734,6 +735,7 @@ body {
 }
 
 .forge-process-comparison {
+  margin-top: clamp(1.25rem, 2.4vh, 2rem);
   height: clamp(190px, 25vw, 310px);
   overflow: hidden;
   filter: drop-shadow(0 0 38px rgba(125, 249, 255, 0.14));
@@ -746,6 +748,25 @@ body {
 .forge-process-card {
   pointer-events: none;
   filter: drop-shadow(0 0 24px rgba(125, 249, 255, 0.18));
+}
+
+.forge-process-phase-copy {
+  bottom: clamp(3.5rem, 11vh, 7.5rem);
+  max-width: 22rem;
+  pointer-events: none;
+  opacity: 1;
+  font-size: clamp(0.8rem, 0.92vw, 0.94rem);
+  line-height: 1.55;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.92);
+  transform: translateY(0);
+}
+
+.forge-process-phase-copy-left {
+  right: calc(50% + min(21vw, 260px));
+}
+
+.forge-process-phase-copy-right {
+  left: calc(50% + min(21vw, 260px));
 }
 
 .forge-process-card-item {
@@ -775,6 +796,10 @@ body {
 @media (max-width: 767px) {
   .forge-process-section {
     min-height: auto;
+  }
+
+  .forge-process-comparison {
+    margin-top: 2rem;
   }
 }
 

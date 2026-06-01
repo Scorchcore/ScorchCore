@@ -29,28 +29,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       {/* Sidebar */}
       <aside
         className={clsx(
-          "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r border-orange-500/20 bg-black/95 shadow-[18px_0_42px_rgba(0,0,0,0.4)] transition-transform duration-300",
+          "fixed left-0 top-16 z-40 flex h-[calc(100dvh-4rem)] w-64 flex-col overflow-hidden border-r border-orange-500/20 bg-black/95 shadow-[18px_0_42px_rgba(0,0,0,0.4)] transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <nav className="flex h-full flex-col gap-3 p-4">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
+        <nav className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4 [scrollbar-color:rgba(125,249,255,0.35)_transparent] [scrollbar-width:thin]">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href;
 
-            return (
-              <ScorchNavLink
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                isActive={isActive}
-                variant="sidebar"
-                onClick={onClose}
-              />
-            );
-          })}
+              return (
+                <ScorchNavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  isActive={isActive}
+                  variant="sidebar"
+                  onClick={onClose}
+                />
+              );
+            })}
+          </div>
 
           {/* Stats Section */}
-          <div className="mt-auto space-y-2">
+          <div className="shrink-0 border-t border-orange-500/20 p-4">
             <div className="scorch-nav-panel p-4">
               <h4 className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/60">
                 [ Mis Estadísticas ]

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConnectWallet } from "@/components/wallet";
 import { PUBLIC_NAV_ITEMS } from "@/lib/constants/routes";
 import { useWallet } from "@/lib/hooks/user/useWallet";
@@ -31,6 +31,17 @@ export const Header: React.FC = () => {
   ];
   const dropdownLinks = appLinks.slice(4);
   const isMoreActive = dropdownLinks.some((link) => pathname === link.href);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <header className="sticky top-0 z-40 w-full bg-linear-to-b from-black/95 via-black/78 to-black/20 backdrop-blur-md supports-backdrop-filter:bg-black/70">
@@ -143,8 +154,8 @@ export const Header: React.FC = () => {
 
       {/* Mobile Menu - always available */}
       {isMobileMenuOpen && (
-        <div className="border-t border-orange-500/20 bg-black/95 lg:hidden">
-          <nav className="container mx-auto px-4 py-4">
+        <div className="fixed inset-x-0 top-20 z-50 h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-orange-500/20 bg-black/98 shadow-[0_24px_80px_rgba(0,0,0,0.62)] [scrollbar-color:rgba(125,249,255,0.35)_transparent] [scrollbar-width:thin] lg:hidden">
+          <nav className="container mx-auto px-4 py-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
             {/* Public Links */}
             <div className="space-y-2">
               <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/55">
