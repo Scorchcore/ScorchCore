@@ -169,7 +169,6 @@ export function HatchRoulette({
         animationRef.current = null;
       }
       hasAppliedRNG.current = false;
-      setSelectedIndex(null);
     };
   }, [isVisible]);
 
@@ -282,7 +281,7 @@ export function HatchRoulette({
         }, 1500);
       },
     });
-  }, [isConfirmed, loopUntilConfirm, onComplete, minerData, realMinerNames]);
+  }, [isConfirmed, loopUntilConfirm, onComplete, minerData, realMinerNames, selectedMinerIndex]);
 
   if (!isVisible) return null;
 
@@ -293,9 +292,9 @@ export function HatchRoulette({
 
       <div className="relative mx-4 w-full max-w-4xl overflow-hidden border border-magma-gold/28 bg-black/92 shadow-[0_32px_100px_rgba(0,0,0,0.80),0_0_56px_rgba(247,198,90,0.08)] backdrop-blur-xl">
         {/* Inner gradient */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-cyan-300/5" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/10 via-transparent to-cyan-300/5" />
         {/* Left accent */}
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/65 to-transparent" />
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/65 to-transparent" />
 
         {/* Header */}
         <div className="relative border-b border-cyan-100/10 px-8 py-6">
@@ -326,8 +325,8 @@ export function HatchRoulette({
           </div>
 
           {/* Edge fade masks */}
-          <div className="pointer-events-none absolute inset-y-6 left-8 z-10 w-28 bg-gradient-to-r from-black/95 to-transparent" />
-          <div className="pointer-events-none absolute inset-y-6 right-8 z-10 w-28 bg-gradient-to-l from-black/95 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-6 left-8 z-10 w-28 bg-linear-to-r from-black/95 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-6 right-8 z-10 w-28 bg-linear-to-l from-black/95 to-transparent" />
 
           {/* Scrolling track */}
           <div className="relative h-80 overflow-hidden border border-cyan-100/8 bg-black/38">

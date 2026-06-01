@@ -111,8 +111,8 @@ function StatCard({
 }) {
   return (
     <article className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md transition-all duration-200">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/6 via-transparent to-cyan-300/3 opacity-70 transition-opacity group-hover:opacity-100" />
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/6 via-transparent to-cyan-300/3 opacity-70 transition-opacity group-hover:opacity-100" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
       <div className="relative mb-3">
         <Icon className="h-5 w-5 text-magma-gold/65" />
       </div>
@@ -147,8 +147,8 @@ function MinerCard({
     <article
       className={`relative overflow-hidden border ${borderClass} bg-black/42 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md`}
     >
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${glowClass} opacity-70`} />
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/45 to-transparent" />
+      <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70`} />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
 
       {/* Video */}
       <div className="relative aspect-square border-b border-cyan-100/8 bg-black/30">
@@ -291,7 +291,7 @@ function StatsTab({
     <div className="space-y-6">
       {/* Miner selector */}
       <div className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md">
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/45 to-transparent" />
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
         <h3 className="alchemy-heading relative mb-4 text-xl">Select a Miner</h3>
         <div className="relative flex flex-wrap gap-2">
           {displayMiners.map((miner) => {
@@ -500,7 +500,7 @@ export default function DashboardPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(125,249,255,0.09),transparent_30%),radial-gradient(circle_at_16%_45%,rgba(240,106,18,0.09),transparent_28%),linear-gradient(180deg,#020607_0%,#030b0e_50%,#010203_100%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.68),transparent_16%,transparent_84%,rgba(0,0,0,0.68))]" />
 
-        <div className="relative z-[1] mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
+        <div className="relative z-1 mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
 
           {/* ── Hero ── */}
           <header className="mb-10">
@@ -509,8 +509,8 @@ export default function DashboardPage() {
 
               {/* Profile */}
               <div className="relative flex-1 overflow-hidden border border-cyan-100/12 bg-black/42 p-6 backdrop-blur-md shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/7 via-transparent to-cyan-300/3" />
-                <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/55 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/7 via-transparent to-cyan-300/3" />
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/55 to-transparent" />
                 <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
                   {/* Avatar */}
                   <div className="relative h-16 w-16 shrink-0 flex items-center justify-center border border-magma-gold/35 bg-orange-500/8">
@@ -547,8 +547,8 @@ export default function DashboardPage() {
 
               {/* Balance */}
               <div className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-6 backdrop-blur-md shadow-[0_18px_50px_rgba(0,0,0,0.28)] lg:w-72">
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/5 via-transparent to-blue-500/3" />
-                <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-ethereal-cyan/45 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-cyan-300/5 via-transparent to-blue-500/3" />
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-ethereal-cyan/45 to-transparent" />
                 <div className="relative">
                   <p className="alchemy-eyebrow mb-4 text-xs">Wallet Balance</p>
                   <p className="alchemy-heading text-4xl text-white mb-1">{balance || "0.00"}</p>
@@ -619,8 +619,8 @@ export default function DashboardPage() {
               {/* Cycles summary */}
               {activeCycles.length > 0 && (
                 <div className="relative overflow-hidden border border-magma-gold/28 bg-black/42 p-6 shadow-[0_0_36px_rgba(247,198,90,0.06)] backdrop-blur-md">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-cyan-300/4" />
-                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/65 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/10 via-transparent to-cyan-300/4" />
+                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/65 to-transparent" />
                   <div className="relative mb-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Clock className="h-5 w-5 text-magma-gold" />
@@ -657,8 +657,8 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* Forge */}
                 <article className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-7 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(0,0,0,0.42)]">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-cyan-300/5 opacity-70 transition-opacity group-hover:opacity-100" />
-                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/60 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/10 via-transparent to-cyan-300/5 opacity-70 transition-opacity group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/60 to-transparent" />
                   <div className="relative">
                     <Hammer className="mb-4 h-8 w-8 text-magma-gold" />
                     <h2 className="alchemy-heading mb-2 text-2xl">The Forge</h2>
@@ -684,8 +684,8 @@ export default function DashboardPage() {
 
                 {/* Mining */}
                 <article className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-7 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(0,0,0,0.42)]">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/8 via-transparent to-blue-500/5 opacity-70 transition-opacity group-hover:opacity-100" />
-                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-ethereal-cyan/50 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-cyan-300/8 via-transparent to-blue-500/5 opacity-70 transition-opacity group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-ethereal-cyan/50 to-transparent" />
                   <div className="relative">
                     <Pickaxe className="mb-4 h-8 w-8 text-ethereal-cyan" />
                     <h2 className="alchemy-heading mb-2 text-2xl">Mining</h2>
@@ -718,8 +718,8 @@ export default function DashboardPage() {
                   { icon: Backpack, title: "Inventory", desc: "Manage your Axies, CoreMiners, Geodes and assets", href: "/inventory", label: "View Inventory" },
                 ].map(({ icon: Icon, title, desc, href, label }) => (
                   <article key={title} className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5">
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/4 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-cyan-300/25 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-cyan-300/4 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-cyan-300/25 to-transparent" />
                     <div className="relative">
                       <Icon className="mb-3 h-6 w-6 text-ethereal-cyan/65" />
                       <h3 className="alchemy-heading mb-2 text-lg">{title}</h3>
@@ -781,7 +781,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                   {displayAxies.map((axie) => (
                     <article key={axie.id} className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md">
-                      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/45 to-transparent" />
+                      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
                       <div className="relative mb-4 flex h-32 items-center justify-center border border-cyan-100/8 bg-black/30 text-5xl">
                         {axie.image}
                       </div>

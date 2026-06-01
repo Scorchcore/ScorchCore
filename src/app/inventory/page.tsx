@@ -13,7 +13,6 @@ import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { useInventoryFacade } from "@/lib/hooks/facades/useInventoryFacade";
 import { useForgeFacade } from "@/lib/hooks/facades/useForgeFacade";
-import { useMetadataService } from "@/lib/hooks/services/useMetadataService";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import { useNFTFacade } from "@/lib/hooks/facades/useNFTFacade";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
@@ -149,9 +148,9 @@ function GeodeCard({
       className={`group relative overflow-hidden border ${borderClass} bg-black/42 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)]`}
     >
       <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${glowClass} opacity-70 transition-opacity group-hover:opacity-100`}
+        className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70 transition-opacity group-hover:opacity-100`}
       />
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/55 to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/55 to-transparent" />
 
       {/* Video preview */}
       <button
@@ -302,9 +301,9 @@ function MinerCard({
       onClick={() => onNavigate(miner.tokenId.toString())}
     >
       <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${glowClass} opacity-70 transition-opacity group-hover:opacity-100`}
+        className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70 transition-opacity group-hover:opacity-100`}
       />
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-ethereal-cyan/45 to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-ethereal-cyan/45 to-transparent" />
 
       {/* Video preview */}
       <button
@@ -426,7 +425,6 @@ export default function InventoryPage() {
   const router = useRouter();
   const { isConnected } = useWallet();
   const { address } = useAccount();
-  const metadataService = useMetadataService();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
   const { contractManager } = useContractManager();
   const inventoryFacade = useInventoryFacade();
@@ -733,7 +731,7 @@ export default function InventoryPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_10%,rgba(125,249,255,0.10),transparent_30%),radial-gradient(circle_at_18%_42%,rgba(240,106,18,0.10),transparent_28%),linear-gradient(180deg,#020607_0%,#030b0e_50%,#010203_100%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.72),transparent_18%,transparent_82%,rgba(0,0,0,0.72))]" />
 
-        <div className="relative z-[1] mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
+        <div className="relative z-1 mx-auto w-full max-w-6xl px-4 pb-24 md:px-8">
 
           {/* ── Hero ── */}
           <header className="mb-10">

@@ -15,19 +15,24 @@ interface ModalProps {
   closeOnOverlayClick?: boolean;
 }
 
-let openModalCount = 0;
-let previousBodyOverflow = "";
-let previousBodyPaddingRight = "";
+interface ScrollLockState {
+  count: number;
+  previousOverflow: string;
+  previousPaddingRight: string;
+}
+
+const scrollLockRef: ScrollLockState = {
+  count: 0,
+  previousOverflow: "",
+  previousPaddingRight: "",
+};
 
 function lockBodyScroll() {
-  openModalCount += 1;
+  scrollLockRef.count += 1;
+  if (scrollLockRef.count > 1) return;
 
-  if (openModalCount > 1) {
-    return;
-  }
-
-  previousBodyOverflow = document.body.style.overflow;
-  previousBodyPaddingRight = document.body.style.paddingRight;
+  scrollLockRef.previousOverflow = document.body.style.overflow;
+  scrollLockRef.previousPaddingRight = document.body.style.paddingRight;
 
   const scrollbarWidth =
     window.innerWidth - document.documentElement.clientWidth;
@@ -39,16 +44,13 @@ function lockBodyScroll() {
 }
 
 function unlockBodyScroll() {
-  openModalCount = Math.max(0, openModalCount - 1);
+  scrollLockRef.count = Math.max(0, scrollLockRef.count - 1);
+  if (scrollLockRef.count > 0) return;
 
-  if (openModalCount > 0) {
-    return;
-  }
-
-  document.body.style.overflow = previousBodyOverflow;
-  document.body.style.paddingRight = previousBodyPaddingRight;
-  previousBodyOverflow = "";
-  previousBodyPaddingRight = "";
+  document.body.style.overflow = scrollLockRef.previousOverflow;
+  document.body.style.paddingRight = scrollLockRef.previousPaddingRight;
+  scrollLockRef.previousOverflow = "";
+  scrollLockRef.previousPaddingRight = "";
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -95,13 +97,20 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] overflow-y-auto">
-      <button
-        type="button"
-        aria-label="Close modal overlay"
-        className="fixed inset-0 cursor-default bg-black/80 backdrop-blur-md transition-opacity"
-        onClick={closeOnOverlayClick ? onClose : undefined}
-      />
+    <div className="fixed inset-0 z-1000 overflow-y-auto">
+      {closeOnOverlayClick ? (
+        <button
+          type="button"
+          aria-label="Close modal overlay"
+          className="fixed inset-0 cursor-default bg-black/80 backdrop-blur-md transition-opacity"
+          onClick={onClose}
+        />
+      ) : (
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 cursor-default bg-black/80 backdrop-blur-md"
+        />
+      )}
 
       <div className="relative flex min-h-full items-center justify-center p-4">
         <div
@@ -113,8 +122,8 @@ export const Modal: React.FC<ModalProps> = ({
             sizes[size],
           )}
         >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/12 via-transparent to-cyan-300/8" />
-          <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/12 via-transparent to-cyan-300/8" />
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/70 to-transparent" />
 
           {(title || showCloseButton) && (
             <div className="relative flex items-center justify-between border-b border-cyan-100/12 px-5 py-4 md:px-6">

@@ -201,7 +201,7 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
             : "bg-[radial-gradient(circle_at_50%_0%,rgba(247,198,90,0.16),transparent_58%)]"
         }`}
       />
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/70 to-transparent" />
 
       <div className="relative">
         <div className="mx-auto mb-5 grid h-24 w-24 place-items-center border border-cyan-100/14 bg-black/55 shadow-[0_0_32px_rgba(125,249,255,0.1)]">
@@ -273,7 +273,7 @@ function ValuesGrid() {
               key={value.title}
               className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.32)] backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-ethereal-cyan/45 md:p-6"
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/10 via-transparent to-orange-500/10 opacity-60 transition-opacity group-hover:opacity-100" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-cyan-300/10 via-transparent to-orange-500/10 opacity-60 transition-opacity group-hover:opacity-100" />
               <div className="relative flex gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-cyan-100/14 bg-black/50 shadow-[0_0_22px_rgba(125,249,255,0.08)]">
                   <Icon className="h-5 w-5 text-magma-gold" />
@@ -360,20 +360,22 @@ function CommunityCta() {
           </p>
 
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <span
-              aria-disabled="true"
-              className="inline-flex min-h-11 cursor-default items-center gap-2 border border-cyan-100/12 bg-black/42 px-5 py-3 text-xs font-semibold uppercase text-cyan-50/36"
+            <button
+              type="button"
+              disabled
+              className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 border border-cyan-100/12 bg-black/42 px-5 py-3 text-xs font-semibold uppercase text-cyan-50/36"
             >
               <MessagesSquare className="h-4 w-4" />
               Discord
-            </span>
-            <span
-              aria-disabled="true"
-              className="inline-flex min-h-11 cursor-default items-center gap-2 border border-cyan-100/12 bg-black/42 px-5 py-3 text-xs font-semibold uppercase text-cyan-50/36"
+            </button>
+            <button
+              type="button"
+              disabled
+              className="inline-flex min-h-11 cursor-not-allowed items-center gap-2 border border-cyan-100/12 bg-black/42 px-5 py-3 text-xs font-semibold uppercase text-cyan-50/36"
             >
               <Sparkles className="h-4 w-4" />
               Twitter / X
-            </span>
+            </button>
             <a
               href="https://github.com/DNO8/ScorchCoreWeb"
               target="_blank"
@@ -398,7 +400,7 @@ export default function TeamPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(125,249,255,0.16),transparent_30%),radial-gradient(circle_at_22%_32%,rgba(240,106,18,0.14),transparent_28%),radial-gradient(circle_at_78%_42%,rgba(247,198,90,0.1),transparent_28%),linear-gradient(180deg,#020607_0%,#030b0e_48%,#010203_100%)]" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.78),transparent_20%,transparent_80%,rgba(0,0,0,0.78)),radial-gradient(ellipse_at_center,transparent_0_42%,rgba(0,0,0,0.6)_100%)]" />
 
-        <div className="relative z-[1] mx-auto w-full max-w-6xl px-4 pb-20 md:px-8">
+        <div className="relative z-1 mx-auto w-full max-w-6xl px-4 pb-20 md:px-8">
           <TeamHero />
           <TeamGrid />
           <ValuesGrid />

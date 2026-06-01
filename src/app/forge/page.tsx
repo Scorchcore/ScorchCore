@@ -107,7 +107,7 @@ export default function ForgePage() {
   const [isForging, setIsForging] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [forgedGeodeId, setForgedGeodeId] = useState<bigint | null>(null);
-  const [, setForgeFailed] = useState(false);
+  const [forgeFailed, setForgeFailed] = useState(false);
   const [forgeAnimationStage, setForgeAnimationStage] = useState<
     "stage1" | "stage2" | "stage3" | "stage4" | "success" | "fail"
   >("stage1");
@@ -435,6 +435,8 @@ export default function ForgePage() {
       const errorMessage =
         err instanceof Error ? err.message : "Error al forjar geoda";
       logger.error("Error en forja", err, { selectedCategory, selectedClass });
+      setForgeFailed(true);
+      setForgeAnimationStage("fail");
       showError(errorMessage);
     } finally {
       setIsForging(false);
@@ -454,7 +456,7 @@ export default function ForgePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(125,249,255,0.15),transparent_30%),radial-gradient(circle_at_18%_34%,rgba(240,106,18,0.16),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(247,198,90,0.1),transparent_24%),linear-gradient(180deg,#020607_0%,#030b0e_48%,#010203_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.78),transparent_20%,transparent_80%,rgba(0,0,0,0.78)),radial-gradient(ellipse_at_center,transparent_0_42%,rgba(0,0,0,0.62)_100%)]" />
 
-      <div className="relative z-[1] mx-auto w-full max-w-7xl px-4 pb-20 md:px-8">
+      <div className="relative z-1 mx-auto w-full max-w-7xl px-4 pb-20 md:px-8">
         {/* Header */}
         <header className="mb-10">
           <Link
@@ -502,7 +504,7 @@ export default function ForgePage() {
               variant="glass"
               className="relative overflow-hidden rounded-none border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
             >
-              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/70 to-transparent" />
               <h2 className="alchemy-heading mb-4 flex items-center gap-3 text-2xl leading-tight">
                 <Gem className="h-5 w-5 text-ethereal-cyan" />
                 1. Categoría de Geoda
@@ -588,7 +590,7 @@ export default function ForgePage() {
               variant="glass"
               className="relative overflow-hidden rounded-none border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
             >
-              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-ethereal-cyan/55 to-transparent" />
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-ethereal-cyan/55 to-transparent" />
               <h2 className="alchemy-heading mb-4 flex items-center gap-3 text-2xl leading-tight">
                 <Flame className="h-5 w-5 text-magma-orange" />
                 2. Clase de Axie
@@ -642,7 +644,7 @@ export default function ForgePage() {
               variant="glass"
               className="relative overflow-hidden rounded-none border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
             >
-              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/70 to-transparent" />
               <h2 className="alchemy-heading mb-4 flex items-center gap-3 text-2xl leading-tight">
                 <Coins className="h-5 w-5 text-ethereal-cyan" />
                 3. Mementos Extra (Opcional)
@@ -707,7 +709,7 @@ export default function ForgePage() {
               variant="gradient"
               className="relative overflow-hidden rounded-none border-magma-gold/28 bg-black/42 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.42)] backdrop-blur-md md:p-6"
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/14 via-transparent to-cyan-300/8" />
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-orange-500/14 via-transparent to-cyan-300/8" />
               <div className="relative">
                 <h2 className="alchemy-heading mb-4 flex items-center gap-3 text-2xl leading-tight">
                   <Hammer className="h-5 w-5 text-magma-orange" />
@@ -825,7 +827,7 @@ export default function ForgePage() {
                   </div>
                   <div className="h-2 w-full bg-black/55">
                     <div
-                      className="h-2 bg-gradient-to-r from-magma-gold to-magma-orange transition-all"
+                      className="h-2 bg-linear-to-r from-magma-gold to-magma-orange transition-all"
                       style={{ width: `${currentFailureChance}%` }}
                     />
                   </div>

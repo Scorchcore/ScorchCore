@@ -63,11 +63,12 @@ const primaryLinks: readonly FooterPrimaryLink[] = [
 ] as const;
 
 const socialLinks: readonly FooterSocialLink[] = [
-  { label: "X", href: "https://x.com/ScorchCoreLatam" },
+  { label: "X", href: "https://x.com/ScorchCoreLatam", disabled: true },
   {
     label: "Instagram",
     href: "https://www.instagram.com/prospectorzero",
     icon: Instagram,
+    disabled: true,
   },
 ] as const;
 
@@ -180,7 +181,7 @@ export const Footer: React.FC<FooterProps> = ({
         />
       ))}
 
-      <div className="scorch-footer-frame relative z-[1] mx-auto w-[min(1120px,calc(100%-2rem))] px-4 py-8 md:px-8 md:py-10">
+      <div className="scorch-footer-frame relative z-1 mx-auto w-[min(1120px,calc(100%-2rem))] px-4 py-8 md:px-8 md:py-10">
         <div className="grid gap-3 md:grid-cols-4">
           {primaryLinks.map((item) => (
             <FooterLink key={item.label} item={item} />
