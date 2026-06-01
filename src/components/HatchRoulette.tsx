@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import { thumbnailNames } from './thumbnailMappings';
 import type { HatchResult as ComponentHatchResult } from './types/HatchTypes';
 import { createServiceLogger } from '@/lib/utils/logging/logger';
+import { Egg } from 'lucide-react';
 
 const logger = createServiceLogger('HatchRoulette');
 
@@ -16,17 +17,16 @@ interface HatchRouletteProps {
   onComplete: (result: ComponentHatchResult) => void;
   loopUntilConfirm?: boolean;
   isConfirmed?: boolean;
-  selectedMinerIndex?: number; // Índice REAL del contrato
+  selectedMinerIndex?: number;
 }
 
-// Obtener nombres de thumbnails según tipo de geoda
 const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] => {
   const categoryMap: Record<number, string> = {
     [GeodeCategory.PETIT]: 'PETIT',
     [GeodeCategory.ALTO]: 'ALTO',
     [GeodeCategory.ANIMAL]: 'ANIMAL',
     [GeodeCategory.ULTRAMECH]: 'ULTRAMECH',
-    [GeodeCategory.TANQUE]: 'TANK'
+    [GeodeCategory.TANQUE]: 'TANK',
   };
 
   const classMap: Record<number, string> = {
@@ -38,27 +38,17 @@ const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] 
     [AxieClass.PLANT]: 'PLANT',
     [AxieClass.REPTILE]: 'REPTILE',
     [AxieClass.BEAST]: 'BEAST',
-    [AxieClass.DAWN]: 'DAWN'
+    [AxieClass.DAWN]: 'DAWN',
   };
 
   const categoryFolder = categoryMap[category];
-  // Para ULTRAMECH, las subcarpetas usan "ULTRA" en lugar de "ULTRAMECH"
   const subfolder = category === GeodeCategory.ULTRAMECH ? 'ULTRA' : categoryFolder;
-  
-  // NORMALIZADO: Todas las carpetas usan snake_case (guión bajo)
   const className = classMap[axieClass];
   const classFolder = `${subfolder}_${className}`;
-  
   const basePath = `/assets/miners-thumbnails/${categoryFolder}/${classFolder}`;
-
-  // Usar el mapping importado desde thumbnailMappings.ts
-  // El mapping contiene todos los thumbnails para PETIT, ALTO, ANIMAL, ULTRAMECH y TANK
-  // Para ULTRAMECH, las claves en el mapping usan "ULTRA" no "ULTRAMECH"
   const key = `${subfolder}_${className}`;
-  
-  // Si no hay thumbnails mapeados, retornar array vacío
   const files = thumbnailNames[key];
-  
+
   if (!files) {
     logger.warn('No hay thumbnails mapeados', { key });
     return [];
@@ -67,7 +57,6 @@ const getThumbnails = (category: GeodeCategory, axieClass: AxieClass): string[] 
   return files.map(f => `${basePath}/${f}`);
 };
 
-// Datos de mineros según manual de forja
 interface MinerData {
   name: string;
   rarity: 'common' | 'rare' | 'very-rare' | 'epic' | 'legendary';
@@ -75,19 +64,17 @@ interface MinerData {
   power: number;
 }
 
-// Mapeo de probabilidades por categoría (patrón genérico)
-// Los nombres vienen de los thumbnails (metadata)
 const getMinerData = (category: GeodeCategory): MinerData[] => {
   switch (category) {
     case GeodeCategory.PETIT:
       return [
-        { name: '', rarity: 'common', probability: 20, power: 50 },      // Índice 0: Común (gris)
-        { name: '', rarity: 'common', probability: 20, power: 60 },      // Índice 1: Común (gris)
-        { name: '', rarity: 'rare', probability: 18, power: 70 },        // Índice 2: Raro (azul claro)
-        { name: '', rarity: 'rare', probability: 16, power: 80 },        // Índice 3: Raro (azul claro)
-        { name: '', rarity: 'very-rare', probability: 13, power: 90 },   // Índice 4: Muy Raro (verde)
-        { name: '', rarity: 'very-rare', probability: 12, power: 100 },  // Índice 5: Muy Raro (verde)
-        { name: '', rarity: 'epic', probability: 1, power: 500 }         // Índice 6: Épico (rojo)
+        { name: '', rarity: 'common', probability: 20, power: 50 },
+        { name: '', rarity: 'common', probability: 20, power: 60 },
+        { name: '', rarity: 'rare', probability: 18, power: 70 },
+        { name: '', rarity: 'rare', probability: 16, power: 80 },
+        { name: '', rarity: 'very-rare', probability: 13, power: 90 },
+        { name: '', rarity: 'very-rare', probability: 12, power: 100 },
+        { name: '', rarity: 'epic', probability: 1, power: 500 },
       ];
     case GeodeCategory.ALTO:
       return [
@@ -97,7 +84,7 @@ const getMinerData = (category: GeodeCategory): MinerData[] => {
         { name: '', rarity: 'common', probability: 16, power: 130 },
         { name: '', rarity: 'rare', probability: 13, power: 140 },
         { name: '', rarity: 'rare', probability: 12, power: 150 },
-        { name: '', rarity: 'epic', probability: 1, power: 750 }
+        { name: '', rarity: 'epic', probability: 1, power: 750 },
       ];
     case GeodeCategory.ANIMAL:
     case GeodeCategory.ULTRAMECH:
@@ -108,7 +95,7 @@ const getMinerData = (category: GeodeCategory): MinerData[] => {
         { name: '', rarity: 'rare', probability: 16, power: 180 },
         { name: '', rarity: 'rare', probability: 13, power: 200 },
         { name: '', rarity: 'rare', probability: 12, power: 220 },
-        { name: '', rarity: 'epic', probability: 1, power: 1000 }
+        { name: '', rarity: 'epic', probability: 1, power: 1000 },
       ];
     case GeodeCategory.TANQUE:
       return [
@@ -118,7 +105,7 @@ const getMinerData = (category: GeodeCategory): MinerData[] => {
         { name: '', rarity: 'rare', probability: 16, power: 210 },
         { name: '', rarity: 'rare', probability: 13, power: 230 },
         { name: '', rarity: 'rare', probability: 12, power: 250 },
-        { name: '', rarity: 'legendary', probability: 1, power: 1500 }
+        { name: '', rarity: 'legendary', probability: 1, power: 1500 },
       ];
     default:
       return [
@@ -128,52 +115,53 @@ const getMinerData = (category: GeodeCategory): MinerData[] => {
         { name: '', rarity: 'common', probability: 16, power: 80 },
         { name: '', rarity: 'rare', probability: 13, power: 90 },
         { name: '', rarity: 'rare', probability: 12, power: 100 },
-        { name: '', rarity: 'epic', probability: 1, power: 500 }
+        { name: '', rarity: 'epic', probability: 1, power: 500 },
       ];
   }
 };
 
-// Colores por rareza (solo visual para ruleta)
-const getRarityColor = (rarity: string): string => {
-  const colors: Record<string, string> = {
-    common: 'bg-gray-500',           // Gris para común
-    rare: 'bg-blue-400',             // Azul claro para raro
-    'very-rare': 'bg-green-500',     // Verde para muy raro
-    epic: 'bg-red-500',              // Rojo para épico
-    legendary: 'bg-yellow-500'       // Amarillo para legendario
+// Rarity → brand color bar
+const getRarityBarClass = (rarity: string): string => {
+  const classes: Record<string, string> = {
+    common: 'bg-cyan-900/55',
+    rare: 'bg-ethereal-cyan/45',
+    'very-rare': 'bg-emerald-400/45',
+    epic: 'bg-magma-orange/55',
+    legendary: 'bg-magma-gold/65',
   };
-  
-  return colors[rarity] || 'bg-gray-500';
+  return classes[rarity] || 'bg-cyan-900/55';
 };
 
-
-export function HatchRoulette({ category, axieClass, isVisible, onComplete, loopUntilConfirm = false, isConfirmed = false, selectedMinerIndex }: HatchRouletteProps) {
+export function HatchRoulette({
+  category,
+  axieClass,
+  isVisible,
+  onComplete,
+  loopUntilConfirm = false,
+  isConfirmed = false,
+  selectedMinerIndex,
+}: HatchRouletteProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<gsap.core.Tween | null>(null);
-  const hasAppliedRNG = useRef<boolean>(false); // Para evitar doble ejecución del RNG
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null); // Thumbnail seleccionado
+  const hasAppliedRNG = useRef<boolean>(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const thumbnails = getThumbnails(category, axieClass);
   const minerData = getMinerData(category);
-  
-  // Extraer nombres reales de los thumbnails (sin -thumbnail.webp o .png)
+
   const realMinerNames = thumbnails.map(path => {
     const fileName = path.split('/').pop() || '';
-    // Quitar -thumbnail.webp, .png, .webp (case insensitive)
-    // MANTENER guiones bajos (snake_case)
     return fileName
-      .replace(/-thumbnail\.webp$/i, '') // Case insensitive -thumbnail.webp
-      .replace(/\.png$/i, '') // Quitar .png
-      .replace(/\.webp$/i, ''); // Quitar .webp
+      .replace(/-thumbnail\.webp$/i, '')
+      .replace(/\.png$/i, '')
+      .replace(/\.webp$/i, '');
   });
 
   useEffect(() => {
     logger.debug('Componente montado');
-    
     if (isVisible) {
       hasAppliedRNG.current = false;
       setSelectedIndex(null);
     }
-    
     return () => {
       logger.debug('Componente desmontando - limpiando animación GSAP');
       if (animationRef.current) {
@@ -186,40 +174,29 @@ export function HatchRoulette({ category, axieClass, isVisible, onComplete, loop
   }, [isVisible]);
 
   useEffect(() => {
-    if (!isVisible || !containerRef.current) {
-      logger.debug('No visible o sin ref - omitiendo inicio de animación');
-      return;
-    }
-    if (animationRef.current) {
-      logger.debug('Animación ya existe - evitando duplicación');
-      return;
-    }
+    if (!isVisible || !containerRef.current) return;
+    if (animationRef.current) return;
 
     logger.info('Iniciando animación placeholder infinita', { thumbnailCount: thumbnails.length });
-    
-    // Animar continuamente hacia la izquierda
-    // Con 7 thumbnails de 208px cada uno = 1456px por ciclo completo
     const cycleDistance = thumbnails.length * 208;
-    
+
     animationRef.current = gsap.to(containerRef.current, {
-      x: -cycleDistance, // mover 1 ciclo completo
-      duration: 2.5, // 2.5 segundos por ciclo 
-      ease: 'none', // velocidad constante
-      repeat: -1, // repetir infinitamente
+      x: -cycleDistance,
+      duration: 2.5,
+      ease: 'none',
+      repeat: -1,
       modifiers: {
         x: (x: string) => {
-          // Wrap seamless: resetear a 0 cuando completa un ciclo
           const numX = parseFloat(x);
           return `${numX % -cycleDistance}px`;
-        }
+        },
       },
       onRepeat: () => {
         logger.debug('Ciclo de animación completado');
-      }
+      },
     });
-    
-    logger.debug('Animación GSAP creada exitosamente');
 
+    logger.debug('Animación GSAP creada exitosamente');
   }, [isVisible, thumbnails.length]);
 
   useEffect(() => {
@@ -229,159 +206,182 @@ export function HatchRoulette({ category, axieClass, isVisible, onComplete, loop
 
     logger.info('Contrato confirmado - determinando miner seleccionado');
     hasAppliedRNG.current = true;
-    
-    // Detener animación placeholder
+
     animationRef.current.kill();
     animationRef.current = null;
 
-    // ✅ Usar índice REAL del contrato si está disponible
-    let selectedIndex: number;
-    
+    let chosenIndex: number;
     if (selectedMinerIndex !== undefined && selectedMinerIndex !== null) {
-      // Usar el índice que vino del contrato (convertir a number por si viene como BigInt)
-      selectedIndex = Number(selectedMinerIndex);
-      logger.info('Usando minerIndex REAL del contrato', { selectedIndex });
+      chosenIndex = Number(selectedMinerIndex);
+      logger.info('Usando minerIndex REAL del contrato', { chosenIndex });
     } else {
-      // Fallback: RNG frontend (solo para testing sin contrato)
       const random = Math.random() * 100;
       let cumulative = 0;
-      selectedIndex = 0;
-      
+      chosenIndex = 0;
       for (let i = 0; i < minerData.length; i++) {
         cumulative += minerData[i].probability;
         if (random < cumulative) {
-          selectedIndex = i;
+          chosenIndex = i;
           break;
         }
       }
-      logger.warn('Usando RNG frontend (fallback) - no hay selectedMinerIndex del contrato', { selectedIndex });
+      logger.warn('Usando RNG frontend (fallback)', { chosenIndex });
     }
-    
-    const selectedMiner = minerData[selectedIndex];
-    const realMinerName = realMinerNames[selectedIndex] || selectedMiner.name;
+
+    const selectedMiner = minerData[chosenIndex];
+    const realMinerName = realMinerNames[chosenIndex] || selectedMiner.name;
+
     logger.info('Miner seleccionado para animación', {
       name: realMinerName,
       rarity: selectedMiner.rarity,
       power: selectedMiner.power,
-      index: selectedIndex,
-      source: selectedMinerIndex !== undefined ? 'contract' : 'frontend-rng'
+      index: chosenIndex,
+      source: selectedMinerIndex !== undefined ? 'contract' : 'frontend-rng',
     });
 
-    // Calcular posición final centrada
-    const thumbnailWidth = 192; // w-48
-    const gap = 16; // space-x-4
-    const containerPadding = 16; // p-4
-    const thumbnailTotalWidth = thumbnailWidth + gap; // 208px
-    const cycleDistance = minerData.length * thumbnailTotalWidth;
-    
-    // Obtener el centro del contenedor
+    const thumbnailWidth = 192;
+    const gap = 16;
+    const containerPadding = 16;
+    const thumbnailTotalWidth = thumbnailWidth + gap;
     const rouletteContainer = containerRef.current.parentElement;
     if (!rouletteContainer) return;
+
     const containerCenter = rouletteContainer.getBoundingClientRect().width / 2;
-    
-    // Calcular la posición absoluta del thumbnail seleccionado en el ciclo 20
-    // Ciclo 20: 20 vueltas completas + el índice seleccionado
     const targetCycle = 20;
-    const thumbnailAbsoluteIndex = (targetCycle * minerData.length) + selectedIndex;
-    
-    // Posición del borde izquierdo del thumbnail
-    const thumbnailLeftPosition = containerPadding + (thumbnailAbsoluteIndex * thumbnailTotalWidth);
-    
-    // Posición del centro del thumbnail
-    const thumbnailCenterPosition = thumbnailLeftPosition + (thumbnailWidth / 2);
-    
-    // Para centrar: mover el contenedor de forma que el centro del thumbnail esté en el centro del viewport
+    const thumbnailAbsoluteIndex = targetCycle * minerData.length + chosenIndex;
+    const thumbnailLeftPosition = containerPadding + thumbnailAbsoluteIndex * thumbnailTotalWidth;
+    const thumbnailCenterPosition = thumbnailLeftPosition + thumbnailWidth / 2;
     const finalPosition = thumbnailCenterPosition - containerCenter;
-    
-    logger.debug('Cálculo de posición final', {
-      selectedIndex,
-      targetCycle,
-      thumbnailAbsoluteIndex,
-      finalPosition
-    });
-    
-    // ✅ Actualizar estado React ANTES de animación para sincronizar resaltado visual
-    setSelectedIndex(selectedIndex);
-    
-    // Animación de desaceleración: empieza rápido (1s) y desacelera gradualmente
+
+    logger.debug('Cálculo de posición final', { chosenIndex, targetCycle, thumbnailAbsoluteIndex, finalPosition });
+
+    setSelectedIndex(chosenIndex);
+
     animationRef.current = gsap.to(containerRef.current, {
       x: -finalPosition,
-      duration: 5, // 5 segundos total de desaceleración
+      duration: 5,
       ease: 'power4.out',
       onComplete: () => {
         logger.info('Animación de desaceleración completada');
-        setSelectedIndex(selectedIndex);
-        
+        setSelectedIndex(chosenIndex);
+
         setTimeout(() => {
           onComplete({
-            id: BigInt(selectedIndex),
-            minerId: BigInt(selectedIndex),
+            id: BigInt(chosenIndex),
+            minerId: BigInt(chosenIndex),
             name: realMinerName,
             rarity: selectedMiner.rarity,
             power: selectedMiner.power,
             efficiency: 100,
             category,
-            minerType: axieClass, // AxieClass es el minerType
-            minerIndex: selectedIndex,
+            minerType: axieClass,
+            minerIndex: chosenIndex,
             axieClass,
             videoPath: '',
           });
         }, 1500);
-      }
+      },
     });
-
   }, [isConfirmed, loopUntilConfirm, onComplete, minerData, realMinerNames]);
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-xl p-8 max-w-4xl w-full mx-4">
-        <h2 className="text-2xl font-bold text-center mb-6 text-white">
-          🐣 Eclosionando Geoda...
-        </h2>
-        
-        {/* Ruleta - Placeholder infinito */}
-        <div className="relative overflow-hidden rounded-lg bg-gray-800 p-4 h-80">
-          <div
-            ref={containerRef}
-            className="flex space-x-4"
-            style={{
-              willChange: 'transform'
-            }}
-          >
-            {/* Repetir thumbnails 100 veces = suficiente para placeholder */}
-            {Array.from({ length: 100 }).map((_, copyIndex) => (
-              thumbnails.map((thumbPath, thumbIndex) => {
-                const isSelected = selectedIndex === thumbIndex && copyIndex === 20; // Solo resaltar en ciclo 20 (donde cae)
-                return (
-                  <div
-                    key={`${copyIndex}-${thumbIndex}`}
-                    className={`shrink-0 w-48 flex flex-col transition-all duration-500 ${
-                      isSelected ? 'scale-110 z-30' : ''
-                    }`}
-                  >
-                    <div className={`h-64 rounded-t-lg overflow-hidden bg-gray-700 ${
-                      isSelected ? 'ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.8)] animate-pulse' : ''
-                    }`}>
-                      <img
-                        src={thumbPath}
-                        alt={`Miner ${thumbIndex}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    {/* Barra de rareza */}
-                    <div className={`h-2 rounded-b-lg ${getRarityColor(minerData[thumbIndex % minerData.length]?.rarity || 'common')}`}></div>
-                  </div>
-                );
-              })
-            ))}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/92 backdrop-blur-sm">
+      {/* Ambient glow */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(247,198,90,0.06),transparent_55%),radial-gradient(circle_at_50%_50%,rgba(125,249,255,0.04),transparent_70%)]" />
+
+      <div className="relative mx-4 w-full max-w-4xl overflow-hidden border border-magma-gold/28 bg-black/92 shadow-[0_32px_100px_rgba(0,0,0,0.80),0_0_56px_rgba(247,198,90,0.08)] backdrop-blur-xl">
+        {/* Inner gradient */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-cyan-300/5" />
+        {/* Left accent */}
+        <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/65 to-transparent" />
+
+        {/* Header */}
+        <div className="relative border-b border-cyan-100/10 px-8 py-6">
+          <div className="flex items-center justify-center gap-3">
+            <Egg className="h-5 w-5 text-magma-gold" />
+            <h2 className="alchemy-heading text-2xl">Hatching Geode</h2>
           </div>
         </div>
-        
-        <div className="text-center mt-6">
-          <p className="text-gray-400">Esperando confirmación...</p>
+
+        {/* Roulette */}
+        <div className="relative px-8 py-6">
+          {/* Center selection indicator — siblings of overflow container */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-6 left-1/2 z-10 -translate-x-px border-l border-dashed border-magma-gold/35"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-6 z-10 -translate-x-1/2 text-[10px] leading-none text-magma-gold"
+          >
+            ▼
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-[10px] leading-none text-magma-gold"
+          >
+            ▲
+          </div>
+
+          {/* Edge fade masks */}
+          <div className="pointer-events-none absolute inset-y-6 left-8 z-10 w-28 bg-gradient-to-r from-black/95 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-6 right-8 z-10 w-28 bg-gradient-to-l from-black/95 to-transparent" />
+
+          {/* Scrolling track */}
+          <div className="relative h-80 overflow-hidden border border-cyan-100/8 bg-black/38">
+            <div
+              ref={containerRef}
+              className="flex space-x-4 p-4"
+              style={{ willChange: 'transform' }}
+            >
+              {Array.from({ length: 100 }).map((_, copyIndex) =>
+                thumbnails.map((thumbPath, thumbIndex) => {
+                  const isSelected = selectedIndex === thumbIndex && copyIndex === 20;
+                  return (
+                    <div
+                      key={`${copyIndex}-${thumbIndex}`}
+                      className={`flex shrink-0 w-48 flex-col transition-all duration-500 ${
+                        isSelected ? 'z-30 scale-110' : ''
+                      }`}
+                    >
+                      <div
+                        className={`h-64 overflow-hidden border bg-black/42 transition-all duration-500 ${
+                          isSelected
+                            ? 'border-magma-gold/80 shadow-[0_0_34px_rgba(247,198,90,0.48)]'
+                            : 'border-cyan-100/10'
+                        }`}
+                      >
+                        <img
+                          src={thumbPath}
+                          alt={`Miner ${thumbIndex}`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      {/* Rarity bar */}
+                      <div
+                        className={`h-1.5 transition-all duration-300 ${getRarityBarClass(
+                          minerData[thumbIndex % minerData.length]?.rarity || 'common',
+                        )}`}
+                      />
+                    </div>
+                  );
+                }),
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer status */}
+        <div className="relative border-t border-cyan-100/10 px-8 py-5 text-center">
+          <div className="flex items-center justify-center gap-2.5 text-sm text-cyan-50/50">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse bg-magma-gold" />
+            <span className="alchemy-copy tracking-wide">
+              Waiting for blockchain confirmation…
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -15,52 +15,38 @@ export const Badge: React.FC<BadgeProps> = ({
   className,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center font-medium rounded-full';
-  
+  const baseStyles = 'inline-flex items-center font-semibold uppercase tracking-[0.12em]';
+
   const variants = {
-    default: 'bg-gray-700 text-gray-300',
-    success: 'bg-green-900/50 text-green-400 border border-green-700',
-    warning: 'bg-yellow-900/50 text-yellow-400 border border-yellow-700',
-    danger: 'bg-red-900/50 text-red-400 border border-red-700',
-    info: 'bg-blue-900/50 text-blue-400 border border-blue-700',
-    purple: 'bg-purple-900/50 text-purple-400 border border-purple-700',
+    default: 'border border-cyan-100/12 bg-black/30 text-cyan-50/42',
+    success: 'border border-emerald-400/45 bg-emerald-500/8 text-emerald-300',
+    warning: 'border border-magma-gold/55 bg-orange-500/14 text-magma-gold',
+    danger:  'border border-magma-orange/45 bg-magma-orange/8 text-magma-orange',
+    info:    'border border-ethereal-cyan/45 bg-cyan-300/8 text-ethereal-cyan/80',
+    purple:  'border border-violet-400/35 bg-violet-500/8 text-violet-300',
   };
-  
+
   const sizes = {
-    sm: 'px-2 py-0.5 text-xs gap-1',
-    md: 'px-2.5 py-1 text-sm gap-1.5',
-    lg: 'px-3 py-1.5 text-base gap-2',
+    sm: 'px-2 py-0.5 text-[0.60rem] gap-1',
+    md: 'px-2.5 py-0.5 text-[0.62rem] gap-1.5',
+    lg: 'px-3 py-1 text-xs gap-2',
   };
-  
-  const dotSizes = {
-    sm: 'h-1.5 w-1.5',
-    md: 'h-2 w-2',
-    lg: 'h-2.5 w-2.5',
+
+  const dotColors: Record<string, string> = {
+    default: 'bg-cyan-50/30',
+    success: 'bg-emerald-400',
+    warning: 'bg-magma-gold',
+    danger:  'bg-magma-orange',
+    info:    'bg-ethereal-cyan',
+    purple:  'bg-violet-400',
   };
-  
+
+  const dotSizes = { sm: 'h-1 w-1', md: 'h-1.5 w-1.5', lg: 'h-2 w-2' };
+
   return (
-    <span
-      className={clsx(
-        baseStyles,
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      {...props}
-    >
+    <span className={clsx(baseStyles, variants[variant], sizes[size], className)} {...props}>
       {dot && (
-        <span
-          className={clsx(
-            'rounded-full',
-            dotSizes[size],
-            variant === 'success' && 'bg-green-400',
-            variant === 'warning' && 'bg-yellow-400',
-            variant === 'danger' && 'bg-red-400',
-            variant === 'info' && 'bg-blue-400',
-            variant === 'purple' && 'bg-purple-400',
-            variant === 'default' && 'bg-gray-400'
-          )}
-        />
+        <span className={clsx('rounded-full', dotSizes[size], dotColors[variant])} />
       )}
       {children}
     </span>
