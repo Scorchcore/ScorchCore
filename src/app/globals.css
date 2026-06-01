@@ -1444,7 +1444,6 @@ body {
   aspect-ratio: 493 / 421;
   transform-origin: center;
   backface-visibility: hidden;
-  contain: paint;
   will-change: transform, opacity;
 }
 
@@ -1453,24 +1452,6 @@ body {
   filter: drop-shadow(0 0 20px rgba(255, 104, 20, 0.5));
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  mask-image: radial-gradient(
-    ellipse at 50% 50%,
-    #000 0 30%,
-    rgba(0, 0, 0, 0.84) 38%,
-    rgba(0, 0, 0, 0.34) 46%,
-    transparent 56%
-  );
-  mask-repeat: no-repeat;
-  mask-size: 100% 100%;
-  -webkit-mask-image: radial-gradient(
-    ellipse at 50% 50%,
-    #000 0 30%,
-    rgba(0, 0, 0, 0.84) 38%,
-    rgba(0, 0, 0, 0.34) 46%,
-    transparent 56%
-  );
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
   will-change: opacity;
 }
 
@@ -1764,17 +1745,40 @@ body {
 
 @media (max-width: 767px) {
   .scorch-hero-scroll {
-    height: 118svh;
+    height: auto;
+    margin-top: -5rem;
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  .scorch-hero {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100svh;
+    padding-top: 5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .scorch-hero__content {
+    min-height: calc(100svh - 7.5rem);
   }
 
   .scorch-hero__stone-wrap {
-    top: clamp(40%, 44svh, 47%);
+    top: clamp(35%, 39svh, 43%);
     width: clamp(340px, 108vw, 500px);
     aspect-ratio: 493 / 421;
+    will-change: auto;
   }
 
   .scorch-hero__stone {
     filter: drop-shadow(0 0 16px rgba(255, 104, 20, 0.42));
+    will-change: auto;
+  }
+
+  .scorch-hero__stone-glow,
+  .scorch-hero__eclipse {
+    will-change: auto;
   }
 
   .scorch-hero__circuit,
@@ -1802,6 +1806,16 @@ body {
         rgba(0, 0, 0, 0.3) 50%,
         rgba(0, 0, 0, 0.82) 100%
       );
+  }
+
+  .problem-section {
+    margin-top: 0;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0, #000 14svh);
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.12) 0,
+      #000 14svh
+    );
   }
 }
 
