@@ -201,11 +201,7 @@ export default function ForgeProcess() {
         });
 
         timeline
-          .to(
-            [input, card],
-            { opacity: 1, y: 0, scale: 1, duration: 0.12, ease: "power2.out" },
-            0,
-          )
+          .set([input, card], { opacity: 1, y: 0, scale: 1 }, 0)
           .to(
             coldStream,
             {
@@ -333,7 +329,16 @@ export default function ForgeProcess() {
       className="forge-process-section alchemy-copy relative bg-deep-abyss text-white"
     >
       <div className="forge-process-intro hidden md:block">
-        <div className="mx-auto flex min-h-[82vh] w-full max-w-7xl flex-col justify-start px-8 pb-8 pt-24">
+        <div className="mx-auto flex w-full max-w-7xl flex-col justify-start px-8 pb-2 pt-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="alchemy-eyebrow mb-4 text-xs">
+              Transformation, Not Destruction
+            </p>
+            <h2 className="alchemy-heading text-3xl leading-tight xl:text-4xl">
+              ScorchCore reactivates dormant assets through digital alchemy.
+            </h2>
+          </div>
+
           <div className="forge-process-comparison relative mx-auto w-[min(76vw,920px)]">
             <Image
               src={assets.comparison.src}
@@ -359,26 +364,6 @@ export default function ForgeProcess() {
                 (Transmutation)
               </p>
             </div>
-          </div>
-
-          <div className="mx-auto mt-10 max-w-3xl text-center">
-            <p className="alchemy-eyebrow mb-4 text-xs">
-              Transformation, Not Destruction
-            </p>
-            <h2 className="alchemy-heading text-3xl leading-tight xl:text-4xl">
-              ScorchCore reactivates dormant assets through digital alchemy.
-            </h2>
-          </div>
-
-          <div className="mx-auto mt-10 grid w-full max-w-4xl grid-cols-2 gap-8">
-            <p className="alchemy-copy max-w-sm text-sm leading-6 text-white/58">
-              Burning removes value from the loop and leaves the asset story
-              unfinished.
-            </p>
-            <p className="alchemy-copy ml-auto max-w-sm text-right text-sm leading-6 text-white/72">
-              Transmutation preserves the origin and moves that dormant energy
-              into the next form.
-            </p>
           </div>
         </div>
       </div>
@@ -482,6 +467,17 @@ export default function ForgeProcess() {
           ))}
         </div>
 
+        <p className="forge-process-phase-copy forge-process-phase-copy-left alchemy-copy absolute z-20 text-white/58">
+          <span className="block">Burning removes value from the loop</span>
+          <span className="block">and leaves the asset story unfinished.</span>
+        </p>
+        <p className="forge-process-phase-copy forge-process-phase-copy-right alchemy-copy absolute z-20 text-right text-white/72">
+          <span className="block">Transmutation preserves the origin</span>
+          <span className="block">
+            and moves dormant energy into the next form.
+          </span>
+        </p>
+
         <div className="forge-process-closing absolute left-1/2 top-[10vh] z-8 w-[min(78vw,680px)] -translate-x-1/2 text-center">
           <p className="alchemy-eyebrow mb-3 text-xs">Forge-to-Reactivate</p>
           <h2 className="alchemy-heading-strong text-2xl leading-tight xl:text-3xl">
@@ -493,7 +489,13 @@ export default function ForgeProcess() {
       <div className="forge-process-mobile relative md:hidden">
         <div className="relative z-2 px-5 py-20">
           <div className="mb-16 text-center">
-            <div className="forge-process-comparison mx-auto mb-6 w-full">
+            <p className="alchemy-eyebrow mb-3 text-xs">
+              Transformation, Not Destruction
+            </p>
+            <h2 className="alchemy-heading text-4xl leading-tight">
+              ScorchCore reactivates dormant assets through digital alchemy.
+            </h2>
+            <div className="forge-process-comparison relative mx-auto mt-8 w-full">
               <Image
                 src={assets.comparison.src}
                 alt=""
@@ -502,29 +504,23 @@ export default function ForgeProcess() {
                 height={assets.comparison.height}
                 className="forge-process-comparison-image h-auto w-full object-contain"
               />
-              <div className="absolute left-[21%] top-[47%] z-2 w-[27%] -translate-y-1/2 text-center">
-                <h3 className="alchemy-heading text-[0.58rem] leading-none">
+              <div className="absolute left-[21%] top-[47%] z-10 w-[27%] -translate-y-1/2 text-center">
+                <h3 className="alchemy-heading text-[0.64rem] leading-none drop-shadow-[0_0_10px_rgba(0,0,0,0.95)] min-[430px]:text-xs">
                   Burn-to-Void
                 </h3>
-                <p className="mt-1 font-serif text-[0.52rem] font-semibold leading-none text-white/88">
+                <p className="mt-1 font-serif text-[0.56rem] font-semibold leading-none text-white/92 drop-shadow-[0_0_10px_rgba(0,0,0,0.95)] min-[430px]:text-[0.68rem]">
                   (Destruction)
                 </p>
               </div>
-              <div className="absolute left-[54%] top-[47%] z-2 w-[32%] -translate-y-1/2 text-center">
-                <h3 className="alchemy-heading-strong text-[0.58rem] leading-none">
+              <div className="absolute left-[54%] top-[47%] z-10 w-[32%] -translate-y-1/2 text-center">
+                <h3 className="alchemy-heading-strong text-[0.64rem] leading-none drop-shadow-[0_0_10px_rgba(0,0,0,0.95)] min-[430px]:text-xs">
                   Forge-to-Reactivate
                 </h3>
-                <p className="mt-1 font-serif text-[0.52rem] font-semibold leading-none text-white/88">
+                <p className="mt-1 font-serif text-[0.56rem] font-semibold leading-none text-white/92 drop-shadow-[0_0_10px_rgba(0,0,0,0.95)] min-[430px]:text-[0.68rem]">
                   (Transmutation)
                 </p>
               </div>
             </div>
-            <p className="alchemy-eyebrow mb-3 text-xs">
-              Transformation, Not Destruction
-            </p>
-            <h2 className="alchemy-heading text-4xl leading-tight">
-              ScorchCore reactivates dormant assets through digital alchemy.
-            </h2>
           </div>
 
           <div className="space-y-20">
