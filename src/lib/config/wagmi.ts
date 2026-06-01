@@ -28,15 +28,29 @@ export const config = createConfig({
   connectors: [
     injected({
       target: () => {
-        const provider =
-          typeof window !== "undefined" && (window as any).ronin
-            ? (window as any).ronin
-            : undefined;
-        return {
-          id: "ronin",
-          name: "Ronin Extension",
-          provider,
-        };
+        if (typeof window === "undefined") return { id: "ronin", name: "Ronin Extension", provider: undefined };
+
+        // Ronin Wallet Extension expone el provider EIP-1193 en window.ronin.provider
+        const roninWallet = (window as any).ronin;
+        if (roninWallet?.provider) {
+          return {
+            id: "ronin",
+            name: "Ronin Extension",
+            provider: roninWallet.provider,
+          };
+        }
+
+        // Fallback: window.ethereum con flag isRonin
+        const eth = (window as any).ethereum;
+        if (eth?.isRonin) {
+          return {
+            id: "ronin",
+            name: "Ronin Extension",
+            provider: eth,
+          };
+        }
+
+        return { id: "ronin", name: "Ronin Extension", provider: undefined };
       },
       shimDisconnect: true,
     }),
