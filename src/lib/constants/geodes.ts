@@ -49,7 +49,7 @@ export const CATEGORY_INFO = {
     collectionBonus: 2.0, // 2%
     repairCost: 3, // 3% de producción mensual
     color: "#94a3b8", // slate-400
-    icon: "/images/types-geodes/petit.png",
+    icon: "/assets/typesGeodes/petit.png",
     defaultCost: {
       axs: "1", // 1 AXS = 1 Axie NFT (testnet)
       slp: "350", // 350 SLP según Manual de Forja
@@ -67,7 +67,7 @@ export const CATEGORY_INFO = {
     collectionBonus: 2.0, // 2%
     repairCost: 3, // 3% de producción mensual
     color: "#22c55e", // green-500
-    icon: "/images/types-geodes/alto.png",
+    icon: "/assets/typesGeodes/Alto.png",
     defaultCost: {
       axs: "2", // 2 AXS = 2 Axies NFT (testnet)
       slp: "500", // 500 SLP según Manual de Forja
@@ -85,7 +85,7 @@ export const CATEGORY_INFO = {
     collectionBonus: 2.0, // 2%
     repairCost: 3, // 3% de producción mensual
     color: "#3b82f6", // blue-500
-    icon: "/images/types-geodes/animal.png",
+    icon: "/assets/typesGeodes/Animal.png",
     defaultCost: {
       axs: "2", // 2 AXS = 2 Axies NFT (testnet)
       slp: "500", // 500 SLP según Manual de Forja
@@ -103,7 +103,7 @@ export const CATEGORY_INFO = {
     collectionBonus: 2.0, // 2%
     repairCost: 3, // 3% de producción mensual
     color: "#a855f7", // purple-500
-    icon: "/images/types-geodes/ultra-mecanico.png",
+    icon: "/assets/typesGeodes/ULTRA_Mecánico.png",
     defaultCost: {
       axs: "2", // 2 AXS = 2 Axies NFT (testnet)
       slp: "500", // 500 SLP según Manual de Forja
@@ -121,7 +121,7 @@ export const CATEGORY_INFO = {
     collectionBonus: 2.0, // 2%
     repairCost: 3, // 3% de producción mensual
     color: "#f59e0b", // amber-500
-    icon: "/images/types-geodes/tanque.png",
+    icon: "/assets/typesGeodes/Tanque.png",
     defaultCost: {
       axs: "3", // 3 AXS = 3 Axies (2 + 1 Planta) (testnet)
       slp: "500", // 500 SLP según Manual de Forja
@@ -137,63 +137,63 @@ export const AXIE_CLASS_INFO = {
     id: AxieClass.BEAST,
     name: "Beast",
     displayName: "Beast",
-    icon: "/images/mementos/memento-beast.webp",
+    icon: "/assets/typesCoreMiners/BEAST.png",
     color: "#f59e0b", // amber-500
   },
   [AxieClass.AQUA]: {
     id: AxieClass.AQUA,
     name: "Aqua",
     displayName: "Aqua",
-    icon: "/images/mementos/memento-aqua.webp",
+    icon: "/assets/typesCoreMiners/AQUA.png",
     color: "#3b82f6", // blue-500
   },
   [AxieClass.BIRD]: {
     id: AxieClass.BIRD,
     name: "Bird",
     displayName: "Bird",
-    icon: "/images/mementos/memento-bird.webp",
+    icon: "/assets/typesCoreMiners/BIRD.png",
     color: "#ec4899", // pink-500
   },
   [AxieClass.REPTILE]: {
     id: AxieClass.REPTILE,
     name: "Reptile",
     displayName: "Reptile",
-    icon: "/images/mementos/memento-reptile.webp",
+    icon: "/assets/typesCoreMiners/REPTILE.png",
     color: "#a855f7", // purple-500
   },
   [AxieClass.BUG]: {
     id: AxieClass.BUG,
     name: "Bug",
     displayName: "Bug",
-    icon: "/images/mementos/memento-bug.webp",
+    icon: "/assets/typesCoreMiners/BUG.png",
     color: "#ef4444", // red-500
   },
   [AxieClass.PLANT]: {
     id: AxieClass.PLANT,
     name: "Plant",
     displayName: "Plant",
-    icon: "/images/mementos/memento-plant.webp",
+    icon: "/assets/typesCoreMiners/PLANT.png",
     color: "#22c55e", // green-500
   },
   [AxieClass.MECH]: {
     id: AxieClass.MECH,
     name: "Mech",
     displayName: "Mech",
-    icon: "/images/mementos/memento-mech.webp",
+    icon: "/assets/typesCoreMiners/MECH.png",
     color: "#64748b", // slate-500
   },
   [AxieClass.DUSK]: {
     id: AxieClass.DUSK,
     name: "Dusk",
     displayName: "Dusk",
-    icon: "/images/mementos/memento-dusk.webp",
+    icon: "/assets/typesCoreMiners/DUSK.png",
     color: "#6366f1", // indigo-500
   },
   [AxieClass.DAWN]: {
     id: AxieClass.DAWN,
     name: "Dawn",
     displayName: "Dawn",
-    icon: "/images/mementos/memento-dawn.webp",
+    icon: "/assets/typesCoreMiners/DAWN.png",
     color: "#eab308", // yellow-500
   },
 } as const;

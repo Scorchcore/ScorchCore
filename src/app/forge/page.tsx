@@ -615,7 +615,7 @@ export default function ForgePage() {
                         alt={axieClass.displayName}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="object-contain"
                       />
                       <span className="text-xs font-medium">
                         {axieClass.displayName}
