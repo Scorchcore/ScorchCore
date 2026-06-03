@@ -4,11 +4,11 @@
  * @module ForgeCostDisplay
  */
 
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { MaterialCosts } from '@/lib/contracts/interfaces/IMaterialValidatorContract';
-import { formatEther } from 'viem';
+import Image from "next/image";
+import type { MaterialCosts } from "@/lib/contracts/interfaces/IMaterialValidatorContract";
+import { formatEther } from "viem";
 
 export interface ForgeCostDisplayProps {
   category: number;
@@ -28,9 +28,9 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
   loading = false,
   error,
   showBreakdown = true,
-  className = '',
+  className = "",
 }) => {
-  const categoryNames = ['PETIT', 'ALTO', 'ANIMAL', 'ULTRAMECH', 'TANQUE'];
+  const categoryNames = ["PETIT", "ALTO", "ANIMAL", "ULTRAMECH", "TANQUE"];
 
   if (loading) {
     return (
@@ -45,7 +45,9 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
 
   if (error) {
     return (
-      <div className={`bg-red-900/20 border border-red-500/50 rounded-lg p-4 ${className}`}>
+      <div
+        className={`bg-red-900/20 border border-red-500/50 rounded-lg p-4 ${className}`}
+      >
         <p className="text-red-400 text-sm">⚠️ {error}</p>
       </div>
     );
@@ -59,12 +61,16 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
   const slpAmount = Number(formatEther(costs.slpAmount));
 
   return (
-    <div className={`bg-linear-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-lg p-4 ${className}`}>
+    <div
+      className={`bg-linear-to-br from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-lg p-4 ${className}`}
+    >
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-semibold flex items-center gap-2">
           <span>💰</span>
           <span>Forging Costs</span>
-          <span className="text-xs text-gray-400">({categoryNames[category]})</span>
+          <span className="text-xs text-gray-400">
+            ({categoryNames[category]})
+          </span>
         </h3>
       </div>
 
@@ -74,17 +80,27 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
           {axsAmount > 0 && (
             <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <span className="text-blue-400 text-sm font-bold">A</span>
-                </div>
+                <Image
+                  src="/assets/axies/axs-icon.webp"
+                  alt="AXS"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
                 <div>
                   <p className="text-gray-300 text-sm font-medium">AXS Token</p>
-                  <p className="text-gray-500 text-xs">Axie Substitute (Testnet)</p>
+                  <p className="text-gray-500 text-xs">
+                    Axie Substitute (Testnet)
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-white font-bold">{axsAmount.toFixed(1)} AXS</p>
-                <p className="text-gray-400 text-xs">{axsAmount} {axsAmount === 1 ? 'Axie' : 'Axies'}</p>
+                <p className="text-white font-bold">
+                  {axsAmount.toFixed(1)} AXS
+                </p>
+                <p className="text-gray-400 text-xs">
+                  {axsAmount} {axsAmount === 1 ? "Axie" : "Axies"}
+                </p>
               </div>
             </div>
           )}
@@ -92,9 +108,13 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
           {/* SLP Cost */}
           <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-pink-500/20 rounded-full flex items-center justify-center">
-                <span className="text-pink-400 text-sm font-bold">S</span>
-              </div>
+              <Image
+                src="/assets/axies/slp-icon.webp"
+                alt="SLP"
+                width={32}
+                height={32}
+                className="object-contain"
+              />
               <div>
                 <p className="text-gray-300 text-sm font-medium">SLP Token</p>
                 <p className="text-gray-500 text-xs">Smooth Love Potion</p>
@@ -140,7 +160,8 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
         <p className="text-blue-300 text-xs flex items-start gap-1">
           <span>ℹ️</span>
           <span>
-            <strong>Testnet:</strong> AXS tokens substitute real Axie NFTs (1 AXS = 1 Axie) for testing purposes.
+            <strong>Testnet:</strong> AXS tokens substitute real Axie NFTs (1
+            AXS = 1 Axie) for testing purposes.
           </span>
         </p>
       </div>
