@@ -14,7 +14,6 @@ import { ScorchNavLink } from "./ScorchNavLink";
 export const Header: React.FC = () => {
   const { isConnected } = useWallet();
   const pathname = usePathname();
-  const homeUrl = isConnected ? "/dashboard" : "/";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -48,7 +47,7 @@ export const Header: React.FC = () => {
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
         {/* Logo */}
         <Link
-          href={homeUrl}
+          href="/"
           aria-label="ScorchCore Protocol"
           className="group flex items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-orange-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
