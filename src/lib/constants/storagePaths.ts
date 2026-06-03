@@ -37,7 +37,7 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
     "ALPHA_CUB.mp4", // minerIndex 1
     "BOLD_EXPLORER.mp4", // minerIndex 2
     "FIERCE_HATCHLING.mp4", // minerIndex 3
-    "IMPATIENTE_CLAW.mp4", // minerIndex 4
+    "IMPATIENT_CLAW.mp4", // minerIndex 4
     "TENACIOUS_TRACKER.mp4", // minerIndex 5
     "YOUNG_HUNTER.mp4", // minerIndex 6
   ],
