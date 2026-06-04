@@ -79,52 +79,62 @@ export const Header: React.FC = () => {
           {isConnected && (
             <>
               <div className="mx-1 h-7 w-px bg-linear-to-b from-transparent via-orange-300/35 to-transparent" />
-              {appLinks.slice(0, 4).map((link) => (
+              {pathname === "/" ? (
                 <ScorchNavLink
-                  key={link.href}
-                  href={link.href}
-                  label={link.label}
-                  isActive={pathname === link.href}
+                  href="/dashboard"
+                  label="Dashboard"
+                  isActive={(pathname as string) === "/dashboard"}
                 />
-              ))}
+              ) : (
+                <>
+                  {appLinks.slice(0, 4).map((link) => (
+                    <ScorchNavLink
+                      key={link.href}
+                      href={link.href}
+                      label={link.label}
+                      isActive={pathname === link.href}
+                    />
+                  ))}
 
-              {/* More Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  aria-expanded={isDropdownOpen}
-                  className={`scorch-nav-link scorch-nav-link--desktop ${isMoreActive ? "is-active" : ""}`}
-                >
-                  <span className="scorch-nav-label">[ MORE ]</span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {isDropdownOpen && (
-                  <>
+                  {/* More Dropdown */}
+                  <div className="relative">
                     <button
                       type="button"
-                      aria-label="Close menu"
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsDropdownOpen(false)}
-                    />
-                    <div className="scorch-nav-panel absolute right-0 z-50 mt-3 w-56 p-2">
-                      {dropdownLinks.map((link) => (
-                        <ScorchNavLink
-                          key={link.href}
-                          href={link.href}
-                          label={link.label}
-                          variant="dropdown"
-                          isActive={pathname === link.href}
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      aria-expanded={isDropdownOpen}
+                      className={`scorch-nav-link scorch-nav-link--desktop ${isMoreActive ? "is-active" : ""}`}
+                    >
+                      <span className="scorch-nav-label">[ MORE ]</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Close menu"
+                          className="fixed inset-0 z-40"
                           onClick={() => setIsDropdownOpen(false)}
                         />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+                        <div className="scorch-nav-panel absolute right-0 z-50 mt-3 w-56 p-2">
+                          {dropdownLinks.map((link) => (
+                            <ScorchNavLink
+                              key={link.href}
+                              href={link.href}
+                              label={link.label}
+                              variant="dropdown"
+                              isActive={pathname === link.href}
+                              onClick={() => setIsDropdownOpen(false)}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </nav>
@@ -154,7 +164,7 @@ export const Header: React.FC = () => {
 
       {/* Mobile Menu - always available */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-x-0 top-20 z-50 h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-orange-500/20 bg-black/98 shadow-[0_24px_80px_rgba(0,0,0,0.62)] [scrollbar-color:rgba(125,249,255,0.35)_transparent] [scrollbar-width:thin] lg:hidden">
+        <div className="fixed inset-x-0 top-20 z-50 h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-orange-500/20 bg-black/98 shadow-[0_24px_80px_rgba(0,0,0,0.62)] [scrollbar-color:rgba(125,249,255,0.35)_transparent] scrollbar-thin lg:hidden">
           <nav className="container mx-auto px-4 py-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
             {/* Public Links */}
             <div className="space-y-2">
@@ -179,16 +189,26 @@ export const Header: React.FC = () => {
                 <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100/55">
                   App
                 </p>
-                {appLinks.map((link) => (
+                {pathname === "/" ? (
                   <ScorchNavLink
-                    key={link.href}
-                    href={link.href}
-                    label={link.label}
+                    href="/dashboard"
+                    label="Dashboard"
                     variant="mobile"
-                    isActive={pathname === link.href}
+                    isActive={(pathname as string) === "/dashboard"}
                     onClick={() => setIsMobileMenuOpen(false)}
                   />
-                ))}
+                ) : (
+                  appLinks.map((link) => (
+                    <ScorchNavLink
+                      key={link.href}
+                      href={link.href}
+                      label={link.label}
+                      variant="mobile"
+                      isActive={pathname === link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                  ))
+                )}
               </div>
             )}
 

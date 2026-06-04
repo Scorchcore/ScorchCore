@@ -117,7 +117,7 @@ function ForgeVisualFallback({
   return (
     <div className="relative flex h-full min-h-56 items-center justify-center overflow-hidden border border-cyan-100/10 bg-black/50">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(247,198,90,0.16),transparent_32%),radial-gradient(circle_at_54%_58%,rgba(125,249,255,0.12),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-x-10 top-1/2 h-px bg-gradient-to-r from-transparent via-magma-gold/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-10 top-1/2 h-px bg-linear-to-r from-transparent via-magma-gold/60 to-transparent" />
       <div className="relative text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center border border-magma-gold/35 bg-black/60 shadow-[0_0_34px_rgba(240,106,18,0.18)]">
           <Icon className={`h-7 w-7 ${meta.tone}`} />
@@ -221,8 +221,8 @@ export function ForgeAnimationPanel({
       <div
         className={`relative overflow-hidden border border-cyan-100/12 bg-black/42 shadow-[inset_0_0_28px_rgba(125,249,255,0.05),0_18px_50px_rgba(0,0,0,0.34)] ${className}`}
       >
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-br from-orange-500/12 via-transparent to-cyan-300/8" />
-        <div className="pointer-events-none absolute left-0 top-0 z-[2] h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 z-1 bg-linear-to-br from-orange-500/12 via-transparent to-cyan-300/8" />
+        <div className="pointer-events-none absolute left-0 top-0 z-2 h-full w-px bg-linear-to-b from-transparent via-magma-gold/70 to-transparent" />
 
         {isTransitioning && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/62 backdrop-blur-sm">
@@ -251,7 +251,7 @@ export function ForgeAnimationPanel({
           )}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/86 via-black/52 to-transparent p-4">
+        <div className="absolute inset-x-0 bottom-0 z-10 bg-linear-to-t from-black/86 via-black/52 to-transparent p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-cyan-100/14 bg-black/58">
               <StageIcon className={`h-5 w-5 ${meta.tone}`} />
