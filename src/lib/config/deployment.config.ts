@@ -117,6 +117,35 @@ export function getExternalContractAddress(name: ExternalContractName): string {
   return EXTERNAL_CONTRACTS[name];
 }
 
+const RONIN_AVG_BLOCK_TIME_S = 3;
+const SAFETY_BUFFER = 1.1;
+
+/**
+ * Returns the block number from which to start scanning events.
+ * Uses NEXT_PUBLIC_DEPLOYMENT_BLOCK env var if set (fast path),
+ * otherwise estimates from the deployment timestamp (slow — scans millions of blocks).
+ */
+export function getDeploymentBlock(currentBlock: number): number {
+  const envBlock = process.env.NEXT_PUBLIC_DEPLOYMENT_BLOCK;
+  if (envBlock) {
+    const parsedBlock = Number(envBlock);
+    if (Number.isFinite(parsedBlock) && parsedBlock >= 0) {
+      console.log(`Using deployment block from env: ${envBlock}`);
+      return parsedBlock;
+    }
+    console.warn(`Invalid NEXT_PUBLIC_DEPLOYMENT_BLOCK ignored: ${envBlock}`);
+  }
+  const deployTimestamp = new Date(DEPLOYMENT_INFO.timestamp).getTime();
+  const nowTimestamp = Date.now();
+  const secondsSinceDeploy = Math.floor(
+    (nowTimestamp - deployTimestamp) / 1000,
+  );
+  const estimatedBlocksSinceDeploy = Math.ceil(
+    (secondsSinceDeploy * SAFETY_BUFFER) / RONIN_AVG_BLOCK_TIME_S,
+  );
+  return Math.max(0, currentBlock - estimatedBlocksSinceDeploy);
+}
+
 /**
  * Explorer links para debugging
  */

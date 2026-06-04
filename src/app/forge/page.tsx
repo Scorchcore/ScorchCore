@@ -10,6 +10,7 @@ import {
   Lock,
   Minus,
   Plus,
+  RefreshCw,
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
@@ -37,6 +38,7 @@ import {
   getMementoIcon,
 } from "@/lib/constants/geodes";
 import type { MaterialInput } from "@/lib/contracts/interfaces/IForgeContract";
+import type { AxieNFT } from "@/lib/facades/NFTFacade";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import { useContracts } from "@/lib/hooks/contracts/useContracts";
 import { useWallet } from "@/lib/hooks/user/useWallet";
@@ -46,7 +48,6 @@ import {
   useTrustScoreQuery,
   useUserAxies,
 } from "@/lib/queries";
-import type { AxieNFT } from "@/lib/facades/NFTFacade";
 import { ForgeFacade } from "@/lib/services/forge/ForgeFacade";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 
@@ -55,6 +56,35 @@ import { createServiceLogger } from "@/lib/utils/logging/logger";
 
 const logger = createServiceLogger("ForgePage");
 
+function ChainStatusBanner({
+  isUpdating,
+  hasStaleError,
+}: {
+  isUpdating: boolean;
+  hasStaleError: boolean;
+}) {
+  if (!isUpdating && !hasStaleError) return null;
+
+  return (
+    <div
+      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${
+        hasStaleError
+          ? "border-magma-orange/35 bg-orange-500/8 text-magma-orange"
+          : "border-ethereal-cyan/25 bg-cyan-300/8 text-ethereal-cyan/75"
+      }`}
+    >
+      <RefreshCw
+        className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`}
+      />
+      <span>
+        {hasStaleError
+          ? "Showing cached forge data. Chain refresh failed."
+          : "Updating chain data…"}
+      </span>
+    </div>
+  );
+}
+
 export default function ForgePage() {
   const router = useRouter();
   const { isConnected } = useWallet();
@@ -62,9 +92,21 @@ export default function ForgePage() {
   const contracts = useContracts();
   const { contractManager, signer } = useContractManager();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
-  const { data: mementoBalances } = useMementoBalancesQuery();
-  const { trustScoreInfo } = useTrustScoreQuery();
-  const { data: axies = [] } = useUserAxies();
+  const {
+    data: mementoBalances,
+    isFetching: isFetchingMementos,
+    error: mementoError,
+  } = useMementoBalancesQuery();
+  const {
+    trustScoreInfo,
+    isFetching: isFetchingTrustScore,
+    error: trustScoreError,
+  } = useTrustScoreQuery();
+  const {
+    data: axies = [],
+    isFetching: isFetchingAxies,
+    error: axiesError,
+  } = useUserAxies();
   const { afterForge } = useInvalidateOnTx();
 
   // ForgeFacade para toda la lógica de forja
@@ -111,7 +153,7 @@ export default function ForgePage() {
   const [isForging, setIsForging] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [forgedGeodeId, setForgedGeodeId] = useState<bigint | null>(null);
-  const [forgeFailed, setForgeFailed] = useState(false);
+  const [_forgeFailed, setForgeFailed] = useState(false);
   const [forgeAnimationStage, setForgeAnimationStage] = useState<
     "stage1" | "stage2" | "stage3" | "stage4" | "success" | "fail"
   >("stage1");
@@ -168,6 +210,13 @@ export default function ForgePage() {
   const stakedAxiesCount = axies.filter(
     (axie: AxieNFT) => axie.isStaked,
   ).length;
+  const isRefreshingForgeData =
+    isFetchingMementos || isFetchingTrustScore || isFetchingAxies;
+  const hasForgeData = Boolean(
+    mementoBalances || trustScoreInfo || axies.length > 0,
+  );
+  const hasForgeStaleError =
+    hasForgeData && Boolean(mementoError || trustScoreError || axiesError);
 
   // Calcular probabilidad de fallo con mementos
   const baseFailureChance = categoryInfo.failureRate;
@@ -500,6 +549,11 @@ export default function ForgePage() {
             )}
           </div>
         </header>
+
+        <ChainStatusBanner
+          isUpdating={isRefreshingForgeData}
+          hasStaleError={hasForgeStaleError}
+        />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.92fr)]">
           {/* Panel Izquierdo: Selectores */}

@@ -314,8 +314,7 @@ function MinerCard({
 
   return (
     <article
-      className={`group relative cursor-pointer overflow-hidden border ${borderClass} bg-black/42 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)]`}
-      onClick={() => onNavigate(miner.tokenId.toString())}
+      className={`group relative overflow-hidden border ${borderClass} bg-black/42 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(0,0,0,0.46)]`}
     >
       <div
         className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70 transition-opacity group-hover:opacity-100`}
@@ -378,6 +377,14 @@ function MinerCard({
             </span>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigate(miner.tokenId.toString())}
+          className="mb-2 flex w-full items-center justify-center gap-2 border border-cyan-100/12 bg-black/30 py-3 text-xs font-semibold uppercase tracking-wider text-cyan-50/52 transition-all hover:border-ethereal-cyan/35 hover:text-cyan-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
+        >
+          Open Details
+        </button>
 
         {/* Action */}
         {miner.isMining ? (
@@ -442,6 +449,35 @@ function ErrorPanel({ message }: { message: string }) {
   );
 }
 
+function ChainStatusBanner({
+  isUpdating,
+  error,
+}: {
+  isUpdating: boolean;
+  error: string | null;
+}) {
+  if (!isUpdating && !error) return null;
+
+  return (
+    <div
+      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${
+        error
+          ? "border-magma-orange/35 bg-orange-500/8 text-magma-orange"
+          : "border-ethereal-cyan/25 bg-cyan-300/8 text-ethereal-cyan/75"
+      }`}
+    >
+      <RefreshCw
+        className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`}
+      />
+      <span>
+        {error
+          ? "Showing cached inventory. Chain refresh failed."
+          : "Updating chain data…"}
+      </span>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
@@ -449,7 +485,7 @@ export default function InventoryPage() {
   const { isConnected } = useWallet();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
   const { contractManager } = useContractManager();
-  const { afterHatch, invalidateAll } = useInvalidateOnTx();
+  const { afterHatch, refreshInventory } = useInvalidateOnTx();
 
   const {
     data: geodes = [],
@@ -578,7 +614,7 @@ export default function InventoryPage() {
             },
           );
 
-          let result;
+          let result: Awaited<ReturnType<typeof geodeHatcher.openGeode>>;
           try {
             logger.info("🔵 [DEBUG] JUSTO ANTES de llamar openGeode");
             result = await geodeHatcher.openGeode(geodeId);
@@ -653,7 +689,7 @@ export default function InventoryPage() {
     }
   };
 
-  const handleRouletteComplete = async (fakeResult: ComponentHatchResult) => {
+  const handleRouletteComplete = async (_fakeResult: ComponentHatchResult) => {
     logger.info("Ruleta de eclosión completada (datos fake de animación)");
 
     if (!hatchingGeode || !realHatchResult) {
@@ -720,6 +756,7 @@ export default function InventoryPage() {
   };
 
   const totalItems = geodes.length + miners.length;
+  const hasCachedData = totalItems > 0;
 
   // ── Connection guard ──────────────────────────────────────────────────────
   if (!isConnected) {
@@ -761,7 +798,7 @@ export default function InventoryPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => invalidateAll()}
+                  onClick={() => refreshInventory()}
                   disabled={isLoading}
                   className="inline-flex items-center gap-2 border border-cyan-100/12 bg-black/42 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-cyan-50/58 transition-all hover:border-ethereal-cyan/45 hover:text-cyan-50 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60"
                 >
@@ -786,8 +823,13 @@ export default function InventoryPage() {
             </div>
           </header>
 
+          <ChainStatusBanner
+            isUpdating={isFetching && !isLoading}
+            error={!isLoading && hasCachedData ? error : null}
+          />
+
           {/* ── Tabs ── */}
-          {!isLoading && !error && totalItems > 0 && (
+          {!isLoading && (!error || hasCachedData) && totalItems > 0 && (
             <nav
               className="mb-8 flex flex-wrap gap-2"
               aria-label="Inventory filter"
@@ -824,13 +866,15 @@ export default function InventoryPage() {
           )}
 
           {/* ── Error ── */}
-          {error && !isLoading && <ErrorPanel message={error} />}
+          {error && !isLoading && !hasCachedData && (
+            <ErrorPanel message={error} />
+          )}
 
           {/* ── Empty ── */}
           {!isLoading && !error && totalItems === 0 && <EmptyState />}
 
           {/* ── Content ── */}
-          {!isLoading && !error && totalItems > 0 && (
+          {!isLoading && (!error || hasCachedData) && totalItems > 0 && (
             <div className="space-y-14">
               {/* Geodes */}
               {(activeTab === "all" || activeTab === "geodes") &&
@@ -974,8 +1018,12 @@ export default function InventoryPage() {
                       className="max-h-full max-w-full"
                       style={{ objectFit: "contain" }}
                     >
-                      {slide.sources.map((source, idx) => (
-                        <source key={idx} src={source.src} type={source.type} />
+                      {slide.sources.map((source) => (
+                        <source
+                          key={`${source.src}-${source.type}`}
+                          src={source.src}
+                          type={source.type}
+                        />
                       ))}
                     </video>
                   </div>

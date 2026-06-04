@@ -1,16 +1,16 @@
 /**
  * Retry Logic Utility
- * 
+ *
  * Implementa retry con exponential backoff para operaciones blockchain
  * que pueden fallar por razones temporales (gas, network, etc.)
- * 
+ *
  * @pattern Retry with Exponential Backoff
  */
 
-import { createServiceLogger } from '../logging/logger';
-import type { BlockchainError } from '../types/ErrorTypes';
+import { createServiceLogger } from "../logging/logger";
+import type { BlockchainError } from "../types/ErrorTypes";
 
-const log = createServiceLogger('RetryUtility');
+const log = createServiceLogger("RetryUtility");
 
 export interface RetryOptions {
   /** Número máximo de intentos (default: 3) */
@@ -38,11 +38,11 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
 
 /**
  * Ejecuta una operación con retry automático
- * 
+ *
  * @param operation - Función async a ejecutar
  * @param options - Opciones de retry
  * @returns Resultado de la operación
- * 
+ *
  * @example
  * ```typescript
  * const result = await withRetry(
@@ -56,7 +56,7 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
  */
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
@@ -77,7 +77,7 @@ export async function withRetry<T>(
 
       // Verificar si se debe reintentar
       if (!opts.shouldRetry(error)) {
-        log.debug('Error not retryable', { error });
+        log.debug("Error not retryable", { error });
         throw error;
       }
 
@@ -103,12 +103,12 @@ export async function withRetry<T>(
 
 /**
  * Determina si un error blockchain es retryable
- * 
+ *
  * Errores NO retryables:
  * - USER_REJECTED: Usuario canceló en wallet
  * - INSUFFICIENT_FUNDS: No tiene fondos suficientes
  * - INVALID_ARGUMENT: Parámetros inválidos
- * 
+ *
  * Errores retryables:
  * - NETWORK_ERROR: Problemas de red temporales
  * - TIMEOUT: Timeout de RPC
@@ -123,14 +123,14 @@ export function isRetryableBlockchainError(error: unknown): boolean {
 
   // Errores NO retryables
   const nonRetryablePatterns = [
-    'user rejected',
-    'user denied',
-    'user cancelled',
-    'insufficient funds',
-    'insufficient balance',
-    'invalid argument',
-    'execution reverted',
-    'revert',
+    "user rejected",
+    "user denied",
+    "user cancelled",
+    "insufficient funds",
+    "insufficient balance",
+    "invalid argument",
+    "execution reverted",
+    "revert",
   ];
 
   for (const pattern of nonRetryablePatterns) {
@@ -141,9 +141,9 @@ export function isRetryableBlockchainError(error: unknown): boolean {
 
   // Códigos de error NO retryables
   const nonRetryableCodes = [
-    'ACTION_REJECTED',
-    'INSUFFICIENT_FUNDS',
-    'INVALID_ARGUMENT',
+    "ACTION_REJECTED",
+    "INSUFFICIENT_FUNDS",
+    "INVALID_ARGUMENT",
   ];
 
   if (errorCode && nonRetryableCodes.includes(errorCode)) {
@@ -152,14 +152,18 @@ export function isRetryableBlockchainError(error: unknown): boolean {
 
   // Errores retryables
   const retryablePatterns = [
-    'network error',
-    'timeout',
-    'timed out',
-    'unpredictable_gas_limit',
-    'nonce',
-    'replacement fee too low',
-    'already known',
-    'connection',
+    "network error",
+    "too many requests",
+    "rate limit",
+    "rate-limit",
+    "429",
+    "timeout",
+    "timed out",
+    "unpredictable_gas_limit",
+    "nonce",
+    "replacement fee too low",
+    "already known",
+    "connection",
   ];
 
   for (const pattern of retryablePatterns) {
@@ -181,7 +185,7 @@ function sleep(ms: number): Promise<void> {
 
 /**
  * Wrapper especializado para transacciones blockchain
- * 
+ *
  * @example
  * ```typescript
  * const tx = await retryTransaction(
@@ -191,7 +195,7 @@ function sleep(ms: number): Promise<void> {
  */
 export async function retryTransaction<T>(
   operation: () => Promise<T>,
-  options: Omit<RetryOptions, 'shouldRetry'> = {}
+  options: Omit<RetryOptions, "shouldRetry"> = {},
 ): Promise<T> {
   return withRetry(operation, {
     ...options,
@@ -207,15 +211,15 @@ export async function retryTransaction<T>(
 
 /**
  * Batch retry - ejecuta múltiples operaciones con retry individual
- * 
+ *
  * A diferencia de Promise.all, si una falla después de retries,
  * las demás continúan ejecutándose.
- * 
+ *
  * @returns Array de resultados (exitosos) y array de errores
  */
 export async function retryBatch<T>(
   operations: Array<() => Promise<T>>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<{
   results: T[];
   errors: Array<{ index: number; error: unknown }>;
@@ -231,7 +235,7 @@ export async function retryBatch<T>(
       } catch (error) {
         errors.push({ index, error });
       }
-    })
+    }),
   );
 
   return { results, errors };

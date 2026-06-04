@@ -9,7 +9,7 @@ import { queryKeys } from "./queryKeys";
 
 export function useActiveCyclesQuery() {
   const chainId = useChainId();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { contractManager } = useContractManager();
 
   const cycleService = useMemo(
@@ -18,29 +18,49 @@ export function useActiveCyclesQuery() {
   );
 
   const activeCyclesQuery = useQuery<ActiveCycle[]>({
-    queryKey: queryKeys.cycles.active(chainId, address!),
-    queryFn: () => cycleService.getUserActiveCycles(address!),
-    enabled: !!address,
+    queryKey: queryKeys.cycles.active(chainId, address ?? ""),
+    queryFn: () => {
+      if (!address) throw new Error("Wallet address not available");
+      return cycleService.getUserActiveCycles(address);
+    },
+    enabled: !!address && isConnected,
     ...queryConfig.dynamic,
     refetchInterval: 60_000,
   });
 
-  const summaryQuery = useQuery<UserCyclesSummary>({
-    queryKey: queryKeys.cycles.summary(chainId, address!),
-    queryFn: () => cycleService.getUserCyclesSummary(address!),
-    enabled: !!address,
-    ...queryConfig.dynamic,
-    refetchInterval: 60_000,
-  });
+  const summary = useMemo<UserCyclesSummary | null>(() => {
+    const activeCycles = activeCyclesQuery.data;
+    if (!activeCycles) return null;
+
+    const totalMinersLocked = activeCycles.reduce(
+      (acc, cycle) => acc + cycle.minerIds.length,
+      0,
+    );
+    const averageBonus =
+      activeCycles.length > 0
+        ? activeCycles.reduce((acc, cycle) => acc + cycle.bonusPercentage, 0) /
+          activeCycles.length
+        : 0;
+    const nextCycleToEnd = activeCycles
+      .filter((cycle) => !cycle.isFinished)
+      .sort((a, b) => a.timeRemaining - b.timeRemaining)[0];
+
+    return {
+      activeCycles,
+      totalMinersLocked,
+      averageBonus,
+      nextCycleToEnd,
+    };
+  }, [activeCyclesQuery.data]);
 
   return {
     activeCycles: activeCyclesQuery.data ?? [],
-    summary: summaryQuery.data ?? null,
-    isLoading: activeCyclesQuery.isLoading || summaryQuery.isLoading,
-    isFetching: activeCyclesQuery.isFetching || summaryQuery.isFetching,
-    error: activeCyclesQuery.error || summaryQuery.error,
+    summary,
+    isLoading: activeCyclesQuery.isLoading,
+    isFetching: activeCyclesQuery.isFetching,
+    error: activeCyclesQuery.error,
     refetch: async () => {
-      await Promise.all([activeCyclesQuery.refetch(), summaryQuery.refetch()]);
+      await activeCyclesQuery.refetch();
     },
   };
 }

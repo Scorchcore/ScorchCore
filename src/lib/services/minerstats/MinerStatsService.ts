@@ -1,18 +1,19 @@
 /**
  * MinerStatsService
- * 
+ *
  * Service Layer para gestionar estadísticas dinámicas de miners
  * Encapsula lógica de negocio y cálculos para UI
- * 
+ *
  * @pattern Service Layer (DDD)
  * @pattern Facade - Simplifica acceso a MinerStatsManager
  */
 
-import type { ContractManager } from '@/lib/contracts/ContractManager';
-import type { DynamicStats } from '@/lib/contracts/interfaces/IMinerStatsManager';
-import { createServiceLogger } from '@/lib/utils/logging/logger';
+import type { ContractManager } from "@/lib/contracts/ContractManager";
+import type { DynamicStats } from "@/lib/contracts/interfaces/IMinerStatsManager";
+import { createServiceLogger } from "@/lib/utils/logging/logger";
+import { chainReadClient } from "@/lib/utils/network/chainReadClient";
 
-const log = createServiceLogger('MinerStatsService');
+const log = createServiceLogger("MinerStatsService");
 
 /**
  * Estadísticas con información calculada para UI
@@ -21,31 +22,31 @@ export interface MinerStatsUI extends DynamicStats {
   // Percentages (0-100)
   durabilityPercent: number;
   efficiencyPercent: number;
-  
+
   // Status indicators
   needsRepair: boolean;
   needsFeeding: boolean;
   isHungry: boolean;
   isStarving: boolean;
-  
+
   // Calculated values
   experienceToNextLevel: number;
   experienceProgress: number; // % to next level
   effectiveMultiplier: number; // Combined durability * efficiency
-  
+
   // Time indicators
   timeUntilHungry: number; // seconds
   timeUntilStarving: number; // seconds
   timeSinceLastMined: number; // seconds
   timeSinceLastRepaired: number; // seconds
   timeSinceLastFed: number; // seconds
-  
+
   // Formatted strings
   levelFormatted: string;
   experienceFormatted: string;
-  durabilityStatus: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-  efficiencyStatus: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-  hungerStatus: 'fed' | 'hungry' | 'starving';
+  durabilityStatus: "excellent" | "good" | "fair" | "poor" | "critical";
+  efficiencyStatus: "excellent" | "good" | "fair" | "poor" | "critical";
+  hungerStatus: "fed" | "hungry" | "starving";
 }
 
 /**
@@ -90,7 +91,7 @@ export class MinerStatsService {
    */
   async getMinerStats(minerId: bigint): Promise<MinerStatsUI> {
     try {
-      log.info('Getting miner stats', { minerId: minerId.toString() });
+      log.info("Getting miner stats", { minerId: minerId.toString() });
 
       const statsManager = this.contractManager.getMinerStatsManager();
 
@@ -103,12 +104,29 @@ export class MinerStatsService {
         timeUntilStarving,
         needsRepair,
       ] = await Promise.all([
-        statsManager.getStats(minerId),
-        statsManager.isHungry(minerId),
-        statsManager.isStarving(minerId),
-        statsManager.getTimeUntilHungry(minerId),
-        statsManager.getTimeUntilStarving(minerId),
-        statsManager.needsRepair(minerId, MinerStatsService.REPAIR_THRESHOLD),
+        chainReadClient.read(() => statsManager.getStats(minerId), {
+          label: `MinerStatsService.stats:${minerId.toString()}`,
+        }),
+        chainReadClient.read(() => statsManager.isHungry(minerId), {
+          label: `MinerStatsService.hungry:${minerId.toString()}`,
+        }),
+        chainReadClient.read(() => statsManager.isStarving(minerId), {
+          label: `MinerStatsService.starving:${minerId.toString()}`,
+        }),
+        chainReadClient.read(() => statsManager.getTimeUntilHungry(minerId), {
+          label: `MinerStatsService.timeHungry:${minerId.toString()}`,
+        }),
+        chainReadClient.read(() => statsManager.getTimeUntilStarving(minerId), {
+          label: `MinerStatsService.timeStarving:${minerId.toString()}`,
+        }),
+        chainReadClient.read(
+          () =>
+            statsManager.needsRepair(
+              minerId,
+              MinerStatsService.REPAIR_THRESHOLD,
+            ),
+          { label: `MinerStatsService.needsRepair:${minerId.toString()}` },
+        ),
       ]);
 
       const now = Math.floor(Date.now() / 1000);
@@ -117,7 +135,9 @@ export class MinerStatsService {
       const currentLevelXP = (stats.level - 1) * MinerStatsService.XP_PER_LEVEL;
       const nextLevelXP = stats.level * MinerStatsService.XP_PER_LEVEL;
       const experienceToNextLevel = nextLevelXP - stats.experience;
-      const experienceProgress = ((stats.experience - currentLevelXP) / MinerStatsService.XP_PER_LEVEL) * 100;
+      const experienceProgress =
+        ((stats.experience - currentLevelXP) / MinerStatsService.XP_PER_LEVEL) *
+        100;
 
       // Calcular multiplicador efectivo
       const effectiveMultiplier = (stats.durability * stats.efficiency) / 100;
@@ -150,7 +170,7 @@ export class MinerStatsService {
         hungerStatus: this.getHungerStatus(isHungry, isStarving),
       };
 
-      log.info('Miner stats retrieved', {
+      log.info("Miner stats retrieved", {
         minerId: minerId.toString(),
         durability: stats.durability,
         efficiency: stats.efficiency,
@@ -159,7 +179,10 @@ export class MinerStatsService {
 
       return uiStats;
     } catch (error) {
-      log.error('Error getting miner stats', { error, minerId: minerId.toString() });
+      log.error("Error getting miner stats", {
+        error,
+        minerId: minerId.toString(),
+      });
       throw error;
     }
   }
@@ -169,7 +192,7 @@ export class MinerStatsService {
    */
   async compareMiners(minerIds: bigint[]): Promise<MinerComparison[]> {
     try {
-      log.info('Comparing miners', { count: minerIds.length });
+      log.info("Comparing miners", { count: minerIds.length });
 
       const statsPromises = minerIds.map(async (minerId) => {
         const stats = await this.getMinerStats(minerId);
@@ -192,11 +215,11 @@ export class MinerStatsService {
         comp.rank = index + 1;
       });
 
-      log.info('Miners compared', { count: comparisons.length });
+      log.info("Miners compared", { count: comparisons.length });
 
       return comparisons;
     } catch (error) {
-      log.error('Error comparing miners', { error });
+      log.error("Error comparing miners", { error });
       throw error;
     }
   }
@@ -232,7 +255,13 @@ export class MinerStatsService {
           multiplier: acc.multiplier + comp.effectiveMultiplier,
           experience: acc.experience + comp.experience,
         }),
-        { durability: 0, efficiency: 0, level: 0, multiplier: 0, experience: 0 }
+        {
+          durability: 0,
+          efficiency: 0,
+          level: 0,
+          multiplier: 0,
+          experience: 0,
+        },
       );
 
       const count = minerIds.length;
@@ -245,16 +274,55 @@ export class MinerStatsService {
         totalExperience: totals.experience,
       };
     } catch (error) {
-      log.error('Error calculating collection average', { error });
+      log.error("Error calculating collection average", { error });
       throw error;
     }
+  }
+
+  calculateCollectionAverage(comparisons: MinerComparison[]): {
+    avgDurability: number;
+    avgEfficiency: number;
+    avgLevel: number;
+    avgMultiplier: number;
+    totalExperience: number;
+  } {
+    if (comparisons.length === 0) {
+      return {
+        avgDurability: 0,
+        avgEfficiency: 0,
+        avgLevel: 0,
+        avgMultiplier: 0,
+        totalExperience: 0,
+      };
+    }
+
+    const totals = comparisons.reduce(
+      (acc, comp) => ({
+        durability: acc.durability + comp.durability,
+        efficiency: acc.efficiency + comp.efficiency,
+        level: acc.level + comp.level,
+        multiplier: acc.multiplier + comp.effectiveMultiplier,
+        experience: acc.experience + comp.experience,
+      }),
+      { durability: 0, efficiency: 0, level: 0, multiplier: 0, experience: 0 },
+    );
+
+    const count = comparisons.length;
+
+    return {
+      avgDurability: Math.round(totals.durability / count),
+      avgEfficiency: Math.round(totals.efficiency / count),
+      avgLevel: Math.round(totals.level / count),
+      avgMultiplier: Math.round(totals.multiplier / count),
+      totalExperience: totals.experience,
+    };
   }
 
   /**
    * Verifica la salud general del miner
    */
   getMinerHealth(stats: MinerStatsUI): {
-    overall: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+    overall: "excellent" | "good" | "fair" | "poor" | "critical";
     score: number; // 0-100
     warnings: string[];
   } {
@@ -263,39 +331,39 @@ export class MinerStatsService {
 
     // Durability penalty
     if (stats.durability < 20) {
-      warnings.push('Durabilidad crítica - Reparación urgente');
+      warnings.push("Durabilidad crítica - Reparación urgente");
       score -= 30;
     } else if (stats.durability < 50) {
-      warnings.push('Durabilidad baja - Considerar reparación');
+      warnings.push("Durabilidad baja - Considerar reparación");
       score -= 15;
     }
 
     // Efficiency penalty
     if (stats.efficiency < 20) {
-      warnings.push('Eficiencia crítica - Verificar hambre');
+      warnings.push("Eficiencia crítica - Verificar hambre");
       score -= 30;
     } else if (stats.efficiency < 50) {
-      warnings.push('Eficiencia reducida');
+      warnings.push("Eficiencia reducida");
       score -= 15;
     }
 
     // Hunger penalty
     if (stats.isStarving) {
-      warnings.push('Hambre crítica - Alimentar urgente');
+      warnings.push("Hambre crítica - Alimentar urgente");
       score -= 25;
     } else if (stats.isHungry) {
-      warnings.push('Necesita alimentación');
+      warnings.push("Necesita alimentación");
       score -= 10;
     }
 
     score = Math.max(0, score);
 
-    let overall: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
-    if (score >= 90) overall = 'excellent';
-    else if (score >= 70) overall = 'good';
-    else if (score >= 50) overall = 'fair';
-    else if (score >= 30) overall = 'poor';
-    else overall = 'critical';
+    let overall: "excellent" | "good" | "fair" | "poor" | "critical";
+    if (score >= 90) overall = "excellent";
+    else if (score >= 70) overall = "good";
+    else if (score >= 50) overall = "fair";
+    else if (score >= 30) overall = "poor";
+    else overall = "critical";
 
     return { overall, score, warnings };
   }
@@ -303,33 +371,40 @@ export class MinerStatsService {
   /**
    * Helpers privados
    */
-  private getDurabilityStatus(durability: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
-    if (durability >= 80) return 'excellent';
-    if (durability >= 60) return 'good';
-    if (durability >= 40) return 'fair';
-    if (durability >= 20) return 'poor';
-    return 'critical';
+  private getDurabilityStatus(
+    durability: number,
+  ): "excellent" | "good" | "fair" | "poor" | "critical" {
+    if (durability >= 80) return "excellent";
+    if (durability >= 60) return "good";
+    if (durability >= 40) return "fair";
+    if (durability >= 20) return "poor";
+    return "critical";
   }
 
-  private getEfficiencyStatus(efficiency: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
-    if (efficiency >= 80) return 'excellent';
-    if (efficiency >= 60) return 'good';
-    if (efficiency >= 40) return 'fair';
-    if (efficiency >= 20) return 'poor';
-    return 'critical';
+  private getEfficiencyStatus(
+    efficiency: number,
+  ): "excellent" | "good" | "fair" | "poor" | "critical" {
+    if (efficiency >= 80) return "excellent";
+    if (efficiency >= 60) return "good";
+    if (efficiency >= 40) return "fair";
+    if (efficiency >= 20) return "poor";
+    return "critical";
   }
 
-  private getHungerStatus(isHungry: boolean, isStarving: boolean): 'fed' | 'hungry' | 'starving' {
-    if (isStarving) return 'starving';
-    if (isHungry) return 'hungry';
-    return 'fed';
+  private getHungerStatus(
+    isHungry: boolean,
+    isStarving: boolean,
+  ): "fed" | "hungry" | "starving" {
+    if (isStarving) return "starving";
+    if (isHungry) return "hungry";
+    return "fed";
   }
 
   /**
    * Formatea tiempo en segundos a string legible
    */
   static formatTime(seconds: number): string {
-    if (seconds <= 0) return 'Ahora';
+    if (seconds <= 0) return "Ahora";
 
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -348,6 +423,8 @@ export class MinerStatsService {
 /**
  * Factory para crear instancia del servicio
  */
-export function createMinerStatsService(contractManager: ContractManager): MinerStatsService {
+export function createMinerStatsService(
+  contractManager: ContractManager,
+): MinerStatsService {
   return new MinerStatsService(contractManager);
 }
