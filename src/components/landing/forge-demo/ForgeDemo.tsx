@@ -518,17 +518,6 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                   />
                 </div>
               </div>
-
-              <div className="absolute inset-x-0 bottom-[12%] z-50 text-center sm:bottom-[10%]">
-                <p
-                  className={`alchemy-heading text-lg drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-xl ${minerData.nameColor}`}
-                >
-                  {minerName}
-                </p>
-                <p className="text-[0.6rem] text-cyan-50/45 sm:text-xs">
-                  {minerData.rarityLabel} · Power {minerData.power}
-                </p>
-              </div>
             </>
           )}
         </ForgeAltarStage>
@@ -688,6 +677,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
               </h3>
               <p className="text-[0.6rem] text-cyan-50/38 sm:text-xs">
                 Petit Aqua CoreMiner
+              </p>
+              <p className="mt-0.5 text-[0.6rem] text-cyan-50/58 sm:text-xs">
+                {minerData.rarityLabel} · Power {minerData.power}
               </p>
             </div>
 
