@@ -36,6 +36,7 @@
     "pino-pretty": "^13.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-joyride": "^3.1.0",
     "viem": "^2.51.3",
     "wagmi": "^3.6.13",
     "yet-another-react-lightbox": "^3.32.0",

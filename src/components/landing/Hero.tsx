@@ -197,7 +197,7 @@ export default function Hero() {
             width={1024}
             height={1536}
             priority
-            className="pointer-events-none absolute bottom-[-5vh] right-[-42vw] z-20 h-[100vh] max-h-[1000px] w-auto select-none object-contain opacity-95 drop-shadow-[0_0_34px_rgba(255,91,18,0.2)] sm:right-[-25vw] lg:right-[-7vw] xl:right-0"
+            className="pointer-events-none absolute bottom-[-5vh] right-[-42vw] z-20 h-100vh max-h-[1000px] w-auto select-none object-contain opacity-95 drop-shadow-[0_0_34px_rgba(255,91,18,0.2)] sm:right-[-25vw] lg:right-[-7vw] xl:right-0"
           />
         </div>
 
@@ -244,7 +244,7 @@ export default function Hero() {
         </div>
         <div
           ref={eclipseRef}
-          className="scorch-hero__eclipse pointer-events-none absolute left-1/2 top-1/2 z-[25] h-[42vmax] w-[42vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black opacity-0 blur-xl"
+          className="scorch-hero__eclipse pointer-events-none absolute left-1/2 top-1/2 z-25 h-[42vmax] w-[42vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black opacity-0 blur-xl"
         />
 
         <div className="scorch-hero__content relative z-30 mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-6xl flex-col items-center justify-center text-center">

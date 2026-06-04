@@ -3,7 +3,8 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import ForgeDemo from "./forge-demo/ForgeDemo";
 
 type TransmuteProps = {
   onTransmute?: () => void;
@@ -18,7 +19,7 @@ const assets = {
     height: 941,
   },
   center: {
-    src: "/assets/landing/center-transmute.webp",
+    src: "/assets/Forge-assets/ALTAR.png",
     width: 1536,
     height: 1024,
   },
@@ -38,6 +39,7 @@ export default function Transmute({
   const backgroundRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<HTMLDivElement>(null);
+  const [demoStarted, setDemoStarted] = useState(false);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -102,6 +104,7 @@ export default function Transmute({
 
   const handleClick = () => {
     if (!disabled) {
+      setDemoStarted(true);
       onTransmute?.();
     }
   };
@@ -122,38 +125,48 @@ export default function Transmute({
         />
       </div>
 
-      <div className="transmute-stage relative z-[2] mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col items-center justify-center px-5 py-20 md:px-8 md:py-24">
-        <div ref={centerRef} className="transmute-center">
-          <Image
-            src={assets.center.src}
-            alt=""
-            aria-hidden="true"
-            width={assets.center.width}
-            height={assets.center.height}
-            sizes="(max-width: 767px) 92vw, 62vw"
-            className="h-auto w-full object-contain"
-          />
-        </div>
+      <div className="transmute-stage relative z-2 mx-auto flex min-h-svh w-full max-w-4xl flex-col items-center justify-center px-5 py-20 md:px-8 md:py-24">
+        {demoStarted ? (
+          <div className="relative z-2 w-full">
+            <ForgeDemo onExit={() => setDemoStarted(false)} />
+          </div>
+        ) : (
+          <>
+            <div
+              ref={centerRef}
+              className="transmute-center relative mx-auto aspect-3/2 w-full max-w-2xl"
+            >
+              <Image
+                src={assets.center.src}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes="(max-width: 767px) 92vw, 62vw"
+                className="object-contain"
+              />
+            </div>
 
-        <div ref={actionRef} className="transmute-action">
-          <button
-            type="button"
-            className="transmute-button"
-            aria-label={ariaLabel}
-            disabled={disabled}
-            onClick={handleClick}
-          >
-            <Image
-              src={assets.button.src}
-              alt=""
-              aria-hidden="true"
-              width={assets.button.width}
-              height={assets.button.height}
-              sizes="(max-width: 767px) 72vw, 26vw"
-              className="h-auto w-full object-contain"
-            />
-          </button>
-        </div>
+            <div ref={actionRef} className="transmute-action">
+              <button
+                type="button"
+                className="transmute-button"
+                aria-label={ariaLabel}
+                disabled={disabled}
+                onClick={handleClick}
+              >
+                <Image
+                  src={assets.button.src}
+                  alt=""
+                  aria-hidden="true"
+                  width={assets.button.width}
+                  height={assets.button.height}
+                  sizes="(max-width: 767px) 72vw, 26vw"
+                  className="h-auto w-full object-contain"
+                />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

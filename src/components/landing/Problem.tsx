@@ -139,7 +139,7 @@ export default function Problem() {
           aria-hidden="true"
           fill
           sizes="100vw"
-          className="problem-layer problem-layer-bg z-[1]"
+          className="problem-layer problem-layer-bg z-1"
         />
         <Image
           src={sceneAssets.left.src}
@@ -147,7 +147,7 @@ export default function Problem() {
           aria-hidden="true"
           fill
           sizes="100vw"
-          className="problem-layer problem-layer-left z-[2]"
+          className="problem-layer problem-layer-left z-2"
         />
         <Image
           src={sceneAssets.right.src}
@@ -155,10 +155,10 @@ export default function Problem() {
           aria-hidden="true"
           fill
           sizes="100vw"
-          className="problem-layer problem-layer-right z-[3]"
+          className="problem-layer problem-layer-right z-3"
         />
 
-        <div className="problem-diagonal z-[4]" aria-hidden="true" />
+        <div className="problem-diagonal z-4" aria-hidden="true" />
 
         <Image
           src={sceneAssets.ice.src}
@@ -166,7 +166,7 @@ export default function Problem() {
           aria-hidden="true"
           width={sceneAssets.ice.width}
           height={sceneAssets.ice.height}
-          className="problem-ice-layer z-[5]"
+          className="problem-ice-layer z-5"
         />
         <Image
           src={sceneAssets.shards.src}
@@ -174,7 +174,7 @@ export default function Problem() {
           aria-hidden="true"
           width={sceneAssets.shards.width}
           height={sceneAssets.shards.height}
-          className="problem-shards-layer z-[6]"
+          className="problem-shards-layer z-6"
         />
         <Image
           src={sceneAssets.hand.src}
@@ -182,7 +182,7 @@ export default function Problem() {
           aria-hidden="true"
           width={sceneAssets.hand.width}
           height={sceneAssets.hand.height}
-          className="problem-hand-layer z-[7]"
+          className="problem-hand-layer z-7"
         />
         <Image
           src={sceneAssets.orb.src}
@@ -190,12 +190,12 @@ export default function Problem() {
           aria-hidden="true"
           width={sceneAssets.orb.width}
           height={sceneAssets.orb.height}
-          className="problem-orb-layer z-[8]"
+          className="problem-orb-layer z-8"
         />
 
         <div
           ref={copyRef}
-          className="problem-copy pointer-events-none relative z-[9] mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-5 py-28 md:px-8"
+          className="problem-copy pointer-events-none relative z-9 mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-5 py-28 md:px-8"
         >
           <div className="max-w-3xl">
             <p className="alchemy-eyebrow mb-5 text-xs md:text-sm">

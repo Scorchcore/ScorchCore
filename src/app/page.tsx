@@ -1,14 +1,15 @@
 "use client";
 
+import { ArrowRight, Flame, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import ForgeProcess from "@/components/landing/ForgeProcess";
 import Hero from "@/components/landing/Hero";
 import Problem from "@/components/landing/Problem";
 import Transmute from "@/components/landing/Transmute";
+import WhitelistSection from "@/components/landing/WhitelistSection";
 import { Footer } from "@/components/layout";
 import { useWallet } from "@/lib/hooks/user/useWallet";
-import Link from "next/link";
-import { Flame, X, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const [showBanner, setShowBanner] = useState(false);
@@ -29,9 +30,9 @@ export default function Home() {
     <div className="bg-black text-white">
       {/* Wallet connected banner */}
       {showBanner && (
-        <div className="alchemy-copy sticky top-16 z-30 border-b border-magma-gold/30 bg-black/92 backdrop-blur-md [background-image:linear-gradient(90deg,rgba(247,198,90,0.07),transparent_45%,rgba(125,249,255,0.04))]">
+        <div className="alchemy-copy sticky top-16 z-30 border-b border-magma-gold/30 bg-black/92 backdrop-blur-md bg-[linear-gradient(90deg,rgba(247,198,90,0.07),transparent_45%,rgba(125,249,255,0.04))]">
           {/* Top gold line */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-magma-gold/55 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-magma-gold/55 to-transparent" />
 
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-8">
             {/* Left: icon + message */}
@@ -41,7 +42,9 @@ export default function Home() {
               </div>
               <p className="text-sm text-cyan-50/80">
                 Wallet connected —{" "}
-                <span className="text-magma-gold">your CoreMiners are ready to mine.</span>
+                <span className="text-magma-gold">
+                  your CoreMiners are ready to mine.
+                </span>
               </p>
             </div>
 
@@ -471,6 +474,7 @@ export default function Home() {
         </div>
       </section>
       */}
+      <WhitelistSection />
       <Footer />
     </div>
   );
