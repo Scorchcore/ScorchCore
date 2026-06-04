@@ -64,15 +64,16 @@ export const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-2 lg:flex">
-          {/* Public Links - always visible */}
-          {PUBLIC_NAV_ITEMS.map((link) => (
-            <ScorchNavLink
-              key={link.href}
-              href={link.href}
-              label={link.label}
-              isActive={pathname === link.href}
-            />
-          ))}
+          {/* Public Links - only on root route */}
+          {pathname === "/" &&
+            PUBLIC_NAV_ITEMS.map((link) => (
+              <ScorchNavLink
+                key={link.href}
+                href={link.href}
+                label={link.label}
+                isActive={pathname === (link.href as string)}
+              />
+            ))}
 
           {/* App Links - only when connected */}
           {isConnected && (
