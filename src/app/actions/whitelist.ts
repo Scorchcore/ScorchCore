@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { getSupabaseClient } from "@/lib/config/supabase";
+import { getSupabaseServiceClient } from "@/lib/config/supabase";
 
 const schema = z.object({
   walletAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
@@ -17,7 +17,7 @@ export async function registerToWhitelist(input: unknown) {
 
   const { walletAddress, email, twitterHandle } = parsed.data;
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseServiceClient();
 
   const { error } = await supabase.from("whitelist").upsert(
     {
@@ -36,7 +36,7 @@ export async function registerToWhitelist(input: unknown) {
 }
 
 export async function isWalletWhitelisted(walletAddress: string) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseServiceClient();
 
   const { data, error } = await supabase
     .from("whitelist")

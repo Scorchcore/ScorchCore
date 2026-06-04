@@ -19,6 +19,8 @@ interface ForgeDemoRouletteProps {
   axieClass: AxieClass;
   onComplete: (minerIndex: number) => void;
   compact?: boolean;
+  /** If provided, the roulette will land on this index instead of a new random one */
+  preselectedIndex?: number;
 }
 
 const getThumbnails = (
@@ -61,12 +63,46 @@ export default function ForgeDemoRoulette({
   axieClass,
   onComplete,
   compact = false,
+  preselectedIndex,
 }: ForgeDemoRouletteProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const firstItemRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<gsap.core.Tween | null>(null);
   const hasStopped = useRef(false);
+  const winnerIndexRef = useRef<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const thumbnails = getThumbnails(category, axieClass);
+
+  const [metrics, setMetrics] = useState({
+    thumbnailWidth: compact ? 144 : 192,
+    gap: 16,
+  });
+
+  // Measure real thumbnail width + gap via ResizeObserver
+  useEffect(() => {
+    if (!firstItemRef.current) return;
+
+    const measure = () => {
+      const item = firstItemRef.current;
+      if (!item) return;
+      const rect = item.getBoundingClientRect();
+      setMetrics({
+        thumbnailWidth: rect.width,
+        gap: 16, // space-x-4 is always 16px in Tailwind
+      });
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(firstItemRef.current);
+    window.addEventListener("resize", measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
 
   const rouletteItems = useMemo(() => {
     const items: { id: string; thumbPath: string; thumbIndex: number }[] = [];
@@ -82,8 +118,18 @@ export default function ForgeDemoRoulette({
     return items;
   }, [thumbnails]);
 
-  // Determinar índice ganador al montar
-  const winnerIndexRef = useRef(Math.floor(Math.random() * 7));
+  // Determinar índice ganador (use preselected if provided)
+  useEffect(() => {
+    const next =
+      preselectedIndex !== undefined && preselectedIndex >= 0
+        ? preselectedIndex
+        : Math.floor(Math.random() * 7);
+    logger.info("Ruleta winnerIndex set", {
+      preselectedIndex,
+      next,
+    });
+    winnerIndexRef.current = next;
+  }, [preselectedIndex]);
 
   useEffect(() => {
     hasStopped.current = false;
@@ -98,21 +144,30 @@ export default function ForgeDemoRoulette({
     };
   }, []);
 
+  // Infinite-scroll loop animation (recreated when metrics change)
   useEffect(() => {
     if (!containerRef.current) return;
-    if (animationRef.current) return;
+    if (hasStopped.current) return;
 
-    const cycleDistance = thumbnails.length * 208;
+    const { thumbnailWidth, gap } = metrics;
+    const itemsPerCycle = thumbnails.length;
+    const cycleWidth = itemsPerCycle * (thumbnailWidth + gap);
+
+    // Kill previous loop if metrics changed mid-animation
+    if (animationRef.current) {
+      animationRef.current.kill();
+      animationRef.current = null;
+    }
 
     animationRef.current = gsap.to(containerRef.current, {
-      x: -cycleDistance,
+      x: -cycleWidth,
       duration: 2.5,
       ease: "none",
       repeat: -1,
       modifiers: {
         x: (x: string) => {
           const numX = parseFloat(x);
-          return `${numX % -cycleDistance}px`;
+          return `${numX % -cycleWidth}px`;
         },
       },
     });
@@ -123,25 +178,30 @@ export default function ForgeDemoRoulette({
         return;
       hasStopped.current = true;
 
-      const chosenIndex = winnerIndexRef.current;
-      logger.info("Demo ruleta deteniéndose", { chosenIndex });
+      const chosenIndex =
+        winnerIndexRef.current ?? Math.floor(Math.random() * 7);
+      logger.info("Demo ruleta deteniéndose", {
+        chosenIndex,
+        winnerIndex: winnerIndexRef.current,
+      });
 
       animationRef.current.kill();
       animationRef.current = null;
 
-      const thumbnailWidth = 192;
-      const gap = 16;
+      const { thumbnailWidth, gap } = metrics;
       const containerPadding = 16;
-      const thumbnailTotalWidth = thumbnailWidth + gap;
+      const itemsPerCycle = thumbnails.length;
+      const cycleWidth = itemsPerCycle * (thumbnailWidth + gap);
       const rouletteContainer = containerRef.current.parentElement;
       if (!rouletteContainer) return;
 
       const containerCenter =
         rouletteContainer.getBoundingClientRect().width / 2;
       const targetCycle = 20;
-      const thumbnailAbsoluteIndex = targetCycle * 7 + chosenIndex;
       const thumbnailLeftPosition =
-        containerPadding + thumbnailAbsoluteIndex * thumbnailTotalWidth;
+        containerPadding +
+        targetCycle * cycleWidth +
+        chosenIndex * (thumbnailWidth + gap);
       const thumbnailCenterPosition =
         thumbnailLeftPosition + thumbnailWidth / 2;
       const finalPosition = thumbnailCenterPosition - containerCenter;
@@ -162,7 +222,7 @@ export default function ForgeDemoRoulette({
     }, 4000);
 
     return () => clearTimeout(stopTimer);
-  }, [thumbnails.length, onComplete]);
+  }, [metrics, thumbnails.length, onComplete]);
 
   const realMinerNames = thumbnails.map((path) => {
     const fileName = path.split("/").pop() || "";
@@ -235,13 +295,14 @@ export default function ForgeDemoRoulette({
             className="flex space-x-4 p-4"
             style={{ willChange: "transform" }}
           >
-            {rouletteItems.map((item) => {
+            {rouletteItems.map((item, idx) => {
               const isSelected =
                 selectedIndex === item.thumbIndex &&
                 item.id.startsWith("thumb-20-");
               return (
                 <div
                   key={item.id}
+                  ref={idx === 0 ? firstItemRef : undefined}
                   className={`flex ${thumbW} shrink-0 flex-col transition-all duration-500 ${
                     isSelected ? "z-30 scale-110" : ""
                   }`}

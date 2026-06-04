@@ -2,7 +2,6 @@
 
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
-import { FORGE_DEMO_ASSETS } from "@/lib/constants/forgeDemo";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 
 const logger = createServiceLogger("ForgeTriadAnimation");
@@ -30,16 +29,6 @@ interface ForgeTriadAnimationProps {
 /* Convert % coords (0-100) to SVG viewBox coords (0-300 x 0-200) */
 function toSvg(p: TriadPoint) {
   return { x: p.x * 3, y: p.y * 2 };
-}
-
-/* Midpoint between two SVG points */
-function mid(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-}
-
-/* Angle in degrees from a to b */
-function angleDeg(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
 }
 
 /* Euclidean distance */
@@ -88,18 +77,10 @@ export default function ForgeTriadAnimation({
   const gSvg = toSvg(geode);
   const cSvg = toSvg(center);
 
-  const edgeAM = { mid: mid(aSvg, mSvg), angle: angleDeg(aSvg, mSvg) };
-  const edgeMG = { mid: mid(mSvg, gSvg), angle: angleDeg(mSvg, gSvg) };
-  const edgeGA = { mid: mid(gSvg, aSvg), angle: angleDeg(gSvg, aSvg) };
-
   const distAM = dist(aSvg, mSvg);
   const distMG = dist(mSvg, gSvg);
   const distGA = dist(gSvg, aSvg);
-
-  const edgeW = 12;
   const edgeH = 26;
-  const centerW = 22;
-  const centerH = 44;
 
   useEffect(() => {
     const prefersReduced = window.matchMedia(

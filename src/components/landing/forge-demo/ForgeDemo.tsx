@@ -175,8 +175,21 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     return filename.replace(/\.mp4$/i, "").replace(/_/g, " ");
   }, [revealedMinerIndex]);
 
-  /* Preload critical images asynchronously so SVG mounts instantly when forging starts */
+  /* Preload critical images asynchronously so SVG mounts instantly when forging starts.
+     Cached via localStorage so we skip redundant preloads on refresh/tab-switch. */
   useEffect(() => {
+    const CACHE_KEY = "forge_demo_preloaded_at";
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+    const lastPreloaded = Number(localStorage.getItem(CACHE_KEY) || "0");
+    const now = Date.now();
+
+    if (lastPreloaded && now - lastPreloaded < CACHE_TTL_MS) {
+      logger.info("Preload cache hit — saltando preload", {
+        cachedAt: new Date(lastPreloaded).toISOString(),
+      });
+      return;
+    }
+
     const t0 = performance.now();
     const assets = [
       FORGE_DEMO_ASSETS.altar,
@@ -194,6 +207,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
       img.onload = () => {
         loaded++;
         if (loaded === assets.filter(Boolean).length) {
+          localStorage.setItem(CACHE_KEY, String(Date.now()));
           logger.info("Preload assets completado", {
             elapsedMs: Math.round(performance.now() - t0),
           });
@@ -477,6 +491,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                 <ForgeDemoRoulette
                   category={GeodeCategory.PETIT}
                   axieClass={AxieClass.AQUA}
+                  preselectedIndex={revealedMinerIndex}
                   onComplete={handleRouletteComplete}
                   compact
                 />
