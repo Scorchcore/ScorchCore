@@ -141,11 +141,11 @@ function TriadAnchor({
 }
 
 const ICON_CN =
-  "object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 xl:h-20 xl:w-20";
+  "object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 xl:h-24 xl:w-24 2xl:h-28 2xl:w-28";
 const ICON_LABEL_CN =
   "absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.65rem] font-bold text-white opacity-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]";
 const VIDEO_WRAP_CN =
-  "pointer-events-none absolute left-1/2 top-[10%] z-50 w-52 -translate-x-1/2 sm:top-[8%] sm:w-60 md:w-72 lg:w-80 xl:w-96";
+  "pointer-events-none absolute left-1/2 top-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center";
 
 /* ── Main demo component ── */
 export default function ForgeDemo({ onExit }: ForgeDemoProps) {
@@ -469,11 +469,8 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
           {/* ── GEODE CREATED ── video floating in beam ── */}
           {stage === "geode-created" && (
-            <div className={VIDEO_WRAP_CN}>
-              <div
-                data-tour="geode-video"
-                className="aspect-square h-20 overflow-hidden absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-1/4 sm:h-[30vw] lg:h-[22vw] lg:translate-y-1/3 xl:translate-y-1/2 xl:h-[10vw] mx-auto rounded-full border border-magma-gold/30 shadow-[0_0_48px_rgba(240,106,18,0.28)]"
-              >
+            <div className={VIDEO_WRAP_CN} data-tour="geode-video">
+              <div className="aspect-square w-20 overflow-hidden rounded-full border border-magma-gold/30 shadow-[0_0_48px_rgba(240,106,18,0.28)] sm:w-28 md:w-36 lg:w-44 xl:w-52 2xl:w-60">
                 <GeodeVideo
                   category={GeodeCategory.PETIT}
                   axieClass={AxieClass.AQUA}
@@ -504,7 +501,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
             <>
               <div className={VIDEO_WRAP_CN} data-tour="reveal">
                 <div
-                  className={`aspect-square overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)]`}
+                  className={`aspect-square w-52 overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)] sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem]`}
                 >
                   <CoreMinerVideo
                     category={GeodeCategory.PETIT}
