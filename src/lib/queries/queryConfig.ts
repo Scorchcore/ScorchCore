@@ -7,8 +7,8 @@ export const queryConfig = {
   },
 
   semiDynamic: {
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 2,
     refetchOnWindowFocus: false,
   },

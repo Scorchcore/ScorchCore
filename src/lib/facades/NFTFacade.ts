@@ -9,9 +9,10 @@
  */
 
 import type { Address } from "viem";
+import { getDeploymentBlock } from "@/lib/config/deployment.config";
 import type { ContractManager } from "@/lib/contracts/ContractManager";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
-import type { CoreMiner, MinerType } from "@/types/game";
+import { chainReadClient } from "@/lib/utils/network/chainReadClient";
 
 const logger = createServiceLogger("NFTFacade");
 
@@ -86,74 +87,89 @@ export class NFTFacade {
    * @param address - Dirección de la wallet
    * @returns Array de Core Miners NFT
    */
-  async getMinersFromWallet(address: Address): Promise<CoreMinerNFT[]> {
+  async getMinersFromWallet(
+    address: Address,
+    options?: { onProgress?: (miners: CoreMinerNFT[]) => void },
+  ): Promise<CoreMinerNFT[]> {
     logger.info("Obteniendo mineros de wallet", { address });
 
     try {
-      // Validar que hay provider disponible
       const provider = this.contractManager.getProvider();
       if (!provider) {
-        logger.warn("No provider available, returning empty miners array");
-        return [];
+        throw new Error("Provider not available");
       }
 
       const minerContract = this.contractManager.getCoreMinerNFT();
 
-      // CoreMinerNFT NO tiene tokenOfOwnerByIndex (no implementa ERC721Enumerable)
-      // En su lugar, buscar eventos MinerMinted para este address
-      const currentBlock = await provider.getBlockNumber();
-      const fromBlock = Math.max(0, currentBlock - 10000); // Últimos 10k bloques
-
-      logger.debug("Buscando eventos MinerMinted", { fromBlock, currentBlock });
-
-      // Buscar eventos MinerMinted para este usuario
-      const filter = minerContract.contract.filters.MinerMinted(address);
-      const events = await minerContract.contract.queryFilter(
-        filter,
-        fromBlock,
-        currentBlock,
+      const balance = await chainReadClient.read<bigint>(
+        () => minerContract.balanceOf(address),
+        { label: "NFTFacade.minerBalance" },
       );
-
-      logger.info(
-        `Encontrados ${events.length} eventos MinerMinted para ${address}`,
-      );
-
-      if (events.length === 0) {
-        logger.info("No hay mineros en esta wallet");
+      if (balance === 0n) {
+        logger.info("Balance 0, no miners in wallet");
         return [];
       }
 
-      // Extraer token IDs y verificar ownership actual
-      const tokenIds: bigint[] = [];
-      for (const event of events) {
-        const tokenId = event.args?.tokenId;
-        if (tokenId) {
-          try {
-            // Verificar que el usuario todavía es owner (podría haber transferido el NFT)
-            const owner = await minerContract.ownerOf(tokenId);
-            if (owner.toLowerCase() === address.toLowerCase()) {
-              tokenIds.push(tokenId);
-            }
-          } catch (error) {
-            // Token podría haber sido quemado, ignorar
-            logger.debug(`Token ${tokenId} no existe o fue quemado`);
+      const currentBlock = await chainReadClient.read(
+        () => provider.getBlockNumber(),
+        { label: "NFTFacade.currentBlock" },
+      );
+      const fromBlock = getDeploymentBlock(currentBlock);
+
+      logger.debug("Scanning MinerMinted events", {
+        fromBlock,
+        currentBlock,
+        balance: balance.toString(),
+      });
+
+      // Phase 1: Scan events to collect candidate tokenIds (fast, no ownerOf)
+      const candidateTokenIds: bigint[] = [];
+      await chainReadClient.readEventChunks({
+        label: "NFTFacade.MinerMinted",
+        fromBlock,
+        toBlock: currentBlock,
+        direction: "desc",
+        query: async (from, to) => {
+          const filter = minerContract.contract.filters.MinerMinted(address);
+          const events = await minerContract.contract.queryFilter(
+            filter,
+            from,
+            to,
+          );
+          for (const event of events) {
+            const tokenId = event.args?.tokenId;
+            if (tokenId) candidateTokenIds.push(tokenId);
           }
+          return events;
+        },
+      });
+
+      logger.info("Candidate tokenIds from events", {
+        count: candidateTokenIds.length,
+      });
+
+      // Phase 2: Verify ownership + load data progressively
+      const miners: CoreMinerNFT[] = [];
+      for (const tokenId of candidateTokenIds) {
+        try {
+          const owner = await chainReadClient.read<string>(
+            () => minerContract.ownerOf(tokenId),
+            { label: `NFTFacade.ownerOf:${tokenId.toString()}` },
+          );
+          if (owner.toLowerCase() !== address.toLowerCase()) continue;
+
+          const miner = await this.getMinerData(tokenId, address);
+          if (miner) {
+            miners.push(miner);
+            options?.onProgress?.(miners);
+          }
+        } catch {
+          logger.debug(`Token ${tokenId} burned or nonexistent`);
         }
       }
 
-      logger.info("Token IDs obtenidos", { count: tokenIds.length });
-
-      // Obtener datos de cada minero
-      const miners = await Promise.all(
-        tokenIds.map((tokenId) => this.getMinerData(tokenId, address)),
-      );
-
-      const validMiners = miners.filter((m) => m !== null) as CoreMinerNFT[];
-      logger.info("Mineros cargados exitosamente", {
-        count: validMiners.length,
-      });
-
-      return validMiners;
+      logger.info("Miners loaded", { count: miners.length });
+      return miners;
     } catch (error) {
       logger.error("Error obteniendo mineros", error);
       throw error;
@@ -170,7 +186,13 @@ export class NFTFacade {
   ): Promise<CoreMinerNFT | null> {
     try {
       const minerContract = this.contractManager.getCoreMinerNFT();
-      const minerData = await minerContract.getMinerData(tokenId);
+      const minerData = await chainReadClient.read<{
+        category: bigint | number;
+        minerType: bigint | number;
+        minerIndex: bigint | number;
+      }>(() => minerContract.getMinerData(tokenId), {
+        label: `NFTFacade.getMinerData:${tokenId.toString()}`,
+      });
 
       // Usar datos locales en lugar de IPFS
       const { getLocalMinerName, getLocalMinerVideo, getLocalMinerType } =
@@ -278,7 +300,10 @@ export class NFTFacade {
       const axieContract = this.contractManager.getAxieContract();
 
       // Obtener balance de Axies
-      const balance = await axieContract.balanceOf(address);
+      const balance = await chainReadClient.read(
+        () => axieContract.balanceOf(address),
+        { label: "NFTFacade.axieBalance" },
+      );
       logger.debug("Balance de Axies obtenido", {
         balance: balance.toString(),
       });
@@ -291,10 +316,16 @@ export class NFTFacade {
       const axies: AxieNFT[] = [];
       for (let i = 0n; i < balance; i++) {
         try {
-          const tokenId = await axieContract.tokenOfOwnerByIndex(address, i);
+          const tokenId = await chainReadClient.read(
+            () => axieContract.tokenOfOwnerByIndex(address, i),
+            { label: `NFTFacade.axieByIndex:${i.toString()}` },
+          );
 
           // Obtener datos del Axie
-          const axieData = await axieContract.getAxie(tokenId);
+          const axieData = await chainReadClient.read(
+            () => axieContract.getAxie(tokenId),
+            { label: `NFTFacade.getAxie:${tokenId.toString()}` },
+          );
 
           // Parsear genes para obtener la clase
           const axieClass = this.parseAxieClass(axieData.genes);
@@ -347,7 +378,10 @@ export class NFTFacade {
   private async isAxieStaked(axieId: bigint): Promise<boolean> {
     try {
       const stakingManager = this.contractManager.getAxieStakingManager();
-      const stakeInfo = await stakingManager.getStakeInfo(axieId);
+      const stakeInfo = await chainReadClient.read(
+        () => stakingManager.getStakeInfo(axieId),
+        { label: `NFTFacade.axieStake:${axieId.toString()}` },
+      );
       return stakeInfo.isStaked;
     } catch (error) {
       logger.warn("Error verificando staking de Axie", {

@@ -51,6 +51,16 @@ export function useInvalidateOnTx() {
     });
   }, [queryClient, chainId, address]);
 
+  const refreshInventory = useCallback(() => {
+    if (!address) return;
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.inventory.geodes(chainId, address),
+    });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.inventory.miners(chainId, address),
+    });
+  }, [queryClient, chainId, address]);
+
   const invalidateAll = useCallback(() => {
     queryClient.invalidateQueries({
       queryKey: ["inventory", chainId],
@@ -72,6 +82,7 @@ export function useInvalidateOnTx() {
     afterCycleChange,
     afterFCoreConvert,
     afterMinerAction,
+    refreshInventory,
     invalidateAll,
   };
 }

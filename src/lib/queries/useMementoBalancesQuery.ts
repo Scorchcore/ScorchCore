@@ -5,6 +5,7 @@ import { getContractAddresses } from "@/lib/config/contracts";
 import { AXIE_CLASS_INFO, type AxieClass } from "@/lib/constants/geodes";
 import { ContractManager } from "@/lib/contracts/ContractManager";
 import type { MementoBalances } from "@/lib/hooks/economy/useMementoBalances";
+import { chainReadClient } from "@/lib/utils/network/chainReadClient";
 import { queryConfig } from "./queryConfig";
 import { queryKeys } from "./queryKeys";
 
@@ -15,7 +16,7 @@ async function fetchMementoBalances(
   const contractManager = ContractManager.getInstance({ chainId });
   const provider = contractManager.getProvider();
   if (!provider) {
-    return {} as MementoBalances;
+    throw new Error("Provider not available");
   }
 
   const contracts = getContractAddresses(chainId);
@@ -53,45 +54,52 @@ async function fetchMementoBalances(
 
   const balancesData: Partial<MementoBalances> = {};
 
-  for (const [className] of validMementos) {
-    const tokenId = classNameToTokenId[className.toLowerCase()];
-    if (tokenId === undefined) continue;
+  await chainReadClient.readBatch(
+    validMementos,
+    async ([className]) => {
+      const tokenId = classNameToTokenId[className.toLowerCase()];
+      if (tokenId === undefined) return;
 
-    const classNumber = tokenId as AxieClass;
-    const classInfo = AXIE_CLASS_INFO[classNumber];
-    const symbol = `MEMENTO_${classInfo?.name || "UNKNOWN"}`;
+      const classNumber = tokenId as AxieClass;
+      const classInfo = AXIE_CLASS_INFO[classNumber];
+      const symbol = `MEMENTO_${classInfo?.name || "UNKNOWN"}`;
 
-    try {
-      const balance = await mementoContract.balanceOf(userAddress, tokenId);
-      balancesData[classNumber] = {
-        axieClass: classNumber,
-        balance,
-        formatted: (Number(balance) / 1e18).toFixed(2),
-        symbol,
-        address: mementoAddress,
-      };
-    } catch {
-      balancesData[classNumber] = {
-        axieClass: classNumber,
-        balance: 0n,
-        formatted: "0.00",
-        symbol,
-        address: mementoAddress,
-      };
-    }
-  }
+      try {
+        const balance = await mementoContract.balanceOf(userAddress, tokenId);
+        balancesData[classNumber] = {
+          axieClass: classNumber,
+          balance,
+          formatted: (Number(balance) / 1e18).toFixed(2),
+          symbol,
+          address: mementoAddress,
+        };
+      } catch {
+        balancesData[classNumber] = {
+          axieClass: classNumber,
+          balance: 0n,
+          formatted: "0.00",
+          symbol,
+          address: mementoAddress,
+        };
+      }
+    },
+    { label: "MementoBalances.batch" },
+  );
 
   return balancesData as MementoBalances;
 }
 
 export function useMementoBalancesQuery() {
   const chainId = useChainId();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
 
   return useQuery<MementoBalances>({
-    queryKey: queryKeys.balances.mementos(chainId, address!),
-    queryFn: () => fetchMementoBalances(address!, chainId),
-    enabled: !!address,
+    queryKey: queryKeys.balances.mementos(chainId, address ?? ""),
+    queryFn: () => {
+      if (!address) throw new Error("Wallet address not available");
+      return fetchMementoBalances(address, chainId);
+    },
+    enabled: !!address && isConnected,
     ...queryConfig.semiDynamic,
   });
 }
