@@ -13,6 +13,7 @@ import {
   Lock,
   LogOut,
   Pickaxe,
+  RefreshCw,
   ShoppingBag,
   TrendingUp,
   Users,
@@ -50,6 +51,7 @@ import {
   useUserAxies,
   useUserMiners,
 } from "@/lib/queries";
+import type { ActiveCycle } from "@/lib/services/cycle";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,6 +66,12 @@ interface DisplayMiner {
   status: string;
   efficiency: number;
   dailyOutput: string;
+}
+
+function isMinerInActiveCycle(minerId: bigint, activeCycles: ActiveCycle[]) {
+  return activeCycles.some((cycle) =>
+    cycle.minerIds.some((id) => id === minerId),
+  );
 }
 
 // ─── Tab Button ───────────────────────────────────────────────────────────────
@@ -93,6 +101,35 @@ function DashTabButton({
       <Icon className="h-3.5 w-3.5" />
       <span>{label}</span>
     </button>
+  );
+}
+
+function ChainStatusBanner({
+  isUpdating,
+  hasStaleError,
+}: {
+  isUpdating: boolean;
+  hasStaleError: boolean;
+}) {
+  if (!isUpdating && !hasStaleError) return null;
+
+  return (
+    <div
+      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${
+        hasStaleError
+          ? "border-magma-orange/35 bg-orange-500/8 text-magma-orange"
+          : "border-ethereal-cyan/25 bg-cyan-300/8 text-ethereal-cyan/75"
+      }`}
+    >
+      <RefreshCw
+        className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`}
+      />
+      <span>
+        {hasStaleError
+          ? "Showing cached dashboard data. Chain refresh failed."
+          : "Updating chain data…"}
+      </span>
+    </div>
   );
 }
 
@@ -153,7 +190,9 @@ function MinerCard({
     <article
       className={`relative overflow-hidden border ${borderClass} bg-black/42 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-md`}
     >
-      <div className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70`} />
+      <div
+        className={`pointer-events-none absolute inset-0 bg-linear-to-br ${glowClass} opacity-70`}
+      />
       <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
 
       {/* Video */}
@@ -319,7 +358,9 @@ function StatsTab({
       {/* Miner selector */}
       <div className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md">
         <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
-        <h3 className="alchemy-heading relative mb-4 text-xl">Select a Miner</h3>
+        <h3 className="alchemy-heading relative mb-4 text-xl">
+          Select a Miner
+        </h3>
         <div className="relative flex flex-wrap gap-2">
           {displayMiners.map((miner) => {
             const isSelected =
@@ -345,40 +386,31 @@ function StatsTab({
       </div>
 
       {/* Stats for selected miner */}
-      {selectedMinerForStats && (
-        <>
-          {isLoadingStats ? (
-            <div className="flex items-center justify-center py-16">
-              <Loading size="lg" text="Loading statistics…" />
-            </div>
-          ) : !selectedStats || !health ? (
-            <div className="border border-cyan-100/10 bg-black/42 p-8 text-center text-sm text-cyan-50/42 backdrop-blur-md">
-              Statistics could not be loaded
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <MinerStatsHistoryCard stats={selectedStats} health={health} />
-              <MinerPerformanceChart stats={selectedStats} />
-            </div>
-          )}
-        </>
-      )}
+      {selectedMinerForStats &&
+        (isLoadingStats ? (
+          <div className="flex items-center justify-center py-16">
+            <Loading size="lg" text="Loading statistics…" />
+          </div>
+        ) : !selectedStats || !health ? (
+          <div className="border border-cyan-100/10 bg-black/42 p-8 text-center text-sm text-cyan-50/42 backdrop-blur-md">
+            Statistics could not be loaded
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <MinerStatsHistoryCard stats={selectedStats} health={health} />
+            <MinerPerformanceChart stats={selectedStats} />
+          </div>
+        ))}
 
       {/* Comparison */}
-      {displayMiners.length > 1 && (
-        <>
-          {isLoadingComparison ? (
-            <div className="flex items-center justify-center py-16">
-              <Loading size="lg" text="Comparing miners…" />
-            </div>
-          ) : (
-            <MinerComparisonTable
-              comparisons={comparisons}
-              averages={averages}
-            />
-          )}
-        </>
-      )}
+      {displayMiners.length > 1 &&
+        (isLoadingComparison ? (
+          <div className="flex items-center justify-center py-16">
+            <Loading size="lg" text="Comparing miners…" />
+          </div>
+        ) : (
+          <MinerComparisonTable comparisons={comparisons} averages={averages} />
+        ))}
     </div>
   );
 }
@@ -389,18 +421,34 @@ export default function DashboardPage() {
   const router = useRouter();
   const { address, isConnected, balance, balanceSymbol, disconnect } =
     useWallet();
-  const { afterCycleChange, afterFCoreConvert } = useInvalidateOnTx();
+  const { afterFCoreConvert } = useInvalidateOnTx();
 
   // TanStack Query hooks
-  const { data: miners = [], isLoading: isLoadingMiners } = useUserMiners();
-  const { data: axies = [], isLoading: isLoadingAxies } = useUserAxies();
+  const {
+    data: miners = [],
+    isLoading: isLoadingMiners,
+    isFetching: isFetchingMiners,
+    error: minersError,
+  } = useUserMiners();
+  const {
+    data: axies = [],
+    isLoading: isLoadingAxies,
+    isFetching: isFetchingAxies,
+    error: axiesError,
+  } = useUserAxies();
   const {
     activeCycles,
     summary: cyclesSummary,
+    isFetching: isFetchingCycles,
+    error: cyclesError,
     refetch: refreshCycles,
   } = useActiveCyclesQuery();
-  const { data: fCoreSystemInfo, isLoading: isLoadingfCore } =
-    useFCoreSystemInfoQuery();
+  const {
+    data: fCoreSystemInfo,
+    isLoading: isLoadingfCore,
+    isFetching: isFetchingfCore,
+    error: fCoreError,
+  } = useFCoreSystemInfoQuery();
 
   const {
     axies: axiesHook,
@@ -417,6 +465,13 @@ export default function DashboardPage() {
   } = useMinerActions();
 
   const isLoadingData = isLoadingMiners || isLoadingAxies;
+  const isRefreshingChainData =
+    isFetchingMiners || isFetchingAxies || isFetchingCycles || isFetchingfCore;
+  const hasDashboardData =
+    miners.length > 0 || axies.length > 0 || activeCycles.length > 0;
+  const hasStaleError =
+    hasDashboardData &&
+    Boolean(minersError || axiesError || cyclesError || fCoreError);
 
   // fCORE computed values
   const systemInfo = fCoreSystemInfo ?? null;
@@ -512,9 +567,7 @@ export default function DashboardPage() {
       const basePower = miner.miningPower || 100;
       const efficiency = miner.efficiency || 100;
       const dailyOutput = ((basePower * efficiency) / 100).toFixed(2);
-      const isInCycle = activeCycles.some((cycle) =>
-        cycle.minerIds.some((id) => id === miner.tokenId),
-      );
+      const isInCycle = isMinerInActiveCycle(miner.tokenId, activeCycles);
       return {
         id: miner.tokenId.toString(),
         name: miner.name,
@@ -735,6 +788,11 @@ export default function DashboardPage() {
             />
           </nav>
 
+          <ChainStatusBanner
+            isUpdating={isRefreshingChainData && !isLoadingData}
+            hasStaleError={hasStaleError}
+          />
+
           {/* ── Overview Tab ── */}
           {activeTab === "overview" && (
             <div className="space-y-10">
@@ -745,6 +803,10 @@ export default function DashboardPage() {
                   verificationLevel={systemInfo.pohVerification.level}
                   expiresAt={systemInfo.pohVerification.expiresAt}
                   onConvert={async () => {
+                    if (!address) {
+                      showError("Wallet not connected");
+                      return;
+                    }
                     try {
                       const { ContractManager } = await import(
                         "@/lib/contracts/ContractManager"
@@ -757,7 +819,7 @@ export default function DashboardPage() {
                       });
                       const svc = createfCoreService(cm);
                       const result = await svc.convertfCore({
-                        userAddress: address!,
+                        userAddress: address,
                       });
                       if (result.success) {
                         showSuccess("fCORE converted to CORE successfully");
@@ -961,7 +1023,10 @@ export default function DashboardPage() {
                     label: "View Inventory",
                   },
                 ].map(({ icon: Icon, title, desc, href, label }) => (
-                  <article key={title} className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5">
+                  <article
+                    key={title}
+                    className="group relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5"
+                  >
                     <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-cyan-300/4 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                     <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-cyan-300/25 to-transparent" />
                     <div className="relative">
@@ -1053,7 +1118,10 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                   {displayAxies.map((axie) => (
-                    <article key={axie.id} className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md">
+                    <article
+                      key={axie.id}
+                      className="relative overflow-hidden border border-cyan-100/12 bg-black/42 p-5 backdrop-blur-md"
+                    >
                       <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-linear-to-b from-transparent via-magma-gold/45 to-transparent" />
                       <div className="relative mb-4 flex h-32 items-center justify-center border border-cyan-100/8 bg-black/30 text-5xl">
                         {axie.image}

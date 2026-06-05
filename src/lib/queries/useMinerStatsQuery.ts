@@ -18,8 +18,9 @@ export function useMinerStatsQuery(
   const statsQuery = useQuery<MinerStatsUI>({
     queryKey: queryKeys.minerStats.single(chainId, minerId?.toString() ?? "0"),
     queryFn: async () => {
+      if (!minerId) throw new Error("Miner id not available");
       const service = new MinerStatsService(contractManager);
-      return service.getMinerStats(minerId!);
+      return service.getMinerStats(minerId);
     },
     enabled: isEnabled,
     ...queryConfig.critical,
@@ -40,10 +41,15 @@ export function useMinerStatsQuery(
   };
 }
 
-export function useMinerComparisonQuery(minerIds: bigint[]) {
+export function useMinerComparisonQuery(
+  minerIds: bigint[],
+  options?: { enabled?: boolean },
+) {
   const chainId = useChainId();
   const { contractManager } = useContractManager();
   const stringIds = minerIds.map((id) => id.toString());
+  const isEnabled =
+    (options?.enabled ?? true) && minerIds.length > 1 && !!contractManager;
 
   return useQuery<{
     comparisons: MinerComparison[];
@@ -58,13 +64,11 @@ export function useMinerComparisonQuery(minerIds: bigint[]) {
     queryKey: queryKeys.minerStats.comparison(chainId, stringIds),
     queryFn: async () => {
       const service = new MinerStatsService(contractManager);
-      const [comparisons, averages] = await Promise.all([
-        service.compareMiners(minerIds),
-        service.getCollectionAverage(minerIds),
-      ]);
+      const comparisons = await service.compareMiners(minerIds);
+      const averages = service.calculateCollectionAverage(comparisons);
       return { comparisons, averages };
     },
-    enabled: minerIds.length > 1 && !!contractManager,
+    enabled: isEnabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     retry: 2,

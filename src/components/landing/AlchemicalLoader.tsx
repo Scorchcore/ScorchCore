@@ -30,8 +30,10 @@ export default function AlchemicalLoader({
 
   return (
     <div
-      className={`alchemical-loader fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-hidden bg-[#020607] text-cyan-200 ${exiting ? "alchemical-loader--exiting" : ""
-        }`}
+      className={`alchemical-loader fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-hidden bg-[#020607] text-cyan-200 ${
+        exiting ? "alchemical-loader--exiting" : ""
+      }`}
+      aria-hidden="true"
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.18),rgba(0,40,44,0.08)_34%,rgba(0,0,0,0.96)_72%)]" />
       <div className="absolute h-[620px] w-[620px] rounded-full border border-cyan-300/10 blur-[1px] animate-orb-1" />
