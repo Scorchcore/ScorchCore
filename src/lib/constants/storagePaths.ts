@@ -104,7 +104,7 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
     "PURE_LIGHT.mp4",
     "PRECISE_FLASH.mp4",
     "CONSTANT_CLARITY.mp4",
-    "DEW DROP.mp4",
+    "DEW_DROP.mp4",
     "SUN_SPARK.mp4",
   ],
   PETIT_DUSK: [
@@ -114,7 +114,7 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
     "SHADOW_DAGGER.mp4",
     "DUSK_HATCHLING.mp4",
     "CONSTANT_GLOOM.mp4",
-    "STAKING SHADOW.mp4",
+    "STAKING_SHADOW.mp4",
   ],
 
   // Fallback: higher categories reuse PETIT thumbnails (bucket only has PETIT)
@@ -187,7 +187,7 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
     "PURE_LIGHT.mp4",
     "PRECISE_FLASH.mp4",
     "CONSTANT_CLARITY.mp4",
-    "DEW DROP.mp4",
+    "DEW_DROP.mp4",
     "SUN_SPARK.mp4",
   ],
   ALTO_DUSK: [
@@ -197,7 +197,7 @@ export const MINER_VIDEO_NAMES: Record<string, string[]> = {
     "SHADOW_DAGGER.mp4",
     "DUSK_HATCHLING.mp4",
     "CONSTANT_GLOOM.mp4",
-    "STAKING SHADOW.mp4",
+    "STAKING_SHADOW.mp4",
   ],
 };
 
