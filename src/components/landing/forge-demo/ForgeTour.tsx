@@ -45,9 +45,9 @@ export const FORGE_TOUR_STEPS: Record<string, ForgeTourStepDef> = {
   },
   setup: {
     target: '[data-tour="costs"]',
-    title: "4 · La Tríada",
+    title: "4 · Receta de Forja",
     content:
-      "Geoda, clase y Axie forman los tres vértices de la forja. Revisa el costo en AXS, SLP y Memento antes de continuar.",
+      "El protocolo aprovecha todos estos assets para crear una economía circular: el AXS se destina a staking, el Axie pasa a release de Axie Infinity, y los Mementos se canalizan hacia distintas mecánicas de liquidez para $CORE.",
     placement: "top",
   },
   forging: {

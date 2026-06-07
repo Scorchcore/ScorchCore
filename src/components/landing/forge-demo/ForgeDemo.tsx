@@ -363,36 +363,95 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
           {/* ── SELECT CLASS ── */}
           {stage === "select-class" && (
-            <TriadAnchor point={TRIAD.memento} dataTour="icon-class">
-              <FloatingIcon onClick={handleSelectClass} delay={0.4}>
-                <Image
-                  src={aquaInfo.icon}
-                  alt="Aqua"
-                  width={80}
-                  height={80}
-                  className={ICON_CN}
-                  unoptimized
-                />
-                <span className={ICON_LABEL_CN}>{aquaInfo.displayName}</span>
-              </FloatingIcon>
-            </TriadAnchor>
+            <>
+              {/* Previously selected geode (Petit) */}
+              <TriadAnchor point={TRIAD.geode} dataTour="icon-geode-selected">
+                <FloatingIcon delay={0.2}>
+                  <Image
+                    src={petitInfo.icon}
+                    alt="Petit"
+                    width={72}
+                    height={72}
+                    className={`${ICON_CN} opacity-60`}
+                    unoptimized
+                  />
+                  <span className="text-[0.55rem] font-bold text-white opacity-80 sm:text-[0.65rem] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {petitInfo.name}
+                  </span>
+                </FloatingIcon>
+              </TriadAnchor>
+
+              {/* Current selection: class (Aqua) */}
+              <TriadAnchor point={TRIAD.memento} dataTour="icon-class">
+                <FloatingIcon onClick={handleSelectClass} delay={0.4}>
+                  <Image
+                    src={aquaInfo.icon}
+                    alt="Aqua"
+                    width={80}
+                    height={80}
+                    className={ICON_CN}
+                    unoptimized
+                  />
+                  <span className={ICON_LABEL_CN}>{aquaInfo.displayName}</span>
+                </FloatingIcon>
+              </TriadAnchor>
+            </>
           )}
 
           {/* ── SELECT AXIE ── */}
           {stage === "select-axie" && (
-            <TriadAnchor point={TRIAD.axie} dataTour="icon-axie">
-              <FloatingIcon onClick={handleSelectAxie} delay={0.3}>
-                <Image
-                  src={FORGE_DEMO_ASSETS.axieAqua}
-                  alt="Axie Aqua"
-                  width={80}
-                  height={80}
-                  className={ICON_CN}
-                  unoptimized
-                />
-                <span className={ICON_LABEL_CN}>Axie Aqua</span>
-              </FloatingIcon>
-            </TriadAnchor>
+            <>
+              {/* Previously selected geode (Petit) */}
+              <TriadAnchor point={TRIAD.geode} dataTour="icon-geode-selected">
+                <FloatingIcon delay={0.1}>
+                  <Image
+                    src={petitInfo.icon}
+                    alt="Petit"
+                    width={64}
+                    height={64}
+                    className={`${ICON_CN} opacity-50`}
+                    unoptimized
+                  />
+                  <span className="text-[0.55rem] font-bold text-white opacity-70 sm:text-[0.65rem] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {petitInfo.name}
+                  </span>
+                </FloatingIcon>
+              </TriadAnchor>
+
+              {/* Previously selected class (Aqua) */}
+              <TriadAnchor point={TRIAD.memento} dataTour="icon-class-selected">
+                <FloatingIcon delay={0.2}>
+                  <Image
+                    src={aquaInfo.icon}
+                    alt="Aqua"
+                    width={64}
+                    height={64}
+                    className={`${ICON_CN} opacity-50`}
+                    unoptimized
+                  />
+                  <span className="text-[0.55rem] font-bold text-white opacity-70 sm:text-[0.65rem] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    {aquaInfo.displayName}
+                  </span>
+                </FloatingIcon>
+              </TriadAnchor>
+
+              {/* Current selection: Axie Aqua — large and centered */}
+              <TriadAnchor point={TRIAD.center} dataTour="icon-axie">
+                <FloatingIcon onClick={handleSelectAxie} delay={0.3}>
+                  <Image
+                    src={FORGE_DEMO_ASSETS.axieAqua}
+                    alt="Axie Aqua"
+                    width={120}
+                    height={120}
+                    className="object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 lg:h-40 lg:w-40 xl:h-48 xl:w-48 2xl:h-56 2xl:w-56"
+                    unoptimized
+                  />
+                  <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.7rem] font-bold text-white opacity-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                    Axie Aqua
+                  </span>
+                </FloatingIcon>
+              </TriadAnchor>
+            </>
           )}
 
           {/* ── SETUP / FORGING ── triad shown as three vertices ── */}
@@ -403,8 +462,8 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                   <Image
                     src={petitInfo.icon}
                     alt="Petit"
-                    width={72}
-                    height={72}
+                    width={64}
+                    height={64}
                     className={`${ICON_CN} opacity-70`}
                     unoptimized
                   />
@@ -419,8 +478,8 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                   <Image
                     src={aquaInfo.icon}
                     alt="Aqua"
-                    width={72}
-                    height={72}
+                    width={64}
+                    height={64}
                     className={`${ICON_CN} opacity-70`}
                     unoptimized
                   />
@@ -430,17 +489,18 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                 </FloatingIcon>
               </TriadAnchor>
 
-              <TriadAnchor point={TRIAD.axie}>
+              {/* Axie Aqua — large and centered */}
+              <TriadAnchor point={TRIAD.center}>
                 <FloatingIcon delay={0.5}>
                   <Image
                     src={FORGE_DEMO_ASSETS.axieAqua}
                     alt="Axie Aqua"
-                    width={72}
-                    height={72}
-                    className={`${ICON_CN} opacity-70`}
+                    width={120}
+                    height={120}
+                    className="object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 lg:h-40 lg:w-40 xl:h-48 xl:w-48 2xl:h-56 2xl:w-56 opacity-70"
                     unoptimized
                   />
-                  <span className="text-[0.55rem] font-bold text-white opacity-100 sm:text-[0.65rem] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                  <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.7rem] font-bold text-white opacity-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                     Axie Aqua
                   </span>
                 </FloatingIcon>
@@ -577,7 +637,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
             {/* Costs */}
             <div
               data-tour="costs"
-              className="mx-auto flex max-w-[260px] items-center justify-between gap-2 rounded border border-cyan-100/8 bg-black/32 px-3 py-2.5"
+              className="mx-auto flex max-w-[320px] items-center justify-between gap-2 rounded border border-cyan-100/8 bg-black/32 px-3 py-2.5"
             >
               <div className="flex flex-col items-center gap-0.5">
                 <Image
@@ -589,31 +649,38 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                   unoptimized
                 />
                 <span className="text-[0.6rem] text-cyan-50/45">AXS</span>
-                <span className="text-xs font-semibold text-white">
-                  {cost.axs}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-semibold text-white">5.72</span>
+                  <span className="rounded bg-cyan-100/10 px-1 py-0.5 text-[0.55rem] text-cyan-50/50">
+                    $6.50
+                  </span>
+                </div>
               </div>
               <div className="h-6 w-px bg-cyan-100/10" />
               <div className="flex flex-col items-center gap-0.5">
                 <Image
-                  src="/assets/axies/slp-icon.webp"
-                  alt="SLP"
+                  src="/assets/mementos/memento-aqua.webp"
+                  alt="Memento Aqua"
                   width={16}
                   height={16}
-                  className="h-4 w-4"
+                  className="h-4 w-4 rounded-full"
                   unoptimized
                 />
-                <span className="text-[0.6rem] text-cyan-50/45">SLP</span>
-                <span className="text-xs font-semibold text-white">
-                  {cost.slp}
-                </span>
+                <span className="text-[0.6rem] text-cyan-50/45">PAM</span>
+                <span className="text-xs font-semibold text-white">100</span>
               </div>
               <div className="h-6 w-px bg-cyan-100/10" />
               <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[0.6rem] text-cyan-50/45">Memento</span>
-                <span className="text-xs font-semibold text-white">
-                  {cost.memento}
-                </span>
+                <Image
+                  src={FORGE_DEMO_ASSETS.axieAqua}
+                  alt="Axie Aqua"
+                  width={16}
+                  height={16}
+                  className="h-4 w-4 rounded-full"
+                  unoptimized
+                />
+                <span className="text-[0.6rem] text-cyan-50/45">Axie</span>
+                <span className="text-xs font-semibold text-white">1</span>
               </div>
             </div>
 

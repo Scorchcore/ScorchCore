@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import { HatchRoulette } from "@/components/HatchRoulette";
@@ -544,6 +544,18 @@ export default function InventoryPage() {
   );
   const [selectedMiner, setSelectedMiner] = useState<CoreMinerNFT | null>(null);
   const [lightboxVideoUrl, setLightboxVideoUrl] = useState<string>("");
+  const lightboxVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (lightboxOpen && lightboxVideoRef.current) {
+      const el = lightboxVideoRef.current;
+      requestAnimationFrame(() => {
+        el.requestFullscreen?.().catch(() => {
+          // Navegador puede bloquear fullscreen automático; ignorar silenciosamente
+        });
+      });
+    }
+  }, [lightboxOpen]);
 
   useEffect(() => {
     if (!isConnected) {
@@ -1034,6 +1046,7 @@ export default function InventoryPage() {
                 return (
                   <div className="flex h-full w-full items-center justify-center bg-black">
                     <video
+                      ref={lightboxVideoRef}
                       autoPlay
                       loop
                       muted
