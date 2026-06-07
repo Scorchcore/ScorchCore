@@ -162,8 +162,9 @@ export class InventoryFacade {
             { label: `InventoryFacade.${label}:${from}-${to}`, kind: "event" },
           );
 
+          // queryFilter returns events ascending by block; reverse to process newest first
           const candidates: { id: bigint; event: any }[] = [];
-          for (const event of events as any[]) {
+          for (const event of [...(events as any[])].reverse()) {
             const geodeId = event.args?.geodeId ?? event.args?.tokenId;
             if (!geodeId || seenGeodeIds.has(geodeId.toString())) continue;
             seenGeodeIds.add(geodeId.toString());
@@ -224,7 +225,8 @@ export class InventoryFacade {
       );
     }
 
-    return geodes;
+    // Ensure final result is sorted newest first
+    return geodes.sort((a, b) => b.createdAt - a.createdAt);
   }
 
   private async loadSingleGeodeStreamed(
