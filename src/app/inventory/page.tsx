@@ -44,7 +44,7 @@ import {
   useGeodeVideoUrl,
   useInvalidateOnTx,
   useMinerVideoUrl,
-  useUserGeodes,
+  useUserGeodesPaginated,
   useUserMiners,
 } from "@/lib/queries";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
@@ -488,11 +488,16 @@ export default function InventoryPage() {
   const { afterHatch, refreshInventory } = useInvalidateOnTx();
 
   const {
-    data: geodes = [],
+    data: geodesData,
     isLoading: isLoadingGeodes,
     isFetching: isFetchingGeodes,
+    isFetchingNextPage: isFetchingMoreGeodes,
+    fetchNextPage: fetchMoreGeodes,
+    hasNextPage: hasMoreGeodes,
     error: geodesError,
-  } = useUserGeodes();
+  } = useUserGeodesPaginated();
+
+  const geodes = geodesData?.pages.flat() ?? [];
 
   const {
     data: miners = [],
@@ -502,7 +507,7 @@ export default function InventoryPage() {
   } = useUserMiners();
 
   const isLoading = isLoadingGeodes || isLoadingMiners;
-  const isFetching = isFetchingGeodes || isFetchingMiners;
+  const isFetching = isFetchingGeodes || isFetchingMiners || isFetchingMoreGeodes;
   const error =
     geodesError || minersError
       ? geodesError?.message ||
@@ -905,6 +910,24 @@ export default function InventoryPage() {
                         />
                       ))}
                     </div>
+                    {hasMoreGeodes && (
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          onClick={() => fetchMoreGeodes()}
+                          disabled={isFetchingMoreGeodes}
+                          className="alchemy-btn-secondary flex items-center gap-2 px-6 py-2.5 text-sm font-medium uppercase tracking-widest disabled:opacity-50"
+                        >
+                          {isFetchingMoreGeodes ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>Load More Geodes</>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </section>
                 )}
 

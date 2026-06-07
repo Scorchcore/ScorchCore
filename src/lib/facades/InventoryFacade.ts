@@ -57,7 +57,11 @@ export class InventoryFacade {
    */
   async getUserGeodes(
     userAddress: Address,
-    options?: { onProgress?: (geodes: GeodeInventoryInfo[]) => void },
+    options?: {
+      limit?: number;
+      offset?: number;
+      onProgress?: (geodes: GeodeInventoryInfo[]) => void;
+    },
   ): Promise<GeodeInventoryInfo[]> {
     logger.info("📦 Cargando geodas del usuario", { userAddress });
 
@@ -156,9 +160,21 @@ export class InventoryFacade {
         geodeEventsMap.set(geodeId.toString(), { ...event, timestamp });
       }
 
-      const geodeIds = Array.from(geodeEventsMap.keys()).map((id) =>
-        BigInt(id),
-      );
+      // Sort geodeIds by timestamp descending (newest first) for pagination
+      const sortedEntries = Array.from(geodeEventsMap.entries())
+        .sort(([, a], [, b]) => b.timestamp - a.timestamp);
+
+      let geodeIds = sortedEntries.map(([id]) => BigInt(id));
+
+      // Apply pagination if requested
+      const offset = options?.offset ?? 0;
+      const limit = options?.limit;
+      if (limit !== undefined) {
+        geodeIds = geodeIds.slice(offset, offset + limit);
+        logger.info(
+          `📄 Paginación aplicada: offset=${offset}, limit=${limit}, cargando ${geodeIds.length} geodas`,
+        );
+      }
 
       // Phase 4: Batch verify ownership + load data (respect rate limits)
       const BATCH_SIZE = 3;

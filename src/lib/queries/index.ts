@@ -16,4 +16,5 @@ export { useGeodeVideoUrl } from "./useGeodeVideoUrl";
 export { useMinerVideoUrl } from "./useMinerVideoUrl";
 export { useUserAxies } from "./useUserAxies";
 export { useUserGeodes } from "./useUserGeodes";
+export { useUserGeodesPaginated } from "./useUserGeodesPaginated";
 export { useUserMiners } from "./useUserMiners";
