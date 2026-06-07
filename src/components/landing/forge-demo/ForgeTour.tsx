@@ -24,58 +24,58 @@ export interface ForgeTourStepDef {
 export const FORGE_TOUR_STEPS: Record<string, ForgeTourStepDef> = {
   "select-geode": {
     target: '[data-tour="icon-geode"]',
-    title: "1 · Elige la Geoda",
+    title: "1 · Choose the Geode",
     content:
-      "Toda forja empieza con una geoda. La Petit es la más pequeña y económica. Haz click sobre el ícono flotante para seleccionarla.",
+      "Every forge begins with a geode. The Petit is the smallest and most affordable. Click the floating icon to select it.",
     placement: "bottom",
   },
   "select-class": {
     target: '[data-tour="icon-class"]',
-    title: "2 · Elige la Clase",
+    title: "2 · Choose the Class",
     content:
-      "La clase define el elemento del CoreMiner. Aquí forjamos uno Aqua. Haz click sobre el ícono para continuar.",
+      "The class defines the CoreMiner's element. Here we forge an Aqua. Click the icon to continue.",
     placement: "bottom",
   },
   "select-axie": {
     target: '[data-tour="icon-axie"]',
-    title: "3 · Aporta tu Axie",
+    title: "3 · Bring your Axie",
     content:
-      "Tu Axie Aqua es el material vivo de la transmutación. Selecciónalo para completar la tríada de forja.",
+      "Your Axie Aqua is the living material of the transmutation. Select it to complete the forge triad.",
     placement: "bottom",
   },
   setup: {
     target: '[data-tour="costs"]',
-    title: "4 · Receta de Forja",
+    title: "4 · Forge Recipe",
     content:
-      "El protocolo aprovecha todos estos assets para crear una economía circular: el AXS se destina a staking, el Axie pasa a release de Axie Infinity, y los Mementos se canalizan hacia distintas mecánicas de liquidez para $CORE.",
+      "The protocol leverages all these assets to create a circular economy: AXS goes to staking, the Axie is released to Axie Infinity, and Mementos feed into different liquidity mechanics for $CORE.",
     placement: "top",
   },
   forging: {
     target: '[data-tour="stage"]',
-    title: "5 · Transmutación",
+    title: "5 · Transmutation",
     content:
-      "Las energías de los tres vértices trazan un triángulo y convergen en el centro del altar, encendiendo el sello rúnico.",
+      "The energies of the three vertices draw a triangle and converge at the center of the altar, igniting the runic seal.",
     placement: "top",
   },
   "geode-created": {
     target: '[data-tour="geode-video"]',
-    title: "6 · Geoda Forjada",
+    title: "6 · Geode Forged",
     content:
-      "La geoda Petit Aqua ha nacido del altar. Ábrela para descubrir qué CoreMiner contiene.",
+      "The Petit Aqua geode has been born from the altar. Open it to discover which CoreMiner it holds.",
     placement: "bottom",
   },
   opening: {
     target: '[data-tour="stage"]',
-    title: "7 · Eclosión",
+    title: "7 · Hatching",
     content:
-      "La ruleta cristalina decide tu destino entre los CoreMiners posibles de esta combinación.",
+      "The crystal roulette decides your fate among the possible CoreMiners for this combination.",
     placement: "top",
   },
   revealed: {
     target: '[data-tour="reveal"]',
-    title: "8 · ¡CoreMiner Revelado!",
+    title: "8 · CoreMiner Revealed!",
     content:
-      "Este es tu CoreMiner. Cada forja es aleatoria: prueba otra vez para obtener resultados distintos.",
+      "This is your CoreMiner. Every forge is random: try again to get different results.",
     placement: "bottom",
   },
 };
@@ -105,7 +105,7 @@ function ForgeTooltip({ step, closeProps, tooltipProps }: TooltipRenderProps) {
             type="button"
             className="inline-flex items-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-wider text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:text-white"
           >
-            Entendido
+            Got it
           </button>
         </div>
       </div>
