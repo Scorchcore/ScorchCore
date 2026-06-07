@@ -1,5 +1,11 @@
 "use client";
 
+// Capture the REAL window.scrollBy before ForgeTour's interceptor
+// replaces it. We use this for the initial mount centre-scroll so it
+// isn't blocked during select-* steps.
+const REAL_SCROLL_BY =
+  typeof window !== "undefined" ? window.scrollBy.bind(window) : null;
+
 import gsap from "gsap";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -222,6 +228,112 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     logger.info("Preload assets iniciado", { count: imgs.length });
   }, [petitInfo.icon, aquaInfo.icon]);
 
+  /* On mount, wait for viewport scroll to stabilise (layout-shift auto-scrolls
+     from Transmute mount), then centre the altar in the viewport.
+     Use a longer threshold (600 ms) so images & GSAP finish rendering. */
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let stableMs = 0;
+    const POLL_MS = 50;
+    const STABLE_THRESHOLD = 600;
+    const MOVE_EPSILON = 3;
+
+    const interval = setInterval(() => {
+      if (Math.abs(window.scrollY - lastScrollY) > MOVE_EPSILON) {
+        stableMs = 0;
+        lastScrollY = window.scrollY;
+        return;
+      }
+      stableMs += POLL_MS;
+      lastScrollY = window.scrollY;
+
+      if (stableMs >= STABLE_THRESHOLD) {
+        const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+        if (stageEl) {
+          const rect = stageEl.getBoundingClientRect();
+          const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
+          if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
+            REAL_SCROLL_BY({ top: delta, behavior: "auto" });
+          }
+        }
+        clearInterval(interval);
+      }
+    }, POLL_MS);
+
+    const safety = setTimeout(() => {
+      clearInterval(interval);
+      const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+      if (stageEl) {
+        const rect = stageEl.getBoundingClientRect();
+        const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
+        if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
+          REAL_SCROLL_BY({ top: delta, behavior: "auto" });
+        }
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(safety);
+    };
+  }, []);
+
+  /* After every select-* stage change, re-centre the altar so the browser's
+     layout-shift auto-scroll doesn't push the asset out of view. */
+  const prevStageRef = useRef(stage);
+  useEffect(() => {
+    const prev = prevStageRef.current;
+    prevStageRef.current = stage;
+    // Only run on select-* → select-* transitions (not initial mount)
+    if (!prev.startsWith("select-") || !stage.startsWith("select-")) return;
+    if (prev === stage) return;
+
+    let lastScrollY = window.scrollY;
+    let stableMs = 0;
+    const POLL_MS = 50;
+    const STABLE_THRESHOLD = 400;
+    const MOVE_EPSILON = 3;
+
+    const interval = setInterval(() => {
+      if (Math.abs(window.scrollY - lastScrollY) > MOVE_EPSILON) {
+        stableMs = 0;
+        lastScrollY = window.scrollY;
+        return;
+      }
+      stableMs += POLL_MS;
+      lastScrollY = window.scrollY;
+
+      if (stableMs >= STABLE_THRESHOLD) {
+        const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+        if (stageEl) {
+          const rect = stageEl.getBoundingClientRect();
+          const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
+          if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
+            REAL_SCROLL_BY({ top: delta, behavior: "auto" });
+          }
+        }
+        clearInterval(interval);
+      }
+    }, POLL_MS);
+
+    const safety = setTimeout(() => {
+      clearInterval(interval);
+      const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+      if (stageEl) {
+        const rect = stageEl.getBoundingClientRect();
+        const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
+        if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
+          REAL_SCROLL_BY({ top: delta, behavior: "auto" });
+        }
+      }
+    }, 1500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(safety);
+    };
+  }, [stage]);
+
   const beamPhase: BeamPhase = useMemo(() => {
     switch (stage) {
       case "geode-created":
@@ -248,9 +360,18 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   }, [stage]);
 
   /* ── Handlers ── */
-  const handleSelectGeode = () => setStage("select-class");
-  const handleSelectClass = () => setStage("select-axie");
-  const handleSelectAxie = () => setStage("setup");
+  const handleSelectGeode = () => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setStage("select-class");
+  };
+  const handleSelectClass = () => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setStage("select-axie");
+  };
+  const handleSelectAxie = () => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setStage("setup");
+  };
 
   const handleForge = useCallback(() => {
     const t0 = performance.now();
@@ -265,12 +386,12 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     });
     setStage("forging");
 
-    // Safety net: if triad animation never completes, unblock after 6s
+    // Safety net: if triad animation never completes, unblock UI after 6s
     forgeTimeoutRef.current = setTimeout(() => {
       logger.warn("Forja safety timeout — desbloqueando UI");
       setIsForgeLoading(false);
       setSealSpin("normal");
-      setStage("geode-created");
+      // Do NOT auto-advance; user must click Continue manually
     }, 6000);
   }, [isForgeLoading, stage]);
 
@@ -287,7 +408,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     }
     setSealSpin("normal");
     setIsForgeLoading(false);
-    setStage("geode-created");
+    // Do NOT auto-advance; user clicks Continue manually
   }, []);
 
   const handleOpenGeode = useCallback(() => {
@@ -310,6 +431,13 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     setStage("select-geode");
   }, []);
 
+  const handlePreviousStep = useCallback(() => {
+    const idx = STAGE_ORDER.indexOf(stage);
+    if (idx > 0) {
+      setStage(STAGE_ORDER[idx - 1]);
+    }
+  }, [stage]);
+
   const currentStep = STAGE_ORDER.indexOf(stage);
 
   // Log stage transitions for debugging delays
@@ -320,7 +448,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   return (
     <div className="relative w-full">
       {/* Contextual guided tour (auto-starts on every stage) */}
-      <ForgeTour stepKey={stage} />
+      <ForgeTour stepKey={stage} onPrevious={handlePreviousStep} />
 
       {/* Step dots */}
       <div
@@ -512,12 +640,11 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
           {stage === "forging" && (
             <>
               <ForgeTriadAnimation
-                axie={TRIAD.axie}
+                axie={TRIAD.center}
                 memento={TRIAD.memento}
                 geode={TRIAD.geode}
                 center={TRIAD.center}
                 onConverge={handleTriadConverge}
-                onComplete={handleTriadComplete}
               />
               <div className="absolute inset-x-0 bottom-[12%] z-50 flex flex-col items-center justify-center text-center">
                 <p className="alchemy-heading text-base drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-lg md:text-xl">
@@ -544,7 +671,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
           {/* ── OPENING ── roulette embedded over scene ── */}
           {stage === "opening" && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-[2px]">
-              <div className="w-full px-2 sm:px-4 md:px-6">
+              <div className="w-full px-2 sm:px-4 md:px-6" data-tour="roulette">
                 <ForgeDemoRoulette
                   category={GeodeCategory.PETIT}
                   axieClass={AxieClass.AQUA}
@@ -661,12 +788,12 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                 <Image
                   src="/assets/mementos/memento-aqua.webp"
                   alt="Memento Aqua"
-                  width={16}
-                  height={16}
-                  className="h-4 w-4 rounded-full"
+                  width={20}
+                  height={20}
+                  className="h-5 w-5 rounded-full"
                   unoptimized
                 />
-                <span className="text-[0.6rem] text-cyan-50/45">PAM</span>
+                <span className="text-[0.6rem] text-cyan-50/45">Mementos</span>
                 <span className="text-xs font-semibold text-white">100</span>
               </div>
               <div className="h-6 w-px bg-cyan-100/10" />
@@ -674,9 +801,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                 <Image
                   src={FORGE_DEMO_ASSETS.axieAqua}
                   alt="Axie Aqua"
-                  width={16}
-                  height={16}
-                  className="h-4 w-4 rounded-full"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-full object-contain"
                   unoptimized
                 />
                 <span className="text-[0.6rem] text-cyan-50/45">Axie</span>
@@ -702,10 +829,24 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
         )}
 
         {/* FORGING */}
-        {stage === "forging" && mockTxHash && (
-          <p className="font-mono text-[0.55rem] text-cyan-50/35 sm:text-xs">
-            Mock Tx {mockTxHash.slice(0, 8)}…{mockTxHash.slice(-4)}
-          </p>
+        {stage === "forging" && (
+          <div className="space-y-2">
+            {mockTxHash && (
+              <p className="font-mono text-[0.55rem] text-cyan-50/35 sm:text-xs">
+                Mock Tx {mockTxHash.slice(0, 8)}…{mockTxHash.slice(-4)}
+              </p>
+            )}
+            {!isForgeLoading && (
+              <button
+                type="button"
+                onClick={() => setStage("geode-created")}
+                className="inline-flex cursor-pointer items-center gap-2 border border-magma-gold/55 bg-orange-500/14 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-magma-gold shadow-[0_0_28px_rgba(240,106,18,0.16)] transition-all hover:border-magma-gold hover:bg-orange-500/22 hover:text-white"
+              >
+                <PackageOpen className="h-4 w-4" />
+                Open Geode
+              </button>
+            )}
+          </div>
         )}
 
         {/* GEODE CREATED */}

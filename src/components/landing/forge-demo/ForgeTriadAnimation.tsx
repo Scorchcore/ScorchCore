@@ -263,7 +263,7 @@ export default function ForgeTriadAnimation({
     <svg
       ref={rootRef}
       viewBox="0 0 300 200"
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      className="pointer-events-none absolute inset-0 z-[100] h-full w-full overflow-visible"
       aria-hidden="true"
     >
       <title>Forge triad animation</title>
@@ -274,8 +274,16 @@ export default function ForgeTriadAnimation({
           <stop offset="100%" stopColor="#ff3d00" />
         </linearGradient>
         <filter id="triad-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feGaussianBlur stdDeviation="4" result="blur" />
           <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="triad-glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
@@ -289,9 +297,23 @@ export default function ForgeTriadAnimation({
         stroke="none"
       />
 
+      {/* Strong white glow behind triangle edges */}
+      <g
+        stroke="#f7c65a"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeOpacity="0.35"
+        fill="none"
+        filter="url(#triad-glow-strong)"
+      >
+        <path d={`M ${aSvg.x} ${aSvg.y} L ${mSvg.x} ${mSvg.y}`} />
+        <path d={`M ${mSvg.x} ${mSvg.y} L ${gSvg.x} ${gSvg.y}`} />
+        <path d={`M ${gSvg.x} ${gSvg.y} L ${aSvg.x} ${aSvg.y}`} />
+      </g>
+
       <g
         stroke="url(#triad-fire)"
-        strokeWidth="1.4"
+        strokeWidth="2.5"
         strokeLinecap="round"
         fill="none"
         filter="url(#triad-glow)"
