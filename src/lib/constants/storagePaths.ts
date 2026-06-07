@@ -157,8 +157,8 @@ export function getThumbnailPath(
   return `CoreMiners-thumbnails/${SUPABASE_CLASS_MAP[axieClass]}/${filename}`;
 }
 
-// Resolves the thumbnail filename for a specific miner from MINER_VIDEO_NAMES.
-// Replaces .mp4 with .webp. Returns empty string if not mapped.
+// Resolves the thumbnail filename from MINER_VIDEO_NAMES (English names matching Supabase bucket).
+// Replaces .mp4 with .webp per bucket structure.
 export function getThumbnailFilename(
   category: GeodeCategory,
   axieClass: AxieClass,

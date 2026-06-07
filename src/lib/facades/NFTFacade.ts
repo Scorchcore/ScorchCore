@@ -148,23 +148,32 @@ export class NFTFacade {
         count: candidateTokenIds.length,
       });
 
-      // Phase 2: Verify ownership + load data progressively
+      // Phase 2: Batch verify ownership + load data in parallel (with concurrency limit)
+      const BATCH_SIZE = 5;
       const miners: CoreMinerNFT[] = [];
-      for (const tokenId of candidateTokenIds) {
-        try {
-          const owner = await chainReadClient.read<string>(
-            () => minerContract.ownerOf(tokenId),
-            { label: `NFTFacade.ownerOf:${tokenId.toString()}` },
-          );
-          if (owner.toLowerCase() !== address.toLowerCase()) continue;
 
-          const miner = await this.getMinerData(tokenId, address);
+      for (let i = 0; i < candidateTokenIds.length; i += BATCH_SIZE) {
+        const batch = candidateTokenIds.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(
+          batch.map(async (tokenId) => {
+            try {
+              const owner = await chainReadClient.read<string>(
+                () => minerContract.ownerOf(tokenId),
+                { label: `NFTFacade.ownerOf:${tokenId.toString()}` },
+              );
+              if (owner.toLowerCase() !== address.toLowerCase()) return null;
+              return await this.getMinerData(tokenId, address);
+            } catch {
+              logger.debug(`Token ${tokenId} burned or nonexistent`);
+              return null;
+            }
+          }),
+        );
+        for (const miner of batchResults) {
           if (miner) {
             miners.push(miner);
             options?.onProgress?.(miners);
           }
-        } catch {
-          logger.debug(`Token ${tokenId} burned or nonexistent`);
         }
       }
 

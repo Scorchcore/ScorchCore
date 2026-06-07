@@ -28,7 +28,7 @@ export const config = createConfig({
   connectors: [
     injected({
       target: () => {
-        if (typeof window === "undefined") return { id: "ronin", name: "Ronin Extension", provider: undefined };
+        if (typeof window === "undefined") return undefined;
 
         // Ronin Wallet Extension expone el provider EIP-1193 en window.ronin.provider
         const roninWallet = (window as any).ronin;
@@ -40,7 +40,7 @@ export const config = createConfig({
           };
         }
 
-        // Fallback: window.ethereum con flag isRonin
+        // Fallback: Ronin también inyecta en window.ethereum con flag isRonin
         const eth = (window as any).ethereum;
         if (eth?.isRonin) {
           return {
@@ -50,7 +50,7 @@ export const config = createConfig({
           };
         }
 
-        return { id: "ronin", name: "Ronin Extension", provider: undefined };
+        return undefined;
       },
       shimDisconnect: true,
     }),

@@ -77,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning translate="no">
       <body
         className={`${cinzelDecorative.variable} ${robotoMono.variable} font-sans antialiased bg-black`}
       >

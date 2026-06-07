@@ -106,7 +106,7 @@ export default function ForgeDemoRoulette({
 
   const rouletteItems = useMemo(() => {
     const items: { id: string; thumbPath: string; thumbIndex: number }[] = [];
-    for (let copyIndex = 0; copyIndex < 100; copyIndex++) {
+    for (let copyIndex = 0; copyIndex < 20; copyIndex++) {
       for (let thumbIndex = 0; thumbIndex < thumbnails.length; thumbIndex++) {
         items.push({
           id: `thumb-${copyIndex}-${thumbIndex}`,
@@ -197,7 +197,7 @@ export default function ForgeDemoRoulette({
 
       const containerCenter =
         rouletteContainer.getBoundingClientRect().width / 2;
-      const targetCycle = 20;
+      const targetCycle = 10;
       const thumbnailLeftPosition =
         containerPadding +
         targetCycle * cycleWidth +
@@ -298,7 +298,7 @@ export default function ForgeDemoRoulette({
             {rouletteItems.map((item, idx) => {
               const isSelected =
                 selectedIndex === item.thumbIndex &&
-                item.id.startsWith("thumb-20-");
+                item.id.startsWith("thumb-10-");
               return (
                 <div
                   key={item.id}

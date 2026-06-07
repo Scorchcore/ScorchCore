@@ -49,6 +49,7 @@ export const Header: React.FC = () => {
         <Link
           href="/"
           aria-label="ScorchCore Protocol"
+          translate="no"
           className="group flex items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-orange-400/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           <Image

@@ -229,7 +229,7 @@ export function HatchRoulette({
     if (!rouletteContainer) return;
 
     const containerCenter = rouletteContainer.getBoundingClientRect().width / 2;
-    const targetCycle = 20;
+    const targetCycle = 10;
     const thumbnailAbsoluteIndex = targetCycle * minerData.length + chosenIndex;
     const thumbnailLeftPosition = containerPadding + thumbnailAbsoluteIndex * thumbnailTotalWidth;
     const thumbnailCenterPosition = thumbnailLeftPosition + thumbnailWidth / 2;
@@ -318,9 +318,9 @@ export function HatchRoulette({
               className="flex space-x-4 p-4"
               style={{ willChange: 'transform' }}
             >
-              {Array.from({ length: 100 }).map((_, copyIndex) =>
+              {Array.from({ length: 20 }).map((_, copyIndex) =>
                 thumbnails.map((thumbPath, thumbIndex) => {
-                  const isSelected = selectedIndex === thumbIndex && copyIndex === 20;
+                  const isSelected = selectedIndex === thumbIndex && copyIndex === 10;
                   return (
                     <div
                       key={`${copyIndex}-${thumbIndex}`}
