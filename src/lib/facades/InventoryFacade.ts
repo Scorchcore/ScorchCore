@@ -17,7 +17,10 @@ import {
 } from "../constants/geodes";
 import type { ContractManager } from "../contracts/ContractManager";
 import { createServiceLogger } from "../utils/logging/logger";
-import { chainReadClient } from "../utils/network/chainReadClient";
+import {
+  chainReadClient,
+  isRangeTooLargeError,
+} from "../utils/network/chainReadClient";
 
 const logger = createServiceLogger("InventoryFacade");
 
@@ -52,8 +55,9 @@ export class InventoryFacade {
   constructor(private contractManager: ContractManager) {}
 
   /**
-   * Obtiene todas las geodas del usuario.
-   * Scans GeodeForged events and verifies ownership in batches to respect rate limits.
+   * Obtiene geodas del usuario con carga bajo demanda (streaming).
+   * Escanea eventos chunk por chunk desde el más reciente, verificando
+   * ownership inmediatamente y deteniéndose al alcanzar el límite.
    */
   async getUserGeodes(
     userAddress: Address,
@@ -63,7 +67,7 @@ export class InventoryFacade {
       onProgress?: (geodes: GeodeInventoryInfo[]) => void;
     },
   ): Promise<GeodeInventoryInfo[]> {
-    logger.info("📦 Cargando geodas del usuario", { userAddress });
+    logger.info("📦 Cargando geodas del usuario (streaming)", { userAddress });
 
     try {
       const geodeContract = this.contractManager.getGeodeNFT();
@@ -89,210 +93,147 @@ export class InventoryFacade {
       );
       const startBlock = getDeploymentBlock(currentBlock);
 
-      logger.debug(
-        `Buscando eventos desde bloque ${startBlock} hasta ${currentBlock} (balance: ${balance})`,
-      );
-
-      // Phase 1: Scan GeodeForged events (fast)
-      let allForgedEvents = await this.searchForgedEventsInChunks(
-        forgeContract,
-        userAddress,
-        startBlock,
-        currentBlock,
-      );
-
-      logger.info(
-        `✅ Encontrados ${allForgedEvents.length} eventos GeodeForged`,
-      );
-
-      // Fallback: scan GeodeNFT Transfer events if GeodeForged is empty
-      if (allForgedEvents.length === 0) {
-        logger.info("GeodeForged empty, trying Transfer events on GeodeNFT");
-        allForgedEvents = await this.searchTransferEventsInChunks(
-          geodeContract,
-          userAddress,
-          startBlock,
-          currentBlock,
-        );
-        logger.info(
-          `✅ Fallback: ${allForgedEvents.length} Transfer events found`,
-        );
-      }
-
-      if (allForgedEvents.length === 0) {
-        return [];
-      }
-
-      // Phase 2: Single batch scan for GeodeHatched events
-      const hatchedGeodeIds = await this.batchCheckHatched(
-        forgeContract,
-        userAddress,
-        startBlock,
-        currentBlock,
-      );
-      logger.info(`Hatched geodes: ${hatchedGeodeIds.size}`);
-
-      // Phase 3: Build event map with timestamps
-      const geodeEventsMap = new Map<string, any>();
-      const blockTimestampsCache = new Map<number, number>();
-
-      for (const event of allForgedEvents as any[]) {
-        // GeodeForged uses args.geodeId; ERC721 Transfer uses args.tokenId
-        const geodeId = event.args?.geodeId ?? event.args?.tokenId;
-        if (!geodeId) continue;
-
-        let timestamp: number;
-        if (blockTimestampsCache.has(event.blockNumber)) {
-          timestamp = blockTimestampsCache.get(event.blockNumber)!;
-        } else {
-          try {
-            const block = await chainReadClient.read<{ timestamp: number }>(
-              () => event.getBlock(),
-              { label: `InventoryFacade.block:${event.blockNumber}` },
-            );
-            timestamp = Number(block.timestamp);
-            blockTimestampsCache.set(event.blockNumber, timestamp);
-          } catch {
-            timestamp = Math.floor(Date.now() / 1000);
-          }
-        }
-
-        geodeEventsMap.set(geodeId.toString(), { ...event, timestamp });
-      }
-
-      // Sort geodeIds by timestamp descending (newest first) for pagination
-      const sortedEntries = Array.from(geodeEventsMap.entries())
-        .sort(([, a], [, b]) => b.timestamp - a.timestamp);
-
-      let geodeIds = sortedEntries.map(([id]) => BigInt(id));
-
-      // Apply pagination if requested
+      const limit = options?.limit ?? Number(balance);
       const offset = options?.offset ?? 0;
-      const limit = options?.limit;
-      if (limit !== undefined) {
-        geodeIds = geodeIds.slice(offset, offset + limit);
-        logger.info(
-          `📄 Paginación aplicada: offset=${offset}, limit=${limit}, cargando ${geodeIds.length} geodas`,
-        );
-      }
+      const targetCount = limit + offset;
 
-      // Phase 4: Batch verify ownership + load data (respect rate limits)
-      const BATCH_SIZE = 3;
-      const geodes: GeodeInventoryInfo[] = [];
+      logger.debug(
+        `Streaming desde bloque ${startBlock} hasta ${currentBlock} (balance: ${balance}, target: ${targetCount})`,
+      );
 
-      for (let i = 0; i < geodeIds.length; i += BATCH_SIZE) {
-        const batch = geodeIds.slice(i, i + BATCH_SIZE);
-        const batchResults = await Promise.all(
-          batch.map(async (id) => {
-            try {
-              return await this.loadSingleGeode(
-                geodeContract,
-                id,
-                userAddress,
-                geodeEventsMap,
-                hatchedGeodeIds,
-              );
-            } catch (error) {
-              logger.warn(`Error cargando geoda ${id}`, { error });
-              return null;
-            }
-          }),
-        );
-        for (const geode of batchResults) {
-          if (geode) {
-            geodes.push(geode);
-            options?.onProgress?.(geodes);
-          }
-        }
-      }
+      const allGeodes = await this.streamGeodesFromEvents(
+        geodeContract,
+        forgeContract,
+        userAddress,
+        startBlock,
+        currentBlock,
+        targetCount,
+        options?.onProgress,
+      );
 
-      logger.info(`✅ Cargadas ${geodes.length} geodas activas`);
-      return geodes;
+      const result = allGeodes.slice(offset, offset + limit);
+      logger.info(`✅ Cargadas ${result.length} geodas (offset=${offset}, limit=${limit})`);
+      return result;
     } catch (error) {
       logger.error("Error cargando geodas del usuario", error);
       throw error;
     }
   }
 
-  private async searchTransferEventsInChunks(
+  /**
+   * Escanea eventos chunk por chunk desde el más reciente.
+   * Para cada chunk extrae geodeIds, verifica ownership y carga datos.
+   * Se detiene tan pronto como tiene targetCount geodas verificadas.
+   */
+  private async streamGeodesFromEvents(
     geodeContract: ReturnType<typeof this.contractManager.getGeodeNFT>,
-    userAddress: Address,
-    startBlock: number,
-    currentBlock: number,
-  ): Promise<unknown[]> {
-    logger.debug("searchTransferEventsInChunks start", {
-      geodeContractAddress: (geodeContract as any).address,
-      userAddress,
-      startBlock,
-      currentBlock,
-    });
-    return chainReadClient.readEventChunks({
-      label: "InventoryFacade.GeodeNFT.Transfer",
-      fromBlock: startBlock,
-      toBlock: currentBlock,
-      direction: "desc",
-      query: async (from, to) => {
-        logger.debug(`Buscando Transfer chunk: bloques ${from} - ${to}`);
-        const ethersContract = (geodeContract as any).contract;
-        if (!ethersContract?.filters?.Transfer) {
-          logger.warn("GeodeNFT missing Transfer filter");
-          return [];
-        }
-        // ERC721 Transfer(address indexed from, address indexed to, uint256 indexed tokenId)
-        // Filter for transfers TO the user (minting or receiving)
-        const filter = ethersContract.filters.Transfer(null, userAddress);
-        const events = await ethersContract.queryFilter(filter, from, to);
-        logger.debug(`Transfer chunk result: ${events.length} events`);
-        return events;
-      },
-    });
-  }
-
-  private async searchForgedEventsInChunks(
     forgeContract: ReturnType<typeof this.contractManager.getForgeFactory>,
     userAddress: Address,
     startBlock: number,
     currentBlock: number,
-  ): Promise<unknown[]> {
-    logger.debug("searchForgedEventsInChunks start", {
-      forgeContractAddress: (forgeContract as any).address,
-      userAddress,
-      startBlock,
-      currentBlock,
-    });
-    return chainReadClient.readEventChunks({
-      label: "InventoryFacade.GeodeForged",
-      fromBlock: startBlock,
-      toBlock: currentBlock,
-      direction: "desc",
-      query: async (from, to) => {
-        logger.debug(`Buscando chunk: bloques ${from} - ${to}`);
-        const ethersContract = (forgeContract as any).contract;
-        if (!ethersContract?.filters?.GeodeForged) {
-          logger.warn("ForgeContract missing GeodeForged filter");
-          return [];
+    targetCount: number,
+    onProgress?: (geodes: GeodeInventoryInfo[]) => void,
+  ): Promise<GeodeInventoryInfo[]> {
+    const geodes: GeodeInventoryInfo[] = [];
+    const seenGeodeIds = new Set<string>();
+    const blockTimestampsCache = new Map<number, number>();
+
+    const trySource = async (
+      label: string,
+      createFilter: (ethersContract: any) => any,
+      contract: ReturnType<typeof this.contractManager.getGeodeNFT> | ReturnType<typeof this.contractManager.getForgeFactory>,
+    ) => {
+      let chunkSize = 50000;
+      const minChunkSize = 499;
+      let to = currentBlock;
+
+      while (to >= startBlock && geodes.length < targetCount) {
+        const from = Math.max(startBlock, to - chunkSize);
+
+        try {
+          const events = await chainReadClient.read(
+            async () => {
+              const ethersContract = (contract as any).contract;
+              if (!ethersContract?.filters) return [];
+              const filter = createFilter(ethersContract);
+              if (!filter) return [];
+              return await ethersContract.queryFilter(filter, from, to);
+            },
+            { label: `InventoryFacade.${label}:${from}-${to}`, kind: "event" },
+          );
+
+          const candidates: { id: bigint; event: any }[] = [];
+          for (const event of events as any[]) {
+            const geodeId = event.args?.geodeId ?? event.args?.tokenId;
+            if (!geodeId || seenGeodeIds.has(geodeId.toString())) continue;
+            seenGeodeIds.add(geodeId.toString());
+            candidates.push({ id: BigInt(geodeId), event });
+          }
+
+          if (candidates.length > 0) {
+            const BATCH_SIZE = 3;
+            for (let i = 0; i < candidates.length && geodes.length < targetCount; i += BATCH_SIZE) {
+              const batch = candidates.slice(i, i + BATCH_SIZE);
+              const batchResults = await Promise.all(
+                batch.map(({ id, event }) =>
+                  this.loadSingleGeodeStreamed(
+                    geodeContract,
+                    forgeContract,
+                    id,
+                    userAddress,
+                    event,
+                    blockTimestampsCache,
+                  ),
+                ),
+              );
+
+              for (const geode of batchResults) {
+                if (geode) {
+                  geodes.push(geode);
+                  onProgress?.([...geodes]);
+                  if (geodes.length >= targetCount) break;
+                }
+              }
+            }
+          }
+
+          to = from - 1;
+        } catch (error) {
+          if (isRangeTooLargeError(error) && chunkSize > minChunkSize) {
+            chunkSize = Math.max(minChunkSize, Math.floor(chunkSize / 2));
+            continue;
+          }
+          throw error;
         }
-        const filter = ethersContract.filters.GeodeForged(userAddress);
-        logger.debug("Filter created", { filterTopics: filter?.topics });
-        const events = await ethersContract.queryFilter(filter, from, to);
-        logger.debug(`Chunk result: ${events.length} events`);
-        for (const ev of events) {
-          logger.debug("Event args", {
-            geodeId: (ev as any).args?.geodeId?.toString?.(),
-            user: (ev as any).args?.user,
-          });
-        }
-        return events;
-      },
-    });
+      }
+    };
+
+    // Phase 1: GeodeForged events (newest first)
+    await trySource(
+      "GeodeForged",
+      (c: any) => c.filters.GeodeForged?.(userAddress) ?? null,
+      forgeContract,
+    );
+
+    // Phase 2: Transfer events fallback
+    if (geodes.length < targetCount) {
+      await trySource(
+        "Transfer",
+        (c: any) => c.filters.Transfer?.(null, userAddress) ?? null,
+        geodeContract,
+      );
+    }
+
+    return geodes;
   }
 
-  private async loadSingleGeode(
+  private async loadSingleGeodeStreamed(
     geodeContract: ReturnType<typeof this.contractManager.getGeodeNFT>,
+    forgeContract: ReturnType<typeof this.contractManager.getForgeFactory>,
     id: bigint,
     userAddress: Address,
-    geodeEventsMap: Map<string, any>,
-    hatchedGeodeIds: Set<string>,
+    event: any,
+    blockTimestampsCache: Map<number, number>,
   ): Promise<GeodeInventoryInfo | null> {
     let owner: string;
     try {
@@ -312,6 +253,22 @@ export class InventoryFacade {
 
     if (owner.toLowerCase() !== userAddress.toLowerCase()) return null;
 
+    let timestamp: number;
+    if (blockTimestampsCache.has(event.blockNumber)) {
+      timestamp = blockTimestampsCache.get(event.blockNumber)!;
+    } else {
+      try {
+        const block = await chainReadClient.read<{ timestamp: number }>(
+          () => event.getBlock(),
+          { label: `InventoryFacade.block:${event.blockNumber}` },
+        );
+        timestamp = Number(block.timestamp);
+        blockTimestampsCache.set(event.blockNumber, timestamp);
+      } catch {
+        timestamp = Math.floor(Date.now() / 1000);
+      }
+    }
+
     const info = await chainReadClient.read<{
       category: bigint | number;
       axieClass: bigint | number;
@@ -322,9 +279,8 @@ export class InventoryFacade {
     const category = Number(info.category) as GeodeCategory;
     const axieClass = Number(info.axieClass) as AxieClass;
 
-    const event = geodeEventsMap.get(id.toString());
-    const forgeDate = event?.timestamp || Math.floor(Date.now() / 1000);
-    const creator = event?.args?.user || userAddress;
+    const forgeDate = timestamp;
+    const creator = event.args?.user || userAddress;
 
     const categoryInfo = CATEGORY_INFO[category];
     const classInfo = AXIE_CLASS_INFO[axieClass];
@@ -332,7 +288,20 @@ export class InventoryFacade {
 
     const hatchTime = forgeDate + 60;
     const now = Math.floor(Date.now() / 1000);
-    const isHatched = hatchedGeodeIds.has(id.toString());
+    const canHatch = now >= hatchTime;
+
+    let isHatched = false;
+    if (canHatch) {
+      try {
+        const hatched = await chainReadClient.read(
+          () => (forgeContract as any).isGeodeHatched?.(id),
+          { label: `InventoryFacade.isHatched:${id.toString()}` },
+        );
+        isHatched = !!hatched;
+      } catch {
+        isHatched = false;
+      }
+    }
 
     const categoryPowerMap: Record<GeodeCategory, number> = {
       [GeodeCategory.PETIT]: 75,
@@ -353,40 +322,10 @@ export class InventoryFacade {
       createdAt: forgeDate,
       hatchTime,
       isHatched,
-      canHatch: now >= hatchTime,
+      canHatch,
       miningPower: categoryPowerMap[category] || 75,
       efficiency: 80,
       isStaked: false,
     };
-  }
-
-  private async batchCheckHatched(
-    forgeContract: ReturnType<typeof this.contractManager.getForgeFactory>,
-    userAddress: Address,
-    startBlock: number,
-    currentBlock: number,
-  ): Promise<Set<string>> {
-    const hatched = new Set<string>();
-    try {
-      const ethersContract = (forgeContract as any).contract;
-      if (!ethersContract?.filters?.GeodeHatched) return hatched;
-
-      const filter = ethersContract.filters.GeodeHatched(userAddress);
-      const events = await chainReadClient.readEventChunks({
-        label: "InventoryFacade.GeodeHatched.batch",
-        fromBlock: startBlock,
-        toBlock: currentBlock,
-        direction: "desc",
-        query: (from, to) => ethersContract.queryFilter(filter, from, to),
-      });
-
-      for (const event of events as any[]) {
-        const geodeId = event.args?.geodeId;
-        if (geodeId) hatched.add(geodeId.toString());
-      }
-    } catch (error) {
-      logger.warn("Error batch-checking hatched geodes", { error });
-    }
-    return hatched;
   }
 }

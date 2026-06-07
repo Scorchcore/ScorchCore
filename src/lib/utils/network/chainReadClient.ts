@@ -46,7 +46,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isRangeTooLargeError(error: unknown): boolean {
+export function isRangeTooLargeError(error: unknown): boolean {
   const message = String(error).toLowerCase();
   return (
     message.includes("cannot get more than") ||
