@@ -1,14 +1,14 @@
 /**
  * Zod Validation Schemas
- * 
+ *
  * Schemas de validación para inputs de servicios
  * Garantiza type safety y validación en runtime
- * 
+ *
  * @pattern Validation
  */
 
-import { z } from 'zod';
-import { isAddress } from 'viem';
+import { isAddress } from "viem";
+import { z } from "zod";
 
 // ==========================================
 // Schemas Básicos
@@ -20,7 +20,7 @@ import { isAddress } from 'viem';
 export const AddressSchema = z
   .string()
   .refine((val) => isAddress(val), {
-    message: 'Invalid Ethereum address format',
+    message: "Invalid Ethereum address format",
   })
   .transform((val) => val as `0x${string}`);
 
@@ -29,23 +29,23 @@ export const AddressSchema = z
  */
 export const PositiveBigIntSchema = z
   .bigint()
-  .positive('Value must be positive');
+  .positive("Value must be positive");
 
 /**
  * Schema para número de token ID
  */
 export const TokenIdSchema = z
   .bigint()
-  .nonnegative('Token ID must be non-negative');
+  .nonnegative("Token ID must be non-negative");
 
 /**
  * Schema para cantidades de tokens
  */
 export const TokenAmountSchema = z
   .string()
-  .regex(/^\d+(\.\d+)?$/, 'Invalid token amount format')
+  .regex(/^\d+(\.\d+)?$/, "Invalid token amount format")
   .refine((val) => parseFloat(val) >= 0, {
-    message: 'Amount must be non-negative',
+    message: "Amount must be non-negative",
   });
 
 // ==========================================
@@ -56,17 +56,17 @@ export const TokenAmountSchema = z
  * Schema para GeodeType
  */
 export const GeodeTypeSchema = z.enum([
-  'PETIT',
-  'ALTO',
-  'ANIMAL',
-  'ULTRAMECH',
-  'TANQUE',
+  "PETIT",
+  "ALTO",
+  "ANIMAL",
+  "ULTRAMECH",
+  "TANQUE",
 ]);
 
 /**
  * Schema para TokenType
  */
-export const TokenTypeSchema = z.enum(['axs', 'slp', 'memento']);
+export const TokenTypeSchema = z.enum(["axs", "slp", "memento"]);
 
 /**
  * Schema para aprobación de token
@@ -97,13 +97,16 @@ export const CheckApprovalsInputSchema = z.object({
  * Schema para forjar receta
  */
 export const ForgeRecipeInputSchema = z.object({
-  recipeId: z.number().int().positive('Recipe ID must be positive'),
-  materials: z.array(
-    z.object({
-      tokenAddress: AddressSchema,
-      amount: PositiveBigIntSchema,
-    })
-  ).min(1, 'At least one material required'),
+  recipeId: z.number().int().positive("Recipe ID must be positive"),
+  materials: z
+    .array(
+      z.object({
+        tokenAddress: AddressSchema,
+        amount: PositiveBigIntSchema,
+      }),
+    )
+    .min(1, "At least one material required"),
+  axieIds: z.array(TokenIdSchema).optional(),
 });
 
 /**
@@ -125,7 +128,7 @@ export const StartMiningInputSchema = z.object({
   power: PositiveBigIntSchema,
   efficiency: PositiveBigIntSchema.refine(
     (val) => val <= 100n,
-    'Efficiency cannot exceed 100%'
+    "Efficiency cannot exceed 100%",
   ),
 });
 
@@ -157,9 +160,9 @@ export const EstimateRewardsInputSchema = z.object({
   power: PositiveBigIntSchema,
   efficiency: PositiveBigIntSchema.refine(
     (val) => val <= 100n,
-    'Efficiency cannot exceed 100%'
+    "Efficiency cannot exceed 100%",
   ),
-  hours: z.number().positive('Hours must be positive').optional(),
+  hours: z.number().positive("Hours must be positive").optional(),
 });
 
 /**
@@ -176,7 +179,7 @@ export const GetActiveSessionsInputSchema = z.object({
 
 /**
  * Valida input y lanza error descriptivo si falla
- * 
+ *
  * @param schema - Schema de Zod
  * @param data - Datos a validar
  * @returns Datos validados y transformados
@@ -187,8 +190,8 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
 
   if (!result.success) {
     const errors = result.error.issues
-      .map((err) => `${err.path.join('.')}: ${err.message}`)
-      .join(', ');
+      .map((err) => `${err.path.join(".")}: ${err.message}`)
+      .join(", ");
 
     throw new Error(`Validation failed: ${errors}`);
   }
@@ -202,7 +205,7 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
  */
 export function safeValidateInput<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { success: true; data: T } | { success: false; errors: string[] } {
   const result = schema.safeParse(data);
 
@@ -210,7 +213,7 @@ export function safeValidateInput<T>(
     return {
       success: false,
       errors: result.error.issues.map(
-        (err) => `${err.path.join('.')}: ${err.message}`
+        (err) => `${err.path.join(".")}: ${err.message}`,
       ),
     };
   }

@@ -18,6 +18,13 @@ export function useInvalidateOnTx() {
     });
   }, [queryClient, chainId, address]);
 
+  const afterMockAxieClaim = useCallback(() => {
+    if (!address) return;
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.inventory.axies(chainId, address),
+    });
+  }, [queryClient, chainId, address]);
+
   const afterHatch = useCallback(() => {
     if (!address) return;
     queryClient.invalidateQueries({
@@ -78,6 +85,7 @@ export function useInvalidateOnTx() {
 
   return {
     afterForge,
+    afterMockAxieClaim,
     afterHatch,
     afterCycleChange,
     afterFCoreConvert,

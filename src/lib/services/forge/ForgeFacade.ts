@@ -1,50 +1,47 @@
 /**
  * ForgeFacade - Enhanced Facade Pattern
- * 
+ *
  * Proporciona una API unificada con validaciones, retry logic y orquestación.
  * No solo delega, sino que agrega valor real:
  * - ✅ Validación de inputs con Zod
  * - ✅ Retry automático para operaciones blockchain
  * - ✅ Orquestación de operaciones complejas
  * - ✅ Logging estructurado
- * 
+ *
  * @pattern Facade (GoF)
  * @pattern Retry with Exponential Backoff
  * @pattern Validation
  */
 
-import type { Address } from 'viem';
-import { ContractManager } from '@/lib/contracts/ContractManager';
-import { ForgeTokenService } from './ForgeTokenService';
-import { ForgeRecipeService } from './ForgeRecipeService';
-import { GeodeHatchService } from './GeodeHatchService';
-import { retryTransaction } from '@/lib/utils/network/retry';
-import { validateInput } from '@/lib/services/validation/schemas';
+import type { Address } from "viem";
+import type { ContractManager } from "@/lib/contracts/ContractManager";
 import {
-  GeodeTypeSchema,
-  TokenTypeSchema,
-  ApproveTokenInputSchema,
+  AddressSchema,
   ApproveAllTokensInputSchema,
+  ApproveTokenInputSchema,
   CheckApprovalsInputSchema,
   ForgeRecipeInputSchema,
   HatchGeodeInputSchema,
-  AddressSchema,
-  TokenIdSchema,
-} from '@/lib/services/validation/schemas';
-import { createServiceLogger } from '@/lib/utils/logging/logger';
+  TokenTypeSchema,
+  validateInput,
+} from "@/lib/services/validation/schemas";
+import { createServiceLogger } from "@/lib/utils/logging/logger";
+import { retryTransaction } from "@/lib/utils/network/retry";
+import { ForgeRecipeService } from "./ForgeRecipeService";
+import { ForgeTokenService } from "./ForgeTokenService";
+import { GeodeHatchService } from "./GeodeHatchService";
 
-const log = createServiceLogger('ForgeFacade');
+const log = createServiceLogger("ForgeFacade");
+
 import type {
-  TokenBalances,
   ApprovalStatus,
-  GeodeType,
-  ForgeCosts,
-  GEODE_COSTS,
   ForgeResult,
+  GeodeType,
   HatchResult,
   MaterialInput,
   Recipe,
-} from './types';
+  TokenBalances,
+} from "./types";
 
 /**
  * Facade que unifica los servicios modulares de Forge
@@ -65,12 +62,15 @@ export class ForgeFacade {
       tokenService?: ForgeTokenService;
       recipeService?: ForgeRecipeService;
       hatchService?: GeodeHatchService;
-    }
+    },
   ) {
     // Inyección de dependencias con retrocompatibilidad
-    this.tokenService = services?.tokenService || new ForgeTokenService(contractManager);
-    this.recipeService = services?.recipeService || new ForgeRecipeService(contractManager);
-    this.hatchService = services?.hatchService || new GeodeHatchService(contractManager);
+    this.tokenService =
+      services?.tokenService || new ForgeTokenService(contractManager);
+    this.recipeService =
+      services?.recipeService || new ForgeRecipeService(contractManager);
+    this.hatchService =
+      services?.hatchService || new GeodeHatchService(contractManager);
   }
 
   // ==========================================
@@ -82,8 +82,8 @@ export class ForgeFacade {
   }
 
   async getBalance(
-    tokenType: 'axs' | 'slp' | 'memento',
-    userAddress: Address
+    tokenType: "axs" | "slp" | "memento",
+    userAddress: Address,
   ): Promise<string> {
     // Validar inputs
     const validatedType = validateInput(TokenTypeSchema, tokenType);
@@ -95,7 +95,7 @@ export class ForgeFacade {
   async checkApprovals(
     userAddress: Address,
     geodeType: GeodeType,
-    mementosExtra: number = 0
+    mementosExtra: number = 0,
   ): Promise<ApprovalStatus> {
     // Validar inputs
     const validated = validateInput(CheckApprovalsInputSchema, {
@@ -107,13 +107,13 @@ export class ForgeFacade {
     return this.tokenService.checkApprovals(
       validated.userAddress,
       validated.geodeType as unknown as GeodeType,
-      validated.mementosExtra
+      validated.mementosExtra,
     );
   }
 
   async approveToken(
-    tokenType: 'axs' | 'slp' | 'memento',
-    amount: string
+    tokenType: "axs" | "slp" | "memento",
+    amount: string,
   ): Promise<{ hash: string; success: boolean }> {
     // Validar inputs
     const validated = validateInput(ApproveTokenInputSchema, {
@@ -123,7 +123,8 @@ export class ForgeFacade {
 
     // Ejecutar con retry automático
     return retryTransaction(
-      () => this.tokenService.approveToken(validated.tokenType, validated.amount),
+      () =>
+        this.tokenService.approveToken(validated.tokenType, validated.amount),
       {
         maxAttempts: 3,
         onRetry: (attempt) => {
@@ -131,13 +132,13 @@ export class ForgeFacade {
             tokenType: validated.tokenType,
           });
         },
-      }
+      },
     );
   }
 
   async approveAllTokens(
     geodeType: GeodeType,
-    mementosExtra: number = 0
+    mementosExtra: number = 0,
   ): Promise<void> {
     // Validar inputs
     const validated = validateInput(ApproveAllTokensInputSchema, {
@@ -145,25 +146,29 @@ export class ForgeFacade {
       mementosExtra,
     });
 
-    log.info('Approving all tokens', {
+    log.info("Approving all tokens", {
       geodeType: validated.geodeType,
       mementosExtra: validated.mementosExtra,
     });
 
     // Ejecutar con retry automático
     return retryTransaction(
-      () => this.tokenService.approveAllTokens(validated.geodeType as unknown as GeodeType, validated.mementosExtra),
+      () =>
+        this.tokenService.approveAllTokens(
+          validated.geodeType as unknown as GeodeType,
+          validated.mementosExtra,
+        ),
       {
         maxAttempts: 3,
         onRetry: (attempt) => {
           log.warn(`Retrying approval batch (attempt ${attempt})`);
         },
-      }
+      },
     );
   }
 
   async revokeApproval(
-    tokenType: 'axs' | 'slp' | 'memento'
+    tokenType: "axs" | "slp" | "memento",
   ): Promise<{ hash: string; success: boolean }> {
     return this.tokenService.revokeApproval(tokenType);
   }
@@ -174,7 +179,7 @@ export class ForgeFacade {
 
   /**
    * Forja una nueva geoda
-   * 
+   *
    * @param recipeId - ID de la receta
    * @param materials - Array de materiales (tokens y mementos)
    * @param geodeType - Tipo de geoda
@@ -185,28 +190,41 @@ export class ForgeFacade {
     recipeId: number,
     materials: MaterialInput[],
     geodeType?: number,
-    mementosToUse?: number
+    mementosToUse?: number,
+    axieIds: bigint[] = [],
   ): Promise<ForgeResult> {
     // Validar inputs
     const validated = validateInput(ForgeRecipeInputSchema, {
       recipeId,
       materials,
+      axieIds,
     });
 
-    log.info('Forging recipe', { recipeId: validated.recipeId, mementosToUse });
+    log.info("Forging recipe", {
+      recipeId: validated.recipeId,
+      mementosToUse,
+      axieIds: validated.axieIds?.map((id) => id.toString()) ?? [],
+    });
 
     // Ejecutar con retry automático
     return retryTransaction(
-      () => this.recipeService.forgeGeode(validated.recipeId, validated.materials, geodeType, mementosToUse),
+      () =>
+        this.recipeService.forgeGeode(
+          validated.recipeId,
+          validated.materials,
+          geodeType,
+          mementosToUse,
+          validated.axieIds ?? [],
+        ),
       {
         maxAttempts: 2, // Solo 2 intentos para forja (más costoso)
         onRetry: (attempt) => {
           log.warn(`Retrying forge (attempt ${attempt})`, {
             recipeId: validated.recipeId,
-            mementosToUse
+            mementosToUse,
           });
         },
-      }
+      },
     );
   }
 
@@ -238,7 +256,7 @@ export class ForgeFacade {
     // Validar inputs
     const validated = validateInput(HatchGeodeInputSchema, { geodeId });
 
-    log.info('Hatching geode', { geodeId: validated.geodeId.toString() });
+    log.info("Hatching geode", { geodeId: validated.geodeId.toString() });
 
     // Ejecutar con retry automático
     return retryTransaction(
@@ -250,7 +268,7 @@ export class ForgeFacade {
             geodeId: validated.geodeId.toString(),
           });
         },
-      }
+      },
     );
   }
 
@@ -289,13 +307,13 @@ export class ForgeFacade {
 
   /**
    * Orquestación: Verifica, aprueba (si necesario) y forja en una sola operación
-   * 
+   *
    * Flujo completo:
    * 1. Verifica si tiene materiales necesarios
    * 2. Verifica aprobaciones
    * 3. Aprueba tokens faltantes (si necesario)
    * 4. Ejecuta forja
-   * 
+   *
    * @param userAddress - Dirección del usuario
    * @param recipeId - ID de la receta
    * @param materials - Materiales a usar
@@ -305,9 +323,9 @@ export class ForgeFacade {
   async forgeWithAutoApproval(
     userAddress: Address,
     recipeId: number,
-    materials: MaterialInput[]
+    materials: MaterialInput[],
   ): Promise<ForgeResult> {
-    log.info('Starting orchestrated forge', { recipeId, userAddress });
+    log.info("Starting orchestrated forge", { recipeId, userAddress });
 
     // 1. Verificar materiales
     const hasMaterials = await this.hasMaterials(userAddress, recipeId);
@@ -318,14 +336,14 @@ export class ForgeFacade {
     // 2. Verificar si puede forjar
     const canForge = await this.canForge(userAddress, recipeId);
     if (!canForge) {
-      log.warn('User cannot forge, checking approvals...', { recipeId });
-      
+      log.warn("User cannot forge, checking approvals...", { recipeId });
+
       // 3. Aprobar tokens necesarios (basado en receta)
       // Por ahora usamos geodeType basado en recipeId
       // Esto es una simplificación, en producción deberías mapear recipeId -> geodeType
       const geodeType = this.mapRecipeToGeodeType(recipeId);
-      
-      log.info('Approving tokens automatically', { geodeType });
+
+      log.info("Approving tokens automatically", { geodeType });
       await this.approveAllTokens(geodeType);
     }
 
@@ -335,18 +353,20 @@ export class ForgeFacade {
 
   /**
    * Orquestación: Verifica y eclosiona geoda si está lista
-   * 
+   *
    * Flujo completo:
    * 1. Verifica si geoda existe y está lista
    * 2. Verifica tiempo de incubación
    * 3. Ejecuta eclosión si está lista
-   * 
+   *
    * @param geodeId - ID de la geoda
    * @returns Resultado de la eclosión
    * @throws Error si no está lista para eclosionar
    */
   async hatchWhenReady(geodeId: bigint): Promise<HatchResult> {
-    log.info('Checking if geode ready to hatch', { geodeId: geodeId.toString() });
+    log.info("Checking if geode ready to hatch", {
+      geodeId: geodeId.toString(),
+    });
 
     // 1. Verificar si puede eclosionar
     const canHatch = await this.canHatch(geodeId);
@@ -359,7 +379,7 @@ export class ForgeFacade {
     if (!isReady) {
       const remainingTime = await this.getIncubationTime(geodeId);
       throw new Error(
-        `Geode ${geodeId} needs ${remainingTime} more seconds to incubate`
+        `Geode ${geodeId} needs ${remainingTime} more seconds to incubate`,
       );
     }
 
@@ -369,23 +389,23 @@ export class ForgeFacade {
 
   /**
    * Batch operation: Aprobar múltiples tokens en paralelo
-   * 
+   *
    * @param approvals - Array de aprobaciones a ejecutar
    * @returns Resultados de todas las aprobaciones
    */
   async batchApproveTokens(
-    approvals: Array<{ tokenType: 'axs' | 'slp' | 'memento'; amount: string }>
+    approvals: Array<{ tokenType: "axs" | "slp" | "memento"; amount: string }>,
   ): Promise<Array<{ hash: string; success: boolean }>> {
-    log.info('Batch approving tokens', { count: approvals.length });
+    log.info("Batch approving tokens", { count: approvals.length });
 
     const results = await Promise.all(
       approvals.map((approval) =>
-        this.approveToken(approval.tokenType, approval.amount)
-      )
+        this.approveToken(approval.tokenType, approval.amount),
+      ),
     );
 
     const successCount = results.filter((r) => r.success).length;
-    log.info('Batch approval completed', {
+    log.info("Batch approval completed", {
       total: results.length,
       successful: successCount,
       failed: results.length - successCount,
@@ -401,17 +421,17 @@ export class ForgeFacade {
   private mapRecipeToGeodeType(recipeId: number): GeodeType {
     // Simplificación: mapeo basado en rangos de IDs
     // En producción, esto debería consultarse del contrato
-    if (recipeId <= 9) return 'PETIT' as unknown as GeodeType;
-    if (recipeId <= 18) return 'ALTO' as unknown as GeodeType;
-    if (recipeId <= 27) return 'ANIMAL' as unknown as GeodeType;
-    if (recipeId <= 36) return 'ULTRAMECH' as unknown as GeodeType;
-    return 'TANQUE' as unknown as GeodeType;
+    if (recipeId <= 9) return "PETIT" as unknown as GeodeType;
+    if (recipeId <= 18) return "ALTO" as unknown as GeodeType;
+    if (recipeId <= 27) return "ANIMAL" as unknown as GeodeType;
+    if (recipeId <= 36) return "ULTRAMECH" as unknown as GeodeType;
+    return "TANQUE" as unknown as GeodeType;
   }
 }
 
 /**
  * Factory para crear instancia del servicio (compatible con API anterior)
- * 
+ *
  * @pattern Factory Method
  */
 export function createForgeService(
@@ -420,7 +440,7 @@ export function createForgeService(
     tokenService?: ForgeTokenService;
     recipeService?: ForgeRecipeService;
     hatchService?: GeodeHatchService;
-  }
+  },
 ): ForgeFacade {
   return new ForgeFacade(contractManager, services);
 }
