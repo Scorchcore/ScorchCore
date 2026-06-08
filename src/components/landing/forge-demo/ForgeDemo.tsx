@@ -7,23 +7,23 @@ const REAL_SCROLL_BY =
   typeof window !== "undefined" ? window.scrollBy.bind(window) : null;
 
 import gsap from "gsap";
+import { Hammer, Loader2, PackageOpen, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Hammer, Loader2, PackageOpen, RotateCcw } from "lucide-react";
 import { CoreMinerVideo } from "@/components/CoreMinerVideo";
 import { GeodeVideo } from "@/components/GeodeVideo";
-import {
-  AxieClass,
-  CATEGORY_INFO,
-  GeodeCategory,
-  AXIE_CLASS_INFO,
-} from "@/lib/constants/geodes";
 import {
   DEMO_PETIT_MINERS,
   FORGE_DEMO_ASSETS,
   generateMockTxHash,
   getRandomPetitAquaMinerIndex,
 } from "@/lib/constants/forgeDemo";
+import {
+  AXIE_CLASS_INFO,
+  AxieClass,
+  CATEGORY_INFO,
+  GeodeCategory,
+} from "@/lib/constants/geodes";
 import { getCoreMinerVideoFilename } from "@/lib/constants/storagePaths";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 import ForgeAltarStage, {
@@ -32,8 +32,8 @@ import ForgeAltarStage, {
   type SealSpin,
 } from "./ForgeAltarStage";
 import ForgeDemoRoulette from "./ForgeDemoRoulette";
-import ForgeTriadAnimation, { type TriadPoint } from "./ForgeTriadAnimation";
 import ForgeTour from "./ForgeTour";
+import ForgeTriadAnimation, { type TriadPoint } from "./ForgeTriadAnimation";
 
 const logger = createServiceLogger("ForgeDemo");
 
