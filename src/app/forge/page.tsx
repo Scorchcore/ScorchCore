@@ -104,11 +104,10 @@ function ChainStatusBanner({
   if (!isUpdating && !hasStaleError) return null;
   return (
     <div
-      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${
-        hasStaleError
+      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${hasStaleError
           ? "border-magma-orange/35 bg-orange-500/8 text-magma-orange"
           : "border-ethereal-cyan/25 bg-cyan-300/8 text-ethereal-cyan/75"
-      }`}
+        }`}
     >
       <RefreshCw
         className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`}
@@ -722,11 +721,10 @@ export default function ForgePage() {
                         key={cat.id}
                         onClick={() => !isLocked && openCategoryDetail(cat.id)}
                         disabled={isLocked}
-                        className={`group relative flex flex-col items-center transition-all focus:outline-none ${
-                          isLocked
+                        className={`group relative flex flex-col items-center transition-all focus:outline-none ${isLocked
                             ? "cursor-not-allowed opacity-40"
                             : "hover:scale-105"
-                        }`}
+                          }`}
                         title={
                           isLocked
                             ? `Requiere Trust Score nivel ${requirement.level}`
@@ -1076,11 +1074,10 @@ export default function ForgePage() {
                         key={axie.tokenId}
                         onClick={() => handleToggleAxieSelection(axie)}
                         disabled={isSelectionFull}
-                        className={`min-h-28 border p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/75 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-                          isSelected
+                        className={`min-h-28 border p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/75 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${isSelected
                             ? "border-magma-gold/75 bg-orange-500/14 shadow-[0_0_22px_rgba(240,106,18,0.16)]"
                             : "border-cyan-100/12 bg-black/35 hover:border-ethereal-cyan/45 hover:bg-black/48 disabled:cursor-not-allowed disabled:opacity-45"
-                        }`}
+                          }`}
                       >
                         <div className="mb-3 flex items-center justify-between gap-2">
                           {axieClassInfo ? (
@@ -1100,9 +1097,6 @@ export default function ForgePage() {
                         </div>
                         <div className="text-sm font-semibold text-cyan-50">
                           {axie.metadata.class}
-                        </div>
-                        <div className="mt-1 text-xs uppercase text-cyan-50/45">
-                          Fake Axie
                         </div>
                       </button>
                     );
@@ -1206,11 +1200,10 @@ export default function ForgePage() {
                         key={pct}
                         type="button"
                         onClick={() => setMementosToUse(mementos)}
-                        className={`inline-flex flex-col items-center justify-center border px-4 py-3 transition-all ${
-                          isActive
+                        className={`inline-flex flex-col items-center justify-center border px-4 py-3 transition-all ${isActive
                             ? "border-ethereal-cyan/60 bg-cyan-300/15 text-cyan-50 shadow-[0_0_20px_rgba(125,249,255,0.12)]"
                             : "border-cyan-100/12 bg-black/42 text-cyan-50/70 hover:border-cyan-100/25 hover:text-cyan-50"
-                        }`}
+                          }`}
                       >
                         <span className="alchemy-heading-strong text-lg leading-none">
                           {pct}%
@@ -1320,11 +1313,10 @@ export default function ForgePage() {
                     <span>Axies to use</span>
                   </div>
                   <span
-                    className={`font-bold ${
-                      hasRequiredAxieSelection
+                    className={`font-bold ${hasRequiredAxieSelection
                         ? "text-magma-gold"
                         : "text-cyan-50/42"
-                    }`}
+                      }`}
                   >
                     {selectedAxieIds.length}/{requiredAxieCount || 0}
                   </span>
