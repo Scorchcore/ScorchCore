@@ -770,7 +770,7 @@ export default function ForgePage() {
                             stiffness: 180,
                             damping: 22,
                           }}
-                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/[0.03] shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/[0.06] group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]"
+                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]"
                           animate={isSelected ? { opacity: 0 } : { opacity: 1 }}
                         >
                           <GlossImage
@@ -958,7 +958,7 @@ export default function ForgePage() {
                   className="group relative flex flex-col items-center transition-all focus:outline-none hover:scale-105"
                   title={axieClass.displayName}
                 >
-                  <div className="relative flex h-[120px] w-[120px] items-center justify-center rounded-full border border-white/5 bg-white/[0.03] shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/[0.06] group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]">
+                  <div className="relative flex h-[120px] w-[120px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]">
                     <GlossImage
                       src={axieClass.icon}
                       alt={axieClass.displayName}
@@ -1311,12 +1311,12 @@ export default function ForgePage() {
                         .map((id) =>
                           availableAxies.find((a) => a.tokenId === id),
                         )
-                        .filter(Boolean)
+                        .filter((axie): axie is AxieNFT => axie !== undefined)
                         .map((axie, i) => (
                           <Image
-                            key={axie!.tokenId}
-                            src={getAxieImagePath(axie!.metadata.class)}
-                            alt={axie!.metadata.class}
+                            key={axie.tokenId}
+                            src={getAxieImagePath(axie.metadata.class)}
+                            alt={axie.metadata.class}
                             width={48}
                             height={48}
                             className="h-7 w-7 rounded-full object-contain border border-black/60"

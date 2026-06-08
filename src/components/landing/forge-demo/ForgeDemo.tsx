@@ -9,9 +9,9 @@ const REAL_SCROLL_BY =
 import gsap from "gsap";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GeodeVideo } from "@/components/GeodeVideo";
+import { Hammer, Loader2, PackageOpen, RotateCcw } from "lucide-react";
 import { CoreMinerVideo } from "@/components/CoreMinerVideo";
-import { Hammer, RotateCcw, PackageOpen, Loader2 } from "lucide-react";
+import { GeodeVideo } from "@/components/GeodeVideo";
 import {
   AxieClass,
   CATEGORY_INFO,
@@ -164,7 +164,6 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
   const petitInfo = CATEGORY_INFO[GeodeCategory.PETIT];
   const aquaInfo = AXIE_CLASS_INFO[AxieClass.AQUA];
-  const cost = petitInfo.defaultCost;
 
   const minerData = useMemo(
     () => DEMO_PETIT_MINERS[revealedMinerIndex],
@@ -248,7 +247,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
       lastScrollY = window.scrollY;
 
       if (stableMs >= STABLE_THRESHOLD) {
-        const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+        const stageEl = document.querySelector(
+          '[data-tour="stage"]',
+        ) as HTMLElement | null;
         if (stageEl) {
           const rect = stageEl.getBoundingClientRect();
           const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
@@ -262,7 +263,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
     const safety = setTimeout(() => {
       clearInterval(interval);
-      const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+      const stageEl = document.querySelector(
+        '[data-tour="stage"]',
+      ) as HTMLElement | null;
       if (stageEl) {
         const rect = stageEl.getBoundingClientRect();
         const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
@@ -304,7 +307,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
       lastScrollY = window.scrollY;
 
       if (stableMs >= STABLE_THRESHOLD) {
-        const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+        const stageEl = document.querySelector(
+          '[data-tour="stage"]',
+        ) as HTMLElement | null;
         if (stageEl) {
           const rect = stageEl.getBoundingClientRect();
           const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
@@ -318,7 +323,9 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
     const safety = setTimeout(() => {
       clearInterval(interval);
-      const stageEl = document.querySelector('[data-tour="stage"]') as HTMLElement | null;
+      const stageEl = document.querySelector(
+        '[data-tour="stage"]',
+      ) as HTMLElement | null;
       if (stageEl) {
         const rect = stageEl.getBoundingClientRect();
         const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
@@ -398,17 +405,6 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   const handleTriadConverge = useCallback(() => {
     logger.info("Trazas convergen — sello acelera");
     setSealSpin("fast");
-  }, []);
-
-  const handleTriadComplete = useCallback(() => {
-    logger.info("Forja demo completada");
-    if (forgeTimeoutRef.current) {
-      clearTimeout(forgeTimeoutRef.current);
-      forgeTimeoutRef.current = null;
-    }
-    setSealSpin("normal");
-    setIsForgeLoading(false);
-    // Do NOT auto-advance; user clicks Continue manually
   }, []);
 
   const handleOpenGeode = useCallback(() => {
@@ -685,24 +681,22 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
 
           {/* ── REVEALED ── CoreMiner floating in beam + stats ── */}
           {stage === "revealed" && (
-            <>
-              <div className={VIDEO_WRAP_CN} data-tour="reveal">
-                <div
-                  className={`aspect-square w-52 overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)] sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem]`}
-                >
-                  <CoreMinerVideo
-                    category={GeodeCategory.PETIT}
-                    axieClass={AxieClass.AQUA}
-                    minerIndex={revealedMinerIndex}
-                    autoPlay
-                    loop
-                    muted
-                    className="h-full w-full"
-                    showFallback
-                  />
-                </div>
+            <div className={VIDEO_WRAP_CN} data-tour="reveal">
+              <div
+                className={`aspect-square w-52 overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)] sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem]`}
+              >
+                <CoreMinerVideo
+                  category={GeodeCategory.PETIT}
+                  axieClass={AxieClass.AQUA}
+                  minerIndex={revealedMinerIndex}
+                  autoPlay
+                  loop
+                  muted
+                  className="h-full w-full"
+                  showFallback
+                />
               </div>
-            </>
+            </div>
           )}
         </ForgeAltarStage>
       </div>
