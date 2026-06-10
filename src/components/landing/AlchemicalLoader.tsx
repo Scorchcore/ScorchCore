@@ -383,7 +383,7 @@ export default function AlchemicalLoader({
         </svg>
 
         <div className="mt-[-20px] flex max-w-[92vw] items-center gap-1 overflow-hidden font-mono text-sm uppercase tracking-[0.34em] text-cyan-200 drop-shadow-[0_0_12px_rgba(0,245,255,0.95)] md:text-base">
-          <span className="typing-text">INITIALIZING REBIRD</span>
+          <span>ALCHEMICAL REBIRD</span>
           <span className="animate-caret">_</span>
         </div>
       </div>

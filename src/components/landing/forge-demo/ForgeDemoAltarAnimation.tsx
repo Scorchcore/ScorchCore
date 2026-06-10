@@ -132,7 +132,7 @@ export default function ForgeDemoAltarAnimation({
       {/* Texto de estado */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-linear-to-t from-black/80 via-black/40 to-transparent p-4 text-center">
         <p className="alchemy-eyebrow mb-1 text-[0.62rem]">Elemental Forge</p>
-        <p className="alchemy-heading text-lg">Transmutando...</p>
+        <p className="alchemy-heading text-lg">Transmuting...</p>
       </div>
     </div>
   );

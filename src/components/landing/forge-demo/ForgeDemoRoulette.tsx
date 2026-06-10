@@ -1,16 +1,16 @@
 "use client";
 
+import { gsap } from "gsap";
+import { Egg } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { gsap } from "gsap";
-import type { GeodeCategory, AxieClass } from "@/lib/constants/geodes";
+import type { AxieClass, GeodeCategory } from "@/lib/constants/geodes";
 import {
-  getThumbnailPath,
   getStorageUrl,
   getThumbnailFilename,
+  getThumbnailPath,
 } from "@/lib/constants/storagePaths";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
-import { Egg } from "lucide-react";
 
 const logger = createServiceLogger("ForgeDemoRoulette");
 
@@ -257,7 +257,7 @@ export default function ForgeDemoRoulette({
           <h2
             className={`alchemy-heading ${compact ? "text-base md:text-lg" : "text-xl md:text-2xl"}`}
           >
-            Abriendo Geoda
+            Opening Geode
           </h2>
         </div>
       </div>
@@ -353,8 +353,8 @@ export default function ForgeDemoRoulette({
           <span className="inline-block h-1.5 w-1.5 animate-pulse bg-magma-gold" />
           <span className="alchemy-copy tracking-wide">
             {selectedIndex !== null
-              ? "¡Resultado revelado!"
-              : "Esperando destino cristalino..."}
+              ? "Result Revealed!"
+              : "Awaiting Crystal Fate..."}
           </span>
         </div>
       </div>

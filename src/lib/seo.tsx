@@ -264,6 +264,10 @@ export const HOME_FAQ = [
     answer:
       "Ronin is an EVM-compatible gaming blockchain built for fast, low-cost transactions and strong gaming ecosystem distribution.",
   },
+  {
+    question: "When does $CORE token mining begin?",
+    answer: "After the V1 recipes have been presented.",
+  },
 ] as const;
 
 export const TOKENOMICS_FAQ = [

@@ -644,7 +644,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
               />
               <div className="absolute inset-x-0 bottom-[12%] z-50 flex flex-col items-center justify-center text-center">
                 <p className="alchemy-heading text-base drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-lg md:text-xl">
-                  Transmutando...
+                  Transmuting...
                 </p>
               </div>
             </>
@@ -706,39 +706,33 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
         {/* SELECT GEODE */}
         {stage === "select-geode" && (
           <div className="space-y-1.5">
-            <p className="alchemy-eyebrow text-[0.6rem]">Paso 1 de 8</p>
+            <p className="alchemy-eyebrow text-[0.6rem]">Step 1 of 8</p>
             <h3 className="alchemy-heading-strong text-lg sm:text-xl">
-              Selecciona una Geoda
+              Select a Geode
             </h3>
-            <p className="text-xs text-cyan-50/50">
-              Haz click sobre el ícono flotante
-            </p>
+            <p className="text-xs text-cyan-50/50">Click the floating icon</p>
           </div>
         )}
 
         {/* SELECT CLASS */}
         {stage === "select-class" && (
           <div className="space-y-1.5">
-            <p className="alchemy-eyebrow text-[0.6rem]">Paso 2 de 8</p>
+            <p className="alchemy-eyebrow text-[0.6rem]">Step 2 of 8</p>
             <h3 className="alchemy-heading-strong text-lg sm:text-xl">
-              Selecciona una Clase
+              Select a Class
             </h3>
-            <p className="text-xs text-cyan-50/50">
-              Haz click sobre el ícono flotante
-            </p>
+            <p className="text-xs text-cyan-50/50">Click the floating icon</p>
           </div>
         )}
 
         {/* SELECT AXIE */}
         {stage === "select-axie" && (
           <div className="space-y-1.5">
-            <p className="alchemy-eyebrow text-[0.6rem]">Paso 3 de 8</p>
+            <p className="alchemy-eyebrow text-[0.6rem]">Step 3 of 8</p>
             <h3 className="alchemy-heading-strong text-lg sm:text-xl">
-              Selecciona tu Axie Aqua
+              Select your Aqua Axie
             </h3>
-            <p className="text-xs text-cyan-50/50">
-              Haz click sobre el Axie flotante
-            </p>
+            <p className="text-xs text-cyan-50/50">Click the floating Axie</p>
           </div>
         )}
 
@@ -746,12 +740,12 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
         {stage === "setup" && (
           <div className="space-y-3">
             <div>
-              <p className="alchemy-eyebrow text-[0.6rem]">Paso 4 de 8</p>
+              <p className="alchemy-eyebrow text-[0.6rem]">Step 4 of 8</p>
               <h3 className="alchemy-heading-strong text-lg sm:text-xl">
-                Preparar Forja
+                Prepare Forge
               </h3>
               <p className="text-xs text-cyan-50/50">
-                Petit Aqua — Revisa los materiales
+                Petit Aqua — Review the materials
               </p>
             </div>
 
@@ -817,7 +811,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
               ) : (
                 <Hammer className="h-4 w-4" />
               )}
-              {isForgeLoading ? "Transmutando..." : "Forjar Geoda"}
+              {isForgeLoading ? "Transmuting..." : "Forge Geode"}
             </button>
           </div>
         )}
@@ -847,7 +841,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
         {stage === "geode-created" && (
           <div className="space-y-3">
             <h3 className="alchemy-heading-strong text-lg sm:text-xl">
-              ¡Geoda Petit Aqua creada!
+              Petit Aqua Geode Created!
             </h3>
             {mockTxHash && (
               <p className="font-mono text-[0.55rem] text-cyan-50/35 sm:text-xs">
@@ -860,7 +854,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
               className="inline-flex cursor-pointer items-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:text-white"
             >
               <PackageOpen className="h-4 w-4" />
-              Abrir Geoda
+              Open Geode
             </button>
           </div>
         )}
@@ -900,14 +894,14 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
                 className="inline-flex items-center justify-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:text-white"
               >
                 <RotateCcw className="h-4 w-4" />
-                Forjar Otra Vez
+                Forge Again
               </button>
               <button
                 type="button"
                 onClick={onExit}
                 className="inline-flex items-center justify-center gap-2 border border-cyan-100/12 bg-black/42 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-cyan-50/58 transition-all hover:border-ethereal-cyan/45 hover:text-cyan-50"
               >
-                Cerrar Demo
+                Close Demo
               </button>
             </div>
           </div>
