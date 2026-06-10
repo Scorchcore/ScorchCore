@@ -34,13 +34,13 @@ export const PUBLIC_ROUTES = [
   label: string;
   priority: number;
   changeFrequency:
-    | "always"
-    | "hourly"
-    | "daily"
-    | "weekly"
-    | "monthly"
-    | "yearly"
-    | "never";
+  | "always"
+  | "hourly"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "never";
 }>;
 
 const defaultDescription =
@@ -257,7 +257,7 @@ export const HOME_FAQ = [
   {
     question: "What is $CORE used for?",
     answer:
-      "$CORE is the native utility token planned for upgrades, repairs, staking, governance, forge activity, and protocol minigames.",
+      "$CORE is the native utility token planned for upgrades, repairs, staking, governance and forge activity",
   },
   {
     question: "Why does ScorchCore use Ronin?",
