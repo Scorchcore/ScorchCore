@@ -2,7 +2,6 @@
 
 import {
   Flame,
-  Gamepad2,
   Gem,
   type LucideIcon,
   Pickaxe,
@@ -17,68 +16,66 @@ import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 
 const DISTRIBUTION = [
   {
-    label: "Mining Rewards",
+    label: "Mining Rewards & Staking",
     percentage: 50,
-    color: "from-magma-orange via-orange-500 to-red-500",
-    dot: "bg-magma-orange",
-    border: "border-magma-orange/45",
-    description: "Earned by CoreMiners through active mining cycles",
-  },
-  {
-    label: "Ecosystem Fund",
-    percentage: 15,
-    color: "from-ethereal-cyan via-cyan-400 to-blue-500",
+    amount: "1,050,000,000 $CORE",
+    color: "from-ethereal-cyan via-cyan-300 to-magma-gold",
     dot: "bg-ethereal-cyan",
     border: "border-ethereal-cyan/45",
-    description: "Development, partnerships, and ecosystem growth",
+    description:
+      "Earned by CoreMiners through active mining cycles. Staking begins in the second year.",
   },
   {
-    label: "Staking Rewards",
-    percentage: 10,
+    label: "Ecosystem Treasury & DAO",
+    percentage: 20,
+    amount: "420,000,000 $CORE",
     color: "from-magma-gold via-yellow-300 to-orange-400",
     dot: "bg-magma-gold",
     border: "border-magma-gold/45",
-    description: "Distributed to Axie stakers generating Resonance Power",
+    description: "Protocol treasury, DAO operations, growth, and reserves.",
+  },
+  {
+    label: "Rewards (Adoption/Airdrops)",
+    percentage: 15,
+    amount: "315,000,000 $CORE",
+    color: "from-magma-orange via-orange-400 to-magma-gold",
+    dot: "bg-magma-orange",
+    border: "border-magma-orange/45",
+    description: "Adoption incentives, airdrops, and community activation.",
   },
   {
     label: "Team & Advisors",
     percentage: 10,
+    amount: "210,000,000 $CORE",
     color: "from-cyan-200 via-ethereal-cyan to-magma-gold",
     dot: "bg-cyan-200",
     border: "border-cyan-200/35",
-    description: "Vested over 3 years with 6-month cliff",
+    description: "Long-term aligned contributors and advisors.",
   },
   {
-    label: "Treasury",
-    percentage: 10,
-    color: "from-orange-300 via-magma-gold to-magma-orange",
+    label: "Initial Liquidity (Katana)",
+    percentage: 5,
+    amount: "105,000,000 $CORE",
+    color: "from-orange-300 via-magma-orange to-red-500",
     dot: "bg-orange-300",
     border: "border-orange-300/40",
-    description: "Protocol buybacks, liquidity, and emergency reserves",
-  },
-  {
-    label: "Community Airdrop",
-    percentage: 5,
-    color: "from-red-400 via-magma-orange to-magma-gold",
-    dot: "bg-red-400",
-    border: "border-red-400/35",
-    description: "Rewards for early adopters and active community members",
+    description: "Initial market liquidity for Katana.",
   },
 ];
 
 const KEY_METRICS = [
   { label: "Total Supply", value: "2.1B", unit: "$CORE" },
   { label: "Halving Cycle", value: "Annual", unit: "-50% emission" },
-  { label: "Initial Emission", value: "TBD", unit: "$CORE/day" },
-  { label: "Burn Mechanism", value: "Deflationary", unit: "on every forge" },
+  { label: "Initial Emission", value: "After-V.1", unit: "$CORE/day" },
+  { label: "Circular economy", value: "Deflationary", unit: "on every forge" },
 ];
 
 const HALVING_SCHEDULE = [
-  { year: "Year 1", emission: "100%", cumulative: "~50%" },
-  { year: "Year 2", emission: "50%", cumulative: "~75%" },
-  { year: "Year 3", emission: "25%", cumulative: "~87.5%" },
-  { year: "Year 4", emission: "12.5%", cumulative: "~93.75%" },
-  { year: "Year 5+", emission: "6.25%", cumulative: "→ 100%" },
+  { year: "Year 1", emission: "100%", mined: "525M $CORE" },
+  { year: "Year 2", emission: "50%", mined: "262.5M $CORE" },
+  { year: "Year 3", emission: "25%", mined: "131.25M $CORE" },
+  { year: "Year 4", emission: "12.5%", mined: "65.625M $CORE" },
+  { year: "Year 5", emission: "6.25%", mined: "32.812M $CORE" },
 ];
 
 const UTILITY = [
@@ -104,27 +101,15 @@ const UTILITY = [
     icon: Gem,
     title: "Staking",
     description:
-      "Lock $CORE for additional yield and protocol benefits including boosted TrustScore.",
-  },
-  {
-    icon: Flame,
-    title: "Forge Fuel",
-    description:
-      "$CORE is consumed during the Forge process, creating constant buy pressure.",
-  },
-  {
-    icon: Gamepad2,
-    title: "Minigames",
-    description:
-      "Entry fees and rewards in protocol minigames, creating circular token flow.",
+      "Lock $CORE for additional yield and protocol benefits including boosted TrustScore. Begins in the second mining year.",
   },
 ];
 
 const FLYWHEEL = [
   {
     icon: Flame,
-    title: "Forge Burns",
-    description: "Axies + SLP permanently burned during transmutation",
+    title: "Forge Transmutation",
+    description: "Axies + AXS + Mementos redirected to Scorchcore treasury",
   },
   {
     icon: TrendingDown,
@@ -195,7 +180,7 @@ function MetricGrid() {
             <p className="text-[0.65rem] font-semibold uppercase text-cyan-50/46 md:text-xs">
               {metric.label}
             </p>
-            <p className="alchemy-heading-strong mt-2 text-2xl leading-none md:text-3xl">
+            <p className="alchemy-heading-strong mt-2 break-words text-[clamp(1.18rem,3.8vw,1.6rem)] leading-tight md:text-[clamp(1.18rem,1.7vw,1.6rem)]">
               {metric.value}
             </p>
             <p className="mt-2 text-[0.68rem] text-cyan-50/52 md:text-xs">
@@ -218,10 +203,10 @@ function DistributionPanel() {
       <SectionHeading
         eyebrow="Allocation"
         title="Token Distribution"
-        description="Supply is weighted toward productive protocol activity while reserving controlled pools for growth, liquidity, and long-term alignment."
+        description="Distribution Summary: supply is weighted toward mining, staking, treasury, adoption, team alignment, and initial Katana liquidity."
       />
 
-      <div className="mx-auto max-w-5xl border border-cyan-100/10 bg-black/30 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-md md:p-6">
+      <div className="mx-auto max-w-6xl border border-cyan-100/10 bg-black/30 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-md md:p-6">
         <div
           aria-label="Token distribution percentages"
           role="img"
@@ -237,28 +222,35 @@ function DistributionPanel() {
           ))}
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {DISTRIBUTION.map((item) => (
             <article
               key={item.label}
-              className={`relative overflow-hidden border ${item.border} bg-black/42 p-4 shadow-[0_14px_42px_rgba(0,0,0,0.28)] transition-all hover:-translate-y-0.5 hover:border-magma-gold/55`}
+              className={`group relative min-h-52 overflow-hidden border ${item.border} bg-black/42 p-4 shadow-[0_14px_42px_rgba(0,0,0,0.28)] transition-all hover:-translate-y-0.5 hover:border-magma-gold/55`}
             >
+              <div
+                className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r ${item.color} opacity-80`}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/8 via-transparent to-orange-500/8 opacity-60 transition-opacity group-hover:opacity-100" />
               <div className="pointer-events-none absolute left-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-magma-gold/70 to-transparent" />
-              <div className="flex items-start gap-3">
+              <div className="relative flex h-full flex-col gap-4">
                 <span
-                  className={`mt-1 h-3 w-3 shrink-0 rounded-full ${item.dot} shadow-[0_0_18px_currentColor]`}
+                  className={`h-3 w-3 shrink-0 rounded-full ${item.dot} shadow-[0_0_18px_currentColor]`}
                 />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-semibold text-cyan-50">{item.label}</h3>
-                    <span className="alchemy-heading text-lg leading-none">
-                      {item.percentage}%
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-cyan-50/58">
-                    {item.description}
+                <div className="min-w-0">
+                  <p className="alchemy-heading-strong text-3xl leading-none">
+                    {item.percentage}%
+                  </p>
+                  <p className="mt-2 font-mono text-[0.68rem] uppercase text-cyan-50/48">
+                    {item.amount}
                   </p>
                 </div>
+                <h3 className="font-semibold leading-snug text-cyan-50">
+                  {item.label}
+                </h3>
+                <p className="mt-auto text-sm leading-6 text-cyan-50/58">
+                  {item.description}
+                </p>
               </div>
             </article>
           ))}
@@ -289,7 +281,7 @@ function HalvingSchedule() {
                   Emission Rate
                 </th>
                 <th className="px-6 py-4 text-right font-semibold uppercase text-cyan-50/50">
-                  Cumulative Supply
+                  Tokens Mined
                 </th>
               </tr>
             </thead>
@@ -308,7 +300,7 @@ function HalvingSchedule() {
                     {row.emission}
                   </td>
                   <td className="px-6 py-4 text-right text-cyan-50/68">
-                    {row.cumulative}
+                    {row.mined}
                   </td>
                 </tr>
               ))}
@@ -331,9 +323,9 @@ function HalvingSchedule() {
                 <span className="alchemy-heading text-xl">{row.emission}</span>
               </div>
               <p className="mt-2 text-xs uppercase text-cyan-50/42">
-                Cumulative supply
+                Tokens mined
               </p>
-              <p className="mt-1 text-sm text-cyan-50/70">{row.cumulative}</p>
+              <p className="mt-1 text-sm text-cyan-50/70">{row.mined}</p>
             </article>
           ))}
         </div>
@@ -374,7 +366,7 @@ function UtilityGrid() {
         description="The token sits inside the loop of progression, maintenance, governance, staking, forging, and play."
       />
 
-      <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {UTILITY.map((item) => (
           <UtilityCard key={item.title} {...item} />
         ))}

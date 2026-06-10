@@ -135,6 +135,8 @@ export default function Home() {
       <Problem />
       <ForgeProcess />
       <Transmute />
+      <WhitelistSection />
+
       <HomeFaqSection />
 
       {/* Hero - Sé un Prospector
@@ -537,7 +539,6 @@ export default function Home() {
         </div>
       </section>
       */}
-      <WhitelistSection />
       <Footer />
     </div>
   );

@@ -30,6 +30,9 @@ export const Header: React.FC = () => {
   ];
   const dropdownLinks = appLinks.slice(4);
   const isMoreActive = dropdownLinks.some((link) => pathname === link.href);
+  const isPublicRoute =
+    pathname === "/" ||
+    PUBLIC_NAV_ITEMS.some((link) => pathname === (link.href as string));
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -65,8 +68,8 @@ export const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-2 lg:flex">
-          {/* Public Links - only on root route */}
-          {pathname === "/" &&
+          {/* Public Links */}
+          {isPublicRoute &&
             PUBLIC_NAV_ITEMS.map((link) => (
               <ScorchNavLink
                 key={link.href}

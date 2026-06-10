@@ -195,8 +195,9 @@ export default function ForgeProcess() {
           scrollTrigger: {
             trigger: stage,
             start: "top top",
-            end: "+=320%",
+            end: "+=390%",
             scrub: 1,
+            invalidateOnRefresh: true,
           },
         });
 
@@ -304,10 +305,15 @@ export default function ForgeProcess() {
             {
               filter:
                 "drop-shadow(0 0 34px rgba(125,249,255,0.48)) drop-shadow(0 0 54px rgba(240,106,18,0.34))",
-              duration: 0.1,
+              duration: 0.12,
               ease: "none",
             },
             0.88,
+          )
+          .to(
+            [rebirth, fire, hotStream, card],
+            { opacity: 1, duration: 0.18, ease: "none" },
+            0.96,
           );
 
         showCard(1, 0.34, timeline);

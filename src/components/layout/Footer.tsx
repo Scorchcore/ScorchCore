@@ -4,7 +4,6 @@ import { clsx } from "clsx";
 import {
   ArrowRight,
   BookOpen,
-  FileText,
   Github,
   Hammer,
   Instagram,
@@ -32,17 +31,16 @@ interface FooterSocialLink {
   label: string;
   href: string;
   icon?: LucideIcon;
-  disabled?: boolean;
 }
 
 const currentYear = new Date().getFullYear();
 
 const primaryLinks: readonly FooterPrimaryLink[] = [
-  {
-    label: "White Paper",
-    href: "/pdf/WhitePaper.pdf",
-    icon: FileText,
-  },
+  //{
+  //  label: "White Paper",
+  //  href: "/pdf/WhitePaper.pdf",
+  //  icon: FileText,
+  //},
   {
     label: "Forge Manual",
     href: "/pdf/Manual_forja.pdf",
@@ -63,12 +61,11 @@ const primaryLinks: readonly FooterPrimaryLink[] = [
 ] as const;
 
 const socialLinks: readonly FooterSocialLink[] = [
-  { label: "X", href: "https://x.com/ScorchCoreLatam", disabled: true },
+  { label: "X", href: "https://x.com/ScorchCoreLatam" },
   {
     label: "Instagram",
     href: "https://www.instagram.com/prospectorzero",
     icon: Instagram,
-    disabled: true,
   },
 ] as const;
 
@@ -138,14 +135,6 @@ function SocialLink({ item }: { item: FooterSocialLink }) {
     </>
   );
 
-  if (item.disabled) {
-    return (
-      <span aria-disabled="true" className="scorch-footer-social">
-        {content}
-      </span>
-    );
-  }
-
   return (
     <a
       href={item.href}
@@ -204,11 +193,14 @@ export const Footer: React.FC<FooterProps> = ({
             <span>SCORCH HEART-LAB ]</span>
           </Link>
 
-          <div className="mt-9 flex items-center justify-center gap-6 md:gap-8">
+          <nav
+            aria-label="Social links"
+            className="mt-9 flex items-center justify-center gap-6 md:gap-8"
+          >
             {socialLinks.map((item) => (
               <SocialLink key={item.label} item={item} />
             ))}
-          </div>
+          </nav>
 
           <p className="mt-8 text-center text-xs leading-6 text-cyan-100/48 md:text-sm">
             Developed for the Ronin Ecosystem - ScorchCore Protocol{" "}

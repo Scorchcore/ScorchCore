@@ -143,6 +143,11 @@ export default function Hero() {
       });
 
       media.add("(max-width: 767px)", () => {
+        ScrollTrigger.getAll()
+          .filter((trigger) => trigger.trigger === section)
+          .forEach((trigger) => {
+            trigger.kill();
+          });
         gsap.set(stone, { xPercent: -50, yPercent: -50, scale: 1 });
         gsap.set(stoneImage, { opacity: 0.76 });
         gsap.set(text, { opacity: 1, y: 0 });
@@ -170,7 +175,7 @@ export default function Hero() {
     >
       <div
         ref={frameRef}
-        className="scorch-hero sticky top-0 flex h-screen items-center justify-center overflow-hidden bg-deep-abyss px-4 pt-24"
+        className="scorch-hero sticky top-0 flex min-h-[100svh] items-center justify-center overflow-hidden bg-deep-abyss px-4 pt-24"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(6,45,55,0.5)_0%,rgba(2,15,18,0.56)_30%,rgba(0,0,0,0.96)_72%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.22)_0%,rgba(0,0,0,0)_38%,rgba(0,0,0,0.88)_100%)]" />
@@ -247,15 +252,18 @@ export default function Hero() {
           className="scorch-hero__eclipse pointer-events-none absolute left-1/2 top-1/2 z-25 h-[42vmax] w-[42vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black opacity-0 blur-xl"
         />
 
-        <div className="scorch-hero__content relative z-30 mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-6xl flex-col items-center justify-center text-center">
-          <div ref={textRef} className="relative z-10 max-w-5xl">
+        <div className="scorch-hero__content relative z-30 mx-auto flex min-h-[calc(100svh-6rem)] w-full max-w-6xl flex-col items-center justify-center text-center">
+          <div
+            ref={textRef}
+            className="scorch-hero__copy relative z-10 max-w-5xl"
+          >
             <p className="alchemy-eyebrow mb-5 text-xs md:text-sm">
               ScorchCore Protocol
             </p>
-            <h1 className="alchemy-heading-strong mx-auto max-w-5xl text-balance text-4xl leading-[1.02] drop-shadow-[0_0_28px_rgba(0,240,255,0.22)] sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl">
+            <h1 className="scorch-hero__title alchemy-heading-strong mx-auto max-w-5xl text-balance text-4xl leading-[1.02] drop-shadow-[0_0_28px_rgba(0,240,255,0.22)] sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl">
               Awaken your dormant assets and forge the future of Digital Alchemy
             </h1>
-            <p className="alchemy-copy text-ethereal-cyan mx-auto mt-7 max-w-3xl text-pretty text-base leading-7 opacity-85 drop-shadow-[0_0_18px_rgba(0,0,0,0.9)] md:text-xl md:leading-8">
+            <p className="scorch-hero__subtitle alchemy-copy text-ethereal-cyan mx-auto mt-7 max-w-3xl text-pretty text-base leading-7 opacity-85 drop-shadow-[0_0_18px_rgba(0,0,0,0.9)] md:text-xl md:leading-8">
               A deflationary Forge & Collect-to-Earn Protocol with a programmed
               scarcity of 2.1 Billion $CORE tokens.
             </p>

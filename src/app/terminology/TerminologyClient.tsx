@@ -2,6 +2,7 @@
 
 import {
   BookOpen,
+  ChevronDown,
   Coins,
   Flame,
   type LucideIcon,
@@ -9,6 +10,7 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Footer } from "@/components/layout";
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
@@ -169,12 +171,6 @@ const TERMS: Term[] = [
       "The process of creating a new token or NFT on the blockchain. When a Geode hatches, a new CoreMiner NFT is minted.",
     category: "blockchain",
   },
-  {
-    term: "Burn",
-    definition:
-      "Permanently destroying a token or NFT by sending it to an irrecoverable address. Burning is central to the Forge transmutation process.",
-    category: "blockchain",
-  },
 ];
 
 const CATEGORY_META: Record<
@@ -242,6 +238,64 @@ function TerminologyHero({ total }: { total: number }) {
         <span>{total} indexed terms</span>
       </div>
     </header>
+  );
+}
+
+function LexiconMapSection({
+  isExpanded,
+  onToggle,
+}: {
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <section className="relative mx-auto mt-10 max-w-5xl overflow-hidden border border-magma-gold/28 bg-black/36 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-md md:p-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(247,198,90,0.12),transparent_42%),radial-gradient(circle_at_10%_80%,rgba(125,249,255,0.1),transparent_36%)]" />
+      <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div className="max-w-2xl">
+          <p className="alchemy-eyebrow mb-3 text-[0.68rem]">Lexicon Map</p>
+          <h2 className="alchemy-heading text-balance text-3xl leading-tight md:text-4xl">
+            The Lexicon of the Grimoire
+          </h2>
+          <p className="alchemy-copy mt-4 text-pretty text-sm leading-7 text-cyan-50/66 md:text-base">
+            A visual bridge between standard crypto terms and the ScorchCore
+            terminology used across the protocol.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          aria-controls="lexicon-map-image"
+          aria-expanded={isExpanded}
+          onClick={onToggle}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-5 py-3 text-xs font-semibold uppercase text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] transition-all hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/75 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        >
+          {isExpanded ? "Hide Lexicon" : "View Lexicon"}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      </div>
+
+      {isExpanded ? (
+        <div
+          id="lexicon-map-image"
+          className="relative mt-6 overflow-hidden border border-cyan-100/12 bg-black/48 p-2 shadow-[0_18px_60px_rgba(0,0,0,0.42)]"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/8 via-transparent to-orange-500/12" />
+          <Image
+            src="/assets/terminology/new-lexicon.png"
+            alt="Visual map connecting standard crypto terms to ScorchCore terminology."
+            width={1158}
+            height={649}
+            sizes="(max-width: 767px) 92vw, 960px"
+            className="relative h-auto w-full object-contain"
+          />
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -355,6 +409,7 @@ function EmptyTerminologyState({ search }: { search: string }) {
 
 export default function TerminologyPage() {
   const [search, setSearch] = useState("");
+  const [isLexiconExpanded, setIsLexiconExpanded] = useState(false);
   const [activeCategory, setActiveCategory] =
     useState<CategoryFilterValue>("all");
 
@@ -386,6 +441,10 @@ export default function TerminologyPage() {
             ]}
           />
           <TerminologyHero total={TERMS.length} />
+          <LexiconMapSection
+            isExpanded={isLexiconExpanded}
+            onToggle={() => setIsLexiconExpanded((current) => !current)}
+          />
 
           <section className="mx-auto mt-10 max-w-4xl space-y-4 border border-cyan-100/10 bg-black/30 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.38)] backdrop-blur-md md:p-5">
             <TerminologySearch search={search} onSearchChange={setSearch} />

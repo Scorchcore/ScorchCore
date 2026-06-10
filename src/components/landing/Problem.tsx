@@ -211,16 +211,18 @@ export default function Problem() {
               <span className="problem-card-kicker">Eco-Silence</span>
               <h3 className="alchemy-heading">Abandoned momentum</h3>
               <p>
-                Projects decay when their assets lose purpose, leaving cracked
-                economies, muted communities, and value trapped in ruins.
+                The void left by abandoned projects: NFTs with untapped potential,
+                stripped of purpose and reduced to “silent data” drifting across the blockchain.
               </p>
             </article>
             <article className="problem-card problem-card-right">
               <span className="problem-card-kicker">Eco-Stasis</span>
               <h3 className="alchemy-heading">Dormant potential</h3>
               <p>
-                Frozen assets still carry energy, identity, and history. Without
-                a forge, that potential remains preserved but motionless.
+                Thousands of Axies remain dormant, not dead, but suspended
+                in a forgotten state—held in cold storage as their hidden power waits
+                for the catalyst that will awaken it.
+
               </p>
             </article>
           </div>
