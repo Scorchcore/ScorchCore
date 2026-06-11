@@ -26,7 +26,7 @@ export const CONTRACT_ADDRESSES = {
   GeodeNFT: "0x4581b630DC14905a2C13B21654610a547733A287",
   axieNFT: "0x32950db2a7164aE833121501C797D79E7B79d74C", // Axie Contract (external NFT)
   //TOKENS
-  axsToken: "0x32950db2a7164aE833121501C797D79E7B79d74C", // Same as axieNFT (legacy compatibility)
+  axsToken: "0x3C4e17b9056272Ce1b49F6900d8cFD6171a1869d", // Mock AXS de Saigon L2 (el que referencia el MaterialValidator desplegado)
   slpToken: "0xa8754b9Fa15fc18BB59458815510E40a12cD2014",
   // Mining System
   MinerStatsManager: "0xCe5A06F4f2221bA8C42820F8507ADC322BD2B2E9",

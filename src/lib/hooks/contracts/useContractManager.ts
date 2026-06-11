@@ -18,12 +18,13 @@
  * ```
  */
 
-import { useMemo, useState, useEffect } from "react";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import { BrowserProvider, JsonRpcProvider } from "ethers";
 import type { JsonRpcSigner } from "ethers";
-import { ContractManager } from "@/lib/contracts/ContractManager";
+import { BrowserProvider, JsonRpcProvider } from "ethers";
+import { useEffect, useMemo, useState } from "react";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import type { ContractManagerConfig } from "@/lib/contracts/ContractManager";
+import { ContractManager } from "@/lib/contracts/ContractManager";
+import { RoninFeeSigner } from "@/lib/utils/network/roninFeeSigner";
 
 /**
  * Hook que proporciona la instancia singleton de ContractManager
@@ -47,9 +48,15 @@ export function useContractManager(): {
         try {
           const browserProvider = new BrowserProvider(walletClient.transport);
           const resolvedSigner = await browserProvider.getSigner();
+          // Ronin exige maxPriorityFeePerGas >= 20 gwei; el wrapper inyecta
+          // los fees EIP-1559 en cada tx que no los especifique.
+          const feeSigner = new RoninFeeSigner(
+            browserProvider,
+            resolvedSigner.address,
+          );
 
           if (!cancelled) {
-            setSigner(resolvedSigner);
+            setSigner(feeSigner);
           }
         } catch (error) {
           console.error("❌ [useContractManager] Failed to get signer:", error);
