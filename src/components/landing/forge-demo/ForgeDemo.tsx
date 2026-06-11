@@ -683,7 +683,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
           {stage === "revealed" && (
             <div className={VIDEO_WRAP_CN} data-tour="reveal">
               <div
-                className={`aspect-square w-52 overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)] sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem]`}
+                className={`aspect-square w-52 overflow-hidden rounded-full border ${minerData.borderClass} shadow-[0_0_48px_rgba(247,198,90,0.22)] sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-md`}
               >
                 <CoreMinerVideo
                   category={GeodeCategory.PETIT}

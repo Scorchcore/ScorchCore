@@ -3,10 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 import {
-  ArrowLeft,
   ArrowRight,
   BarChart3,
-  Check,
   ChevronLeft,
   Coins,
   Lock,
@@ -19,6 +17,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import { parseUnits } from "viem";
 import { useAccount, useChainId } from "wagmi";
 import { waitForTransactionReceipt, writeContract } from "wagmi/actions";
 import { AxieBonusIndicator } from "@/components/axie";
@@ -27,7 +26,17 @@ import {
   TrustScoreBadge,
   TrustScoreRequirementTooltip,
 } from "@/components/trustscore";
-import { Badge, Button, Card, Loading, Toast, useToast } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  ForgeShader,
+  Loading,
+  Toast,
+  useToast,
+} from "@/components/ui";
+import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
+import { TOKEN_ADDRESSES } from "@/lib/config/tokens";
 import { RONIN_TESTNET_ID, config as wagmiConfig } from "@/lib/config/wagmi";
 import {
   ALL_AXIE_CLASSES,
@@ -65,6 +74,18 @@ const MOCK_AXIE_NFT_ABI = [
     ],
   },
 ] as const;
+const ERC20_APPROVE_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
 const AXIE_CLASS_NAMES = [
   "Beast",
   "Aqua",
@@ -92,6 +113,13 @@ function getAxieClassId(axie: AxieNFT): AxieClass | undefined {
   return classId >= 0 ? (classId as AxieClass) : undefined;
 }
 
+function getAxieImagePath(className: string): string {
+  const map: Record<string, string> = {
+    Aqua: "/assets/Forge-assets/AXIE_AQUA.webp",
+  };
+  return map[className] || "/assets/Forge-assets/AXIE_AQUA.webp";
+}
+
 /* ──────────────  helpers  ────────────── */
 
 function ChainStatusBanner({
@@ -104,10 +132,11 @@ function ChainStatusBanner({
   if (!isUpdating && !hasStaleError) return null;
   return (
     <div
-      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${hasStaleError
+      className={`mb-6 flex items-center gap-3 border px-4 py-3 text-xs uppercase tracking-wider backdrop-blur-md ${
+        hasStaleError
           ? "border-magma-orange/35 bg-orange-500/8 text-magma-orange"
           : "border-ethereal-cyan/25 bg-cyan-300/8 text-ethereal-cyan/75"
-        }`}
+      }`}
     >
       <RefreshCw
         className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`}
@@ -234,18 +263,31 @@ export default function ForgePage() {
   const [forgeStep, setForgeStep] = useState<
     "select" | "approve" | "forge" | "success"
   >("select");
-  const [isForging, setIsForging] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
+  const [_isForging, setIsForging] = useState(false);
+  const [_isApproving, setIsApproving] = useState(false);
   const [isClaimingFakeAxies, setIsClaimingFakeAxies] = useState(false);
+  const [faucetClaims, setFaucetClaims] = useState(0);
+  const MAX_FAUCET_CLAIMS = 10;
   const [forgedGeodeId, setForgedGeodeId] = useState<bigint | null>(null);
   const [_forgeFailed, setForgeFailed] = useState(false);
   const approvedMementosRef = useRef<number>(0);
+  const [isTransmuting, setIsTransmuting] = useState(false);
+  const [transmutationHeat, setTransmutationHeat] = useState(0);
   const [wizardStep, setWizardStep] = useState(1);
   const contentRef = useRef<HTMLDivElement>(null);
   const [categoryView, setCategoryView] = useState<"grid" | "detail">("grid");
   const [previewCategory, setPreviewCategory] = useState<
     GeodeCategory | undefined
   >(undefined);
+
+  /* Faucet claim counter */
+  useEffect(() => {
+    if (address) {
+      const key = `forge_faucet_claims:${address.toLowerCase()}`;
+      const stored = Number(localStorage.getItem(key) || "0");
+      setFaucetClaims(stored);
+    }
+  }, [address]);
 
   /* GSAP transition */
   useEffect(() => {
@@ -355,7 +397,7 @@ export default function ForgePage() {
   }, [mementosToUse, forgeStep]);
 
   /* handlers */
-  const handleApprove = async () => {
+  const handleApprove = async (): Promise<boolean> => {
     logger.info("Iniciando aprobación de tokens", {
       address,
       selectedCategory,
@@ -367,19 +409,19 @@ export default function ForgePage() {
 
     if (!address || !forgeFacade) {
       showError("Wallet no conectada o facade no inicializado");
-      return;
+      return false;
     }
     if (selectedCategory === undefined || selectedClass === undefined) {
       showError("Selecciona una categoría y clase de geoda");
-      return;
+      return false;
     }
     if (!hasRequiredAxieSelection) {
       showError("Select the required fake Axies before approving");
-      return;
+      return false;
     }
     if (!contracts) {
       showError("Contratos no inicializados");
-      return;
+      return false;
     }
 
     try {
@@ -387,22 +429,36 @@ export default function ForgePage() {
       showInfo("Aprobando tokens necesarios...");
 
       showInfo("Aprobando AXS...");
-      await forgeFacade.approveToken(
-        "axs",
-        (Number(axsCost) * 1e18).toString(),
-      );
+      const axsHash = await writeContract(wagmiConfig, {
+        address: TOKEN_ADDRESSES.AXS,
+        abi: ERC20_APPROVE_ABI,
+        functionName: "approve",
+        args: [CONTRACT_ADDRESSES.ForgeFactory, parseUnits(axsCost, 18)],
+        chainId: RONIN_TESTNET_ID,
+      });
+      await waitForTransactionReceipt(wagmiConfig, {
+        hash: axsHash,
+        chainId: RONIN_TESTNET_ID,
+      });
 
       showInfo("Aprobando Mementos...");
-      await forgeFacade.approveToken(
-        "memento",
-        (Number(totalMementoCost) * 1e18).toString(),
-      );
+      const mementoHash = await writeContract(wagmiConfig, {
+        address: TOKEN_ADDRESSES.MEMENTO,
+        abi: ERC20_APPROVE_ABI,
+        functionName: "approve",
+        args: [CONTRACT_ADDRESSES.ForgeFactory, BigInt(totalMementoCost)],
+        chainId: RONIN_TESTNET_ID,
+      });
+      await waitForTransactionReceipt(wagmiConfig, {
+        hash: mementoHash,
+        chainId: RONIN_TESTNET_ID,
+      });
 
       approvedMementosRef.current = mementosToUse;
       setForgeStep("forge");
       showSuccess("✅ Tokens aprobados correctamente");
-      setWizardStep(8);
       logger.info("Aprobación completada exitosamente");
+      return true;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error al aprobar tokens";
@@ -411,6 +467,7 @@ export default function ForgePage() {
         selectedClass,
       });
       showError(errorMessage);
+      return false;
     } finally {
       setIsApproving(false);
     }
@@ -441,6 +498,11 @@ export default function ForgePage() {
       return;
     }
 
+    if (faucetClaims >= MAX_FAUCET_CLAIMS) {
+      showError(`Faucet limit reached (${MAX_FAUCET_CLAIMS} max)`);
+      return;
+    }
+
     try {
       setIsClaimingFakeAxies(true);
       showInfo("Confirm the fake Axies claim in your wallet...");
@@ -458,6 +520,12 @@ export default function ForgePage() {
         chainId: RONIN_TESTNET_ID,
       });
 
+      const next = faucetClaims + 1;
+      setFaucetClaims(next);
+      localStorage.setItem(
+        `forge_faucet_claims:${address.toLowerCase()}`,
+        String(next),
+      );
       afterMockAxieClaim();
       showSuccess("Fake Axies received in your wallet");
     } catch (err) {
@@ -470,7 +538,7 @@ export default function ForgePage() {
     }
   };
 
-  const handleForge = async () => {
+  const handleForge = async (): Promise<boolean> => {
     logger.info("Iniciando forja de geoda", {
       address,
       selectedCategory,
@@ -482,15 +550,15 @@ export default function ForgePage() {
 
     if (!address || !forgeFacade || !contracts) {
       showError("Wallet no conectada o facade no inicializado");
-      return;
+      return false;
     }
     if (selectedCategory === undefined || selectedClass === undefined) {
       showError("Selecciona una categoría y clase de geoda");
-      return;
+      return false;
     }
     if (!hasRequiredAxieSelection) {
       showError("Select the required fake Axies before forging");
-      return;
+      return false;
     }
 
     try {
@@ -517,7 +585,7 @@ export default function ForgePage() {
         showError(
           `Memento token para clase ${String(mementoKey)} no disponible en esta red`,
         );
-        return;
+        return false;
       }
 
       const materials: MaterialInput[] = [
@@ -551,11 +619,13 @@ export default function ForgePage() {
           `¡Geoda ${geodeName} forjada con éxito! Token ID: ${result.geodeId}`,
         );
         afterForge();
+        return true;
       } else {
         setForgeFailed(true);
         showError(
           `La forja falló debido al RNG (${currentFailureChance}% de probabilidad). Los tokens fueron consumidos.`,
         );
+        return false;
       }
     } catch (err) {
       const errorMessage =
@@ -563,9 +633,66 @@ export default function ForgePage() {
       logger.error("Error en forja", err, { selectedCategory, selectedClass });
       setForgeFailed(true);
       showError(errorMessage);
+      return false;
     } finally {
       setIsForging(false);
     }
+  };
+
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  const handleTransmute = async () => {
+    if (
+      selectedCategory === undefined ||
+      selectedClass === undefined ||
+      !hasRequiredAxieSelection ||
+      !hasAccessToCategory
+    ) {
+      return;
+    }
+
+    setIsTransmuting(true);
+
+    const heatObj = { value: 0 };
+    gsap.to(heatObj, {
+      value: 1,
+      duration: 2.5,
+      ease: "power2.inOut",
+      onUpdate: () => setTransmutationHeat(heatObj.value),
+    });
+
+    const approved = await handleApprove();
+    if (!approved) {
+      gsap.to(heatObj, {
+        value: 0,
+        duration: 1.5,
+        ease: "power2.out",
+        overwrite: true,
+        onUpdate: () => setTransmutationHeat(heatObj.value),
+        onComplete: () => setIsTransmuting(false),
+      });
+      return;
+    }
+
+    const forged = await handleForge();
+    if (!forged) {
+      gsap.to(heatObj, {
+        value: 0,
+        duration: 1.5,
+        ease: "power2.out",
+        overwrite: true,
+        onUpdate: () => setTransmutationHeat(heatObj.value),
+        onComplete: () => setIsTransmuting(false),
+      });
+      return;
+    }
+
+    await sleep(3500);
+
+    setIsTransmuting(false);
+    setTransmutationHeat(0);
+    setWizardStep(7);
   };
 
   /* wizard helpers */
@@ -648,17 +775,19 @@ export default function ForgePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(125,249,255,0.15),transparent_30%),radial-gradient(circle_at_18%_34%,rgba(240,106,18,0.16),transparent_30%),radial-gradient(circle_at_82%_44%,rgba(247,198,90,0.1),transparent_24%),linear-gradient(180deg,#020607_0%,#030b0e_48%,#010203_100%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.78),transparent_20%,transparent_80%,rgba(0,0,0,0.78)),radial-gradient(ellipse_at_center,transparent_0_42%,rgba(0,0,0,0.62)_100%)]" />
 
-      {/* top bar */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
-        <Link
-          href="/"
-          className="inline-flex min-h-10 items-center gap-2 border border-cyan-100/14 bg-black/42 px-4 py-2 text-xs font-semibold uppercase text-cyan-50/66 transition-all hover:border-magma-gold/55 hover:text-magma-gold"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver
-        </Link>
+      <ChainStatusBanner
+        isUpdating={isRefreshingForgeData}
+        hasStaleError={hasForgeStaleError}
+      />
+
+      {/* wizard content */}
+      <div
+        key={wizardStep}
+        ref={contentRef}
+        className="relative z-10 flex min-h-[calc(100vh-64px)] flex-col items-center justify-center px-4 pb-12"
+      >
         {trustScoreInfo && (
-          <div className="w-fit border border-cyan-100/12 bg-black/42 p-2 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md">
+          <div className="absolute right-4 top-4 w-fit border border-cyan-100/12 bg-black/42 p-2 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md md:right-10">
             <TrustScoreBadge
               score={trustScoreInfo.score}
               level={trustScoreInfo.level}
@@ -670,19 +799,6 @@ export default function ForgePage() {
             />
           </div>
         )}
-      </div>
-
-      <ChainStatusBanner
-        isUpdating={isRefreshingForgeData}
-        hasStaleError={hasForgeStaleError}
-      />
-
-      {/* wizard content */}
-      <div
-        key={wizardStep}
-        ref={contentRef}
-        className="relative z-10 flex min-h-[calc(100vh-120px)] flex-col items-center justify-center px-4 pb-12"
-      >
         {/* ───── STEP 1 ───── */}
         {wizardStep === 1 && (
           <div className="relative flex w-full max-w-6xl flex-col items-center">
@@ -721,10 +837,11 @@ export default function ForgePage() {
                         key={cat.id}
                         onClick={() => !isLocked && openCategoryDetail(cat.id)}
                         disabled={isLocked}
-                        className={`group relative flex flex-col items-center transition-all focus:outline-none ${isLocked
+                        className={`group relative flex flex-col items-center transition-all focus:outline-none ${
+                          isLocked
                             ? "cursor-not-allowed opacity-40"
                             : "hover:scale-105"
-                          }`}
+                        }`}
                         title={
                           isLocked
                             ? `Requiere Trust Score nivel ${requirement.level}`
@@ -739,7 +856,7 @@ export default function ForgePage() {
                             stiffness: 180,
                             damping: 22,
                           }}
-                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/[0.03] shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/[0.06] group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]"
+                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]"
                           animate={isSelected ? { opacity: 0 } : { opacity: 1 }}
                         >
                           <GlossImage
@@ -927,7 +1044,7 @@ export default function ForgePage() {
                   className="group relative flex flex-col items-center transition-all focus:outline-none hover:scale-105"
                   title={axieClass.displayName}
                 >
-                  <div className="relative flex h-[120px] w-[120px] items-center justify-center rounded-full border border-white/5 bg-white/[0.03] shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/[0.06] group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]">
+                  <div className="relative flex h-[120px] w-[120px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)]">
                     <GlossImage
                       src={axieClass.icon}
                       alt={axieClass.displayName}
@@ -944,94 +1061,42 @@ export default function ForgePage() {
 
         {/* ───── STEP 3 ───── */}
         {wizardStep === 3 && selectedClass !== undefined && (
-          <div className="flex w-full max-w-xl flex-col items-center">
-            <button
-              type="button"
-              onClick={() => setWizardStep(2)}
-              className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Volver a clases
-            </button>
-            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              3. Axie Seleccionado
-            </h2>
-            <p className="mb-10 text-center text-sm text-cyan-50/60">
-              {classInfo.displayName}
-            </p>
-
-            <div className="relative mb-10" style={{ width: 280, height: 280 }}>
-              <GlossImageFill
-                src="/assets/Forge-assets/AXIE_AQUA.png"
-                alt={classInfo.displayName}
-                className="h-[280px] w-[280px]"
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setWizardStep(2)}
-                className="rounded-none border-cyan-100/20 bg-black/30 px-8"
-              >
-                Cambiar
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => setWizardStep(4)}
-                className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22"
-              >
-                Confirmar
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ───── STEP 4 ───── */}
-        {wizardStep === 4 && selectedClass !== undefined && (
-          <div className="flex w-full max-w-4xl flex-col items-center">
-            <button
-              type="button"
-              onClick={() => setWizardStep(3)}
-              className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Volver
-            </button>
-            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              4. Select Fake Axies
-            </h2>
-            <p className="mb-8 max-w-xl text-center text-sm text-cyan-50/60">
-              Choose the fake Axies that will replace SLP for this forge.
-            </p>
-
-            <div className="mb-8 flex w-full max-w-2xl flex-col gap-4 border border-cyan-100/12 bg-black/42 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="alchemy-eyebrow text-xs text-cyan-50/66">
-                  Saigon Testnet
-                </p>
-                <p className="mt-1 text-sm text-cyan-50/58">
-                  Need test NFTs? Claim one full fake Axie set.
-                </p>
-              </div>
-              <Button
+          <div className="flex w-full max-w-4xl flex-col items-center px-2 sm:px-0">
+            <div className="mb-6 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <button
                 type="button"
-                variant="primary"
-                size="md"
-                onClick={handleClaimFakeAxies}
-                isLoading={isClaimingFakeAxies}
-                disabled={isClaimingFakeAxies}
-                leftIcon={<Plus className="h-4 w-4" />}
-                className="w-full sm:w-auto"
+                onClick={() => setWizardStep(2)}
+                className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
               >
-                GET FAKE AXIES FOR TESTNET
-              </Button>
+                <ChevronLeft className="h-4 w-4" />
+                Volver a clases
+              </button>
+              {chainId === RONIN_TESTNET_ID && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleClaimFakeAxies}
+                  isLoading={isClaimingFakeAxies}
+                  disabled={
+                    isClaimingFakeAxies || faucetClaims >= MAX_FAUCET_CLAIMS
+                  }
+                  leftIcon={<Plus className="h-4 w-4" />}
+                  className="w-full sm:w-auto text-[10px] sm:text-xs"
+                >
+                  {faucetClaims >= MAX_FAUCET_CLAIMS
+                    ? "Faucet limit reached"
+                    : `Faucet (${faucetClaims}/${MAX_FAUCET_CLAIMS})`}
+                </Button>
+              )}
             </div>
+            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
+              3. Selecciona tus Axies
+            </h2>
 
             <Card
               variant="glass"
-              className="w-full max-w-3xl rounded-none border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
+              className="w-full max-w-3xl rounded-none border-cyan-100/12 bg-black/42 p-3 sm:p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
             >
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm leading-6 text-cyan-50/62">
@@ -1046,63 +1111,80 @@ export default function ForgePage() {
                 </span>
               </div>
 
-              {isFetchingAxies ? (
-                <div className="flex items-center gap-3 text-sm text-cyan-50/62">
-                  <RefreshCw className="h-4 w-4 animate-spin text-ethereal-cyan" />
-                  Loading fake Axies...
-                </div>
-              ) : availableAxies.length === 0 ? (
-                <p className="text-sm leading-6 text-cyan-50/62">
-                  No fake Axies found in your wallet. Claim a testnet set above.
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {availableAxies.map((axie) => {
-                    const axieClassId = getAxieClassId(axie);
-                    const axieClassInfo =
-                      axieClassId !== undefined
-                        ? AXIE_CLASS_INFO[axieClassId]
-                        : undefined;
-                    const isSelected = selectedAxieIds.includes(axie.tokenId);
-                    const isSelectionFull =
-                      selectedAxieIds.length >= requiredAxieCount &&
-                      !isSelected;
+              {(() => {
+                const filteredAxies = availableAxies.filter((axie) => {
+                  const axieClassId = getAxieClassId(axie);
+                  if (axieClassId === undefined) return false;
+                  if (axieClassId === selectedClass) return true;
+                  if (
+                    selectedCategory === GeodeCategory.TANQUE &&
+                    axieClassId === AxieClass.PLANT
+                  )
+                    return true;
+                  return false;
+                });
 
-                    return (
-                      <button
-                        type="button"
-                        key={axie.tokenId}
-                        onClick={() => handleToggleAxieSelection(axie)}
-                        disabled={isSelectionFull}
-                        className={`min-h-28 border p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/75 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${isSelected
-                            ? "border-magma-gold/75 bg-orange-500/14 shadow-[0_0_22px_rgba(240,106,18,0.16)]"
-                            : "border-cyan-100/12 bg-black/35 hover:border-ethereal-cyan/45 hover:bg-black/48 disabled:cursor-not-allowed disabled:opacity-45"
-                          }`}
-                      >
-                        <div className="mb-3 flex items-center justify-between gap-2">
-                          {axieClassInfo ? (
+                if (isFetchingAxies) {
+                  return (
+                    <div className="flex items-center gap-3 text-sm text-cyan-50/62">
+                      <RefreshCw className="h-4 w-4 animate-spin text-ethereal-cyan" />
+                      Loading fake Axies...
+                    </div>
+                  );
+                }
+                if (filteredAxies.length === 0) {
+                  return (
+                    <p className="text-sm leading-6 text-cyan-50/62">
+                      No matching fake Axies found. Use the faucet to claim a
+                      testnet set.
+                    </p>
+                  );
+                }
+                return (
+                  <div className="flex flex-wrap items-start justify-center gap-4 sm:gap-6 md:gap-8">
+                    {filteredAxies.map((axie) => {
+                      const isSelected = selectedAxieIds.includes(axie.tokenId);
+                      const isSelectionFull =
+                        selectedAxieIds.length >= requiredAxieCount &&
+                        !isSelected;
+
+                      return (
+                        <button
+                          type="button"
+                          key={axie.tokenId}
+                          onClick={() => handleToggleAxieSelection(axie)}
+                          disabled={isSelectionFull}
+                          className="group flex flex-col items-center gap-2 sm:gap-3 focus:outline-none disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          <div
+                            className={`transition-transform duration-300 ${isSelected ? "scale-105" : "group-hover:scale-105"}`}
+                          >
                             <Image
-                              src={axieClassInfo.icon}
-                              alt={axieClassInfo.displayName}
-                              width={32}
-                              height={32}
-                              className="object-contain"
+                              src={getAxieImagePath(axie.metadata.class)}
+                              alt={axie.metadata.class}
+                              width={250}
+                              height={250}
+                              className={`h-[120px] w-[120px] sm:h-[160px] sm:w-[160px] md:h-[200px] md:w-[200px] object-contain ${
+                                isSelected
+                                  ? "drop-shadow-[0_0_22px_rgba(240,106,18,0.25)]"
+                                  : ""
+                              }`}
                             />
-                          ) : (
-                            <div className="h-8 w-8 border border-cyan-100/12 bg-black/45" />
-                          )}
-                          <span className="text-xs font-semibold text-magma-gold">
-                            #{axie.tokenId}
-                          </span>
-                        </div>
-                        <div className="text-sm font-semibold text-cyan-50">
-                          {axie.metadata.class}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-cyan-50">
+                              Axie {axie.metadata.class}
+                            </div>
+                            <div className="text-xs font-semibold text-magma-gold">
+                              #{axie.tokenId}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
               {selectedCategory === GeodeCategory.TANQUE &&
                 selectedAxieIds.length === requiredAxieCount &&
@@ -1114,24 +1196,24 @@ export default function ForgePage() {
               {!hasEnoughAxies && (
                 <div className="mt-4 border border-ethereal-cyan/25 bg-cyan-300/8 p-3 text-sm text-cyan-50/62">
                   You need more fake Axies for this category. Claim another
-                  testnet set above.
+                  testnet set using the faucet.
                 </div>
               )}
             </Card>
 
-            <div className="mt-10 flex gap-4">
+            <div className="mt-10 flex w-full flex-col gap-3 px-4 sm:w-auto sm:flex-row sm:gap-4 sm:px-0">
               <Button
                 variant="outline"
-                onClick={() => setWizardStep(3)}
-                className="rounded-none border-cyan-100/20 bg-black/30 px-8"
+                onClick={() => setWizardStep(2)}
+                className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
               >
                 Atrás
               </Button>
               <Button
                 variant="primary"
-                onClick={() => setWizardStep(5)}
+                onClick={() => setWizardStep(4)}
                 disabled={!hasRequiredAxieSelection}
-                className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22 disabled:cursor-not-allowed disabled:opacity-45"
+                className="w-full rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
               >
                 {hasRequiredAxieSelection
                   ? "Continuar"
@@ -1142,19 +1224,19 @@ export default function ForgePage() {
           </div>
         )}
 
-        {/* ───── STEP 5 ───── */}
-        {wizardStep === 5 && selectedClass !== undefined && (
+        {/* ───── STEP 4 ───── */}
+        {wizardStep === 4 && selectedClass !== undefined && (
           <div className="flex w-full max-w-lg flex-col items-center">
             <button
               type="button"
-              onClick={() => setWizardStep(4)}
+              onClick={() => setWizardStep(3)}
               className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
             >
               <ChevronLeft className="h-4 w-4" />
               Volver
             </button>
             <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              5. Mementos Extra
+              4. Mementos Extra
             </h2>
             <p className="mb-8 max-w-md text-center text-sm text-cyan-50/60">
               Reduce la probabilidad de fallo usando mementos extra
@@ -1200,10 +1282,11 @@ export default function ForgePage() {
                         key={pct}
                         type="button"
                         onClick={() => setMementosToUse(mementos)}
-                        className={`inline-flex flex-col items-center justify-center border px-4 py-3 transition-all ${isActive
+                        className={`inline-flex flex-col items-center justify-center border px-4 py-3 transition-all ${
+                          isActive
                             ? "border-ethereal-cyan/60 bg-cyan-300/15 text-cyan-50 shadow-[0_0_20px_rgba(125,249,255,0.12)]"
                             : "border-cyan-100/12 bg-black/42 text-cyan-50/70 hover:border-cyan-100/25 hover:text-cyan-50"
-                          }`}
+                        }`}
                       >
                         <span className="alchemy-heading-strong text-lg leading-none">
                           {pct}%
@@ -1226,18 +1309,18 @@ export default function ForgePage() {
               </div>
             )}
 
-            <div className="mt-10 flex gap-4">
+            <div className="mt-10 flex w-full flex-col gap-3 px-4 sm:w-auto sm:flex-row sm:gap-4 sm:px-0">
               <Button
                 variant="outline"
-                onClick={() => setWizardStep(4)}
-                className="rounded-none border-cyan-100/20 bg-black/30 px-8"
+                onClick={() => setWizardStep(3)}
+                className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
               >
                 Atrás
               </Button>
               <Button
                 variant="primary"
-                onClick={() => setWizardStep(6)}
-                className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22"
+                onClick={() => setWizardStep(5)}
+                className="w-full rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22 sm:w-auto"
               >
                 Continuar
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -1246,233 +1329,109 @@ export default function ForgePage() {
           </div>
         )}
 
-        {/* ───── STEP 6 ───── */}
-        {wizardStep === 6 && (
-          <div className="flex w-full max-w-xl flex-col items-center">
-            <button
-              type="button"
-              onClick={() => setWizardStep(5)}
-              className="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
+        {/* ───── STEP 5 ───── */}
+        {wizardStep === 5 && (
+          <div className="relative flex w-full flex-col items-center">
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={{
+                maskImage:
+                  "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+              }}
             >
-              <ChevronLeft className="h-4 w-4" />
-              Volver
-            </button>
-            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              6. Resumen de Forja
-            </h2>
-            <p className="mb-8 text-center text-sm text-cyan-50/60">
-              Verifica los costos antes de continuar
-            </p>
-
-            <div className="mb-6 text-center">
-              <h3 className="alchemy-heading-strong text-2xl">{geodeName}</h3>
-              <div className="mt-3 flex justify-center gap-2">
-                <Badge
-                  className="rounded-none border text-xs"
-                  style={{
-                    backgroundColor: `${categoryInfo.color}40`,
-                    borderColor: categoryInfo.color,
-                    color: categoryInfo.color,
-                  }}
-                >
-                  {categoryInfo.name}
-                </Badge>
-                <Badge
-                  className="rounded-none border text-xs"
-                  style={{
-                    backgroundColor: `${classInfo.color}40`,
-                    borderColor: classInfo.color,
-                    color: classInfo.color,
-                  }}
-                >
-                  {classInfo.displayName}
-                </Badge>
-              </div>
+              <ForgeShader heat={transmutationHeat} maxFps={30} />
             </div>
+            <div className="relative z-10 flex w-full max-w-xl flex-col items-center px-4 sm:px-0">
+              <button
+                type="button"
+                onClick={() => setWizardStep(4)}
+                className="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Volver
+              </button>
+              <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
+                5. Resumen de Forja
+              </h2>
+              <p className="mb-8 text-center text-sm text-cyan-50/60">
+                Verifica los costos antes de continuar
+              </p>
 
-            <Card
-              variant="glass"
-              className="mb-6 w-full max-w-md rounded-none border-cyan-100/12 bg-black/42 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md"
-            >
-              <div className="mb-4 space-y-3">
-                <div className="flex items-center justify-between border border-cyan-100/10 bg-black/42 p-3">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src="/assets/axies/axs-icon.webp"
-                      alt="AXS"
-                      width={24}
-                      height={24}
-                    />
-                    <span>AXS</span>
-                  </div>
-                  <span className="font-bold text-magma-gold">{axsCost}</span>
-                </div>
-                <div className="flex items-center justify-between border border-cyan-100/10 bg-black/42 p-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-magma-orange" />
-                    <span>Axies to use</span>
-                  </div>
-                  <span
-                    className={`font-bold ${hasRequiredAxieSelection
-                        ? "text-magma-gold"
-                        : "text-cyan-50/42"
-                      }`}
+              <div className="mb-6 text-center">
+                <h3 className="alchemy-heading-strong text-2xl">{geodeName}</h3>
+                <div className="mt-3 flex justify-center gap-2">
+                  <Badge
+                    className="rounded-none border text-xs"
+                    style={{
+                      backgroundColor: `${categoryInfo.color}40`,
+                      borderColor: categoryInfo.color,
+                      color: categoryInfo.color,
+                    }}
                   >
-                    {selectedAxieIds.length}/{requiredAxieCount || 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border border-cyan-100/10 bg-black/42 p-3">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={
-                        selectedClass !== undefined
-                          ? `/assets/mementos/${mementoFileMap[selectedClass]}`
-                          : `/assets/mementos/${mementoFileMap[AxieClass.BEAST]}`
-                      }
-                      alt="Memento"
-                      width={24}
-                      height={24}
-                      className="rounded-full"
-                    />
-                    <span>Memento {classInfo.displayName}</span>
-                  </div>
-                  <span className="font-bold text-magma-gold">
-                    {totalMementoCost}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mb-4 border border-magma-gold/35 bg-orange-500/10 p-4">
-                <div className="mb-3 flex items-center justify-between gap-4">
-                  <span className="flex items-center gap-2 text-sm font-semibold uppercase text-magma-gold">
-                    <ShieldAlert className="h-4 w-4 text-magma-orange" />
-                    Probabilidad de Fallo
-                  </span>
-                  <span className="alchemy-heading-strong text-2xl leading-none">
-                    {currentFailureChance}%
-                  </span>
-                </div>
-                <div className="h-2 w-full bg-black/55">
-                  <div
-                    className="h-2 bg-linear-to-r from-magma-gold to-magma-orange transition-all"
-                    style={{ width: `${currentFailureChance}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-cyan-50/52">Rareza:</span>
-                  <span
-                    className="font-medium"
-                    style={{ color: categoryInfo.color }}
+                    {categoryInfo.name}
+                  </Badge>
+                  <Badge
+                    className="rounded-none border text-xs"
+                    style={{
+                      backgroundColor: `${classInfo.color}40`,
+                      borderColor: classInfo.color,
+                      color: classInfo.color,
+                    }}
                   >
-                    {categoryInfo.rarity}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyan-50/52">Poder:</span>
-                  <span className="font-bold text-ethereal-cyan">
-                    {categoryInfo.miningPower}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyan-50/52">Supply:</span>
-                  <span className="font-medium">
-                    {categoryInfo.maxSupply.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-cyan-50/52">Bonus:</span>
-                  <span className="font-medium text-magma-gold">
-                    {categoryInfo.collectionBonus}%
-                  </span>
+                    {classInfo.displayName}
+                  </Badge>
                 </div>
               </div>
-            </Card>
 
-            {stakedAxiesCount > 0 && (
-              <div className="mb-6">
-                <AxieBonusIndicator
-                  stakedAxiesCount={stakedAxiesCount}
-                  bonusPerAxie={10}
-                  variant="compact"
-                />
-              </div>
-            )}
-
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full max-w-md rounded-none border border-ethereal-cyan/55 bg-none from-transparent to-transparent bg-cyan-300/14 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:from-transparent hover:to-transparent hover:text-white focus:ring-cyan-300/75"
-              onClick={() => setWizardStep(7)}
-              disabled={
-                selectedCategory === undefined ||
-                selectedClass === undefined ||
-                !hasRequiredAxieSelection ||
-                !hasAccessToCategory
-              }
-            >
-              {!hasAccessToCategory
-                ? "Requiere Mayor Trust Score"
-                : selectedCategory === undefined
-                  ? "Selecciona una categoría"
-                  : selectedClass === undefined
-                    ? "Selecciona una clase de Axie"
-                    : !hasRequiredAxieSelection
-                      ? "Select required fake Axies"
-                      : "Continuar"}
-            </Button>
-          </div>
-        )}
-
-        {/* ───── STEP 7 ───── */}
-        {wizardStep === 7 && (
-          <div className="flex w-full max-w-lg flex-col items-center">
-            <button
-              type="button"
-              onClick={() => setWizardStep(6)}
-              className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Volver al resumen
-            </button>
-            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              7. Aprobar Tokens
-            </h2>
-            <p className="mb-10 max-w-md text-center text-sm text-cyan-50/60">
-              Aprueba AXS y Mementos para la transacción
-            </p>
-
-            <div className="mb-10 flex flex-col items-center gap-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center border border-cyan-100/20 bg-black/42">
+              {/* Floating assets */}
+              <div className="mb-6 flex flex-wrap items-end justify-center gap-6 sm:gap-10">
+                {/* AXS */}
+                <div className="flex flex-col items-center gap-2">
                   <Image
                     src="/assets/axies/axs-icon.webp"
                     alt="AXS"
-                    width={28}
-                    height={28}
+                    width={56}
+                    height={56}
+                    className="h-12 w-12 object-contain drop-shadow-[0_0_12px_rgba(125,249,255,0.35)]"
                   />
+                  <span className="alchemy-heading text-lg text-magma-gold">
+                    {axsCost}
+                  </span>
+                  <span className="text-xs uppercase tracking-widest text-cyan-50/60">
+                    AXS
+                  </span>
                 </div>
-                <div className="min-w-[140px]">
-                  <div className="text-sm font-medium">AXS</div>
-                  <div className="text-xs text-cyan-50/50">
-                    {axsCost} tokens
-                  </div>
-                </div>
-                <div>
-                  {isApproving ? (
-                    <RefreshCw className="h-4 w-4 animate-spin text-ethereal-cyan" />
-                  ) : forgeStep === "forge" || forgeStep === "success" ? (
-                    <Check className="h-4 w-4 text-green-400" />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border border-cyan-100/30" />
-                  )}
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center border border-cyan-100/20 bg-black/42">
+                {/* Axies */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex -space-x-3">
+                    {selectedAxieIds
+                      .map((id) => availableAxies.find((a) => a.tokenId === id))
+                      .filter((axie): axie is AxieNFT => axie !== undefined)
+                      .map((axie, i) => (
+                        <Image
+                          key={axie.tokenId}
+                          src={getAxieImagePath(axie.metadata.class)}
+                          alt={axie.metadata.class}
+                          width={64}
+                          height={64}
+                          className="h-14 w-14 object-contain drop-shadow-[0_0_12px_rgba(125,249,255,0.35)]"
+                          style={{ zIndex: 10 - i }}
+                        />
+                      ))}
+                  </div>
+                  <span className="alchemy-heading text-lg text-magma-gold">
+                    {selectedAxieIds.length}/{requiredAxieCount || 0}
+                  </span>
+                  <span className="text-xs uppercase tracking-widest text-cyan-50/60">
+                    Axies
+                  </span>
+                </div>
+
+                {/* Mementos */}
+                <div className="flex flex-col items-center gap-2">
                   <Image
                     src={
                       selectedClass !== undefined
@@ -1480,57 +1439,110 @@ export default function ForgePage() {
                         : `/assets/mementos/${mementoFileMap[AxieClass.BEAST]}`
                     }
                     alt="Memento"
-                    width={28}
-                    height={28}
-                    className="rounded-full"
+                    width={56}
+                    height={56}
+                    className="h-12 w-12 rounded-full object-contain drop-shadow-[0_0_12px_rgba(125,249,255,0.35)]"
                   />
-                </div>
-                <div className="min-w-[140px]">
-                  <div className="text-sm font-medium">Mementos</div>
-                  <div className="text-xs text-cyan-50/50">
-                    {totalMementoCost} tokens
-                  </div>
-                </div>
-                <div>
-                  {isApproving ? (
-                    <RefreshCw className="h-4 w-4 animate-spin text-ethereal-cyan" />
-                  ) : forgeStep === "forge" || forgeStep === "success" ? (
-                    <Check className="h-4 w-4 text-green-400" />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border border-cyan-100/30" />
-                  )}
+                  <span className="alchemy-heading text-lg text-magma-gold">
+                    {totalMementoCost}
+                  </span>
+                  <span className="text-xs uppercase tracking-widest text-cyan-50/60">
+                    Mementos
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <div className="flex w-full max-w-sm gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setWizardStep(6)}
-                className="flex-1 rounded-none border-cyan-100/20 bg-black/30"
-              >
-                Atrás
-              </Button>
+              {/* Failure chance */}
+              <div className="mb-6 flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2 text-sm uppercase tracking-widest text-magma-gold">
+                  <ShieldAlert className="h-4 w-4 text-magma-orange" />
+                  Probabilidad de Fallo
+                  <span className="alchemy-heading-strong text-xl">
+                    {currentFailureChance}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-56 bg-black/55">
+                  <div
+                    className="h-1.5 bg-linear-to-r from-magma-gold to-magma-orange transition-all"
+                    style={{ width: `${currentFailureChance}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="mb-6 flex flex-wrap justify-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-50/50">Rareza:</span>
+                  <span
+                    className="font-medium"
+                    style={{ color: categoryInfo.color }}
+                  >
+                    {categoryInfo.rarity}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-50/50">Poder:</span>
+                  <span className="font-bold text-ethereal-cyan">
+                    {categoryInfo.miningPower}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-50/50">Supply:</span>
+                  <span>{categoryInfo.maxSupply.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cyan-50/50">Bonus:</span>
+                  <span className="text-magma-gold">
+                    {categoryInfo.collectionBonus}%
+                  </span>
+                </div>
+              </div>
+
+              {stakedAxiesCount > 0 && (
+                <div className="mb-6">
+                  <AxieBonusIndicator
+                    stakedAxiesCount={stakedAxiesCount}
+                    bonusPerAxie={10}
+                    variant="compact"
+                  />
+                </div>
+              )}
+
               <Button
                 variant="primary"
                 size="lg"
-                fullWidth
-                className="flex-1 rounded-none border-ethereal-cyan/55 bg-cyan-300/14 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22"
-                onClick={handleApprove}
-                disabled={isApproving}
+                className="w-full max-w-md rounded-none border border-ethereal-cyan/55 bg-none from-transparent to-transparent bg-cyan-300/14 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:border-ethereal-cyan hover:bg-cyan-300/22 hover:from-transparent hover:to-transparent hover:text-white focus:ring-cyan-300/75"
+                onClick={handleTransmute}
+                disabled={
+                  isTransmuting ||
+                  selectedCategory === undefined ||
+                  selectedClass === undefined ||
+                  !hasRequiredAxieSelection ||
+                  !hasAccessToCategory
+                }
               >
-                {isApproving ? "Aprobando..." : "Aprobar Tokens"}
+                {!hasAccessToCategory
+                  ? "Requiere Mayor Trust Score"
+                  : selectedCategory === undefined
+                    ? "Selecciona una categoría"
+                    : selectedClass === undefined
+                      ? "Selecciona una clase de Axie"
+                      : !hasRequiredAxieSelection
+                        ? "Select required fake Axies"
+                        : isTransmuting
+                          ? "Transmutando..."
+                          : "Continuar"}
               </Button>
             </div>
           </div>
         )}
 
-        {/* ───── STEP 8 ───── */}
-        {wizardStep === 8 && (
-          <div className="flex w-full max-w-lg flex-col items-center">
+        {/* ───── STEP 7 ───── */}
+        {wizardStep === 7 && (
+          <div className="flex w-full max-w-lg flex-col items-center px-4 sm:px-0">
             <button
               type="button"
-              onClick={() => setWizardStep(6)}
+              onClick={() => setWizardStep(5)}
               className="mb-6 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -1540,50 +1552,12 @@ export default function ForgePage() {
               {forgeStep === "success" ? "¡Forja Exitosa!" : "Forjar Geoda"}
             </h2>
 
-            {forgeStep !== "success" &&
-              !_forgeFailed &&
-              selectedCategory !== undefined &&
-              selectedClass !== undefined && (
-                <>
-                  <p className="mb-6 max-w-md text-center text-sm text-cyan-50/60">
-                    Todo listo. Presiona Forjar para crear tu {geodeName}.
-                  </p>
-
-                  <div className="mb-6 relative h-[280px] w-[280px] overflow-hidden rounded-xl border border-cyan-100/10 shadow-[0_0_40px_rgba(125,249,255,0.08)]">
-                    <GeodeVideo
-                      category={selectedCategory}
-                      axieClass={selectedClass}
-                      className="h-full w-full"
-                      autoPlay={true}
-                    />
-                  </div>
-
-                  <div className="mb-8 flex flex-col items-center gap-2 text-center">
-                    <div className="alchemy-heading text-xl">{geodeName}</div>
-                    <div className="text-sm text-cyan-50/60">
-                      Fallo: {currentFailureChance}%
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    className="w-full max-w-sm rounded-none border-magma-gold/55 bg-orange-500/14 text-magma-gold shadow-[0_0_28px_rgba(240,106,18,0.16)] hover:bg-orange-500/22"
-                    onClick={handleForge}
-                    disabled={isForging}
-                  >
-                    {isForging ? "Forjando..." : "Forjar Geoda"}
-                  </Button>
-                </>
-              )}
-
             {forgeStep === "success" &&
               forgedGeodeId &&
               selectedCategory !== undefined &&
               selectedClass !== undefined && (
                 <div className="flex flex-col items-center gap-6">
-                  <div className="relative h-[300px] w-[300px] overflow-hidden rounded-xl border border-cyan-100/10 shadow-[0_0_40px_rgba(125,249,255,0.08)]">
+                  <div className="relative h-[240px] w-[240px] sm:h-[280px] sm:w-[280px] md:h-[300px] md:w-[300px] overflow-hidden rounded-xl border border-cyan-100/10 shadow-[0_0_40px_rgba(125,249,255,0.08)]">
                     <GeodeVideo
                       category={selectedCategory}
                       axieClass={selectedClass}
@@ -1599,10 +1573,10 @@ export default function ForgePage() {
                       Token ID: {forgedGeodeId.toString()}
                     </div>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex w-full flex-col gap-3 px-4 sm:w-auto sm:flex-row sm:gap-4 sm:px-0">
                     <Link
                       href="/inventory"
-                      className="inline-flex min-h-11 items-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-6 py-2 text-sm font-semibold uppercase text-cyan-50 transition-all hover:bg-cyan-300/22"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 border border-ethereal-cyan/55 bg-cyan-300/14 px-6 py-2 text-sm font-semibold uppercase text-cyan-50 transition-all hover:bg-cyan-300/22"
                     >
                       Ver Inventario
                     </Link>
@@ -1617,9 +1591,11 @@ export default function ForgePage() {
                         setForgeStep("select");
                         setForgeFailed(false);
                         setForgedGeodeId(null);
+                        setIsTransmuting(false);
+                        setTransmutationHeat(0);
                         approvedMementosRef.current = 0;
                       }}
-                      className="rounded-none border-cyan-100/20 bg-black/30 px-6"
+                      className="w-full rounded-none border-cyan-100/20 bg-black/30 px-6 sm:w-auto"
                     >
                       Forjar otra
                     </Button>
@@ -1651,9 +1627,11 @@ export default function ForgePage() {
                     setForgeStep("select");
                     setForgeFailed(false);
                     setForgedGeodeId(null);
+                    setIsTransmuting(false);
+                    setTransmutationHeat(0);
                     approvedMementosRef.current = 0;
                   }}
-                  className="rounded-none border-cyan-100/20 bg-black/30 px-8"
+                  className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
                 >
                   Intentar de nuevo
                 </Button>

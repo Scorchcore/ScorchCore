@@ -30,6 +30,24 @@ export default function ForgeAltarStage({
   const flickerRef = useRef<gsap.core.Tween | null>(null);
   const spinTweenRef = useRef<gsap.core.Tween | null>(null);
 
+  /* ── Pause/resume all tweens on tab switch to avoid RAF catch-up shrink ── */
+  useEffect(() => {
+    const handleVis = () => {
+      const tweens = [
+        spinTweenRef.current,
+        beamTweenRef.current,
+        flickerRef.current,
+      ];
+      if (document.hidden) {
+        for (const t of tweens) t?.pause();
+      } else {
+        for (const t of tweens) t?.resume();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVis);
+    return () => document.removeEventListener("visibilitychange", handleVis);
+  }, []);
+
   /* ── Seal continuous rotation (full opacity, no fade) ── */
   useEffect(() => {
     const prefersReduced = window.matchMedia(
