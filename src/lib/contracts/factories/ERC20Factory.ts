@@ -81,7 +81,10 @@ class ERC20Contract implements IERC20Contract {
   }
 
   async approve(spender: Address, amount: bigint): Promise<TransactionResult> {
-    const transaction = await this.contract.approve(spender, amount);
+    const transaction = await this.contract.approve(spender, amount, {
+      type: 0,
+      gasPrice: ethers.parseUnits("25", "gwei"),
+    });
     const transactionReceipt = await transaction.wait();
     return {
       hash: transactionReceipt.hash,
@@ -91,7 +94,10 @@ class ERC20Contract implements IERC20Contract {
   }
 
   async transfer(to: Address, amount: bigint): Promise<TransactionResult> {
-    const transaction = await this.contract.transfer(to, amount);
+    const transaction = await this.contract.transfer(to, amount, {
+      type: 0,
+      gasPrice: ethers.parseUnits("25", "gwei"),
+    });
     const transactionReceipt = await transaction.wait();
     return {
       hash: transactionReceipt.hash,
@@ -105,7 +111,10 @@ class ERC20Contract implements IERC20Contract {
     to: Address,
     amount: bigint,
   ): Promise<TransactionResult> {
-    const transaction = await this.contract.transferFrom(from, to, amount);
+    const transaction = await this.contract.transferFrom(from, to, amount, {
+      type: 0,
+      gasPrice: ethers.parseUnits("25", "gwei"),
+    });
     const transactionReceipt = await transaction.wait();
     return {
       hash: transactionReceipt.hash,

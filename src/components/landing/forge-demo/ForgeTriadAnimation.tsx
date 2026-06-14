@@ -62,6 +62,7 @@ export default function ForgeTriadAnimation({
   const spriteMGRef = useRef<SVGImageElement>(null);
   const spriteGARef = useRef<SVGImageElement>(null);
   const spriteCenterRef = useRef<SVGImageElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   const onConvergeRef = useRef(onConverge);
   const onCompleteRef = useRef(onComplete);
@@ -151,6 +152,7 @@ export default function ForgeTriadAnimation({
           }
 
           const tl = gsap.timeline();
+          tlRef.current = tl;
 
           // Phase A: trace triangle + travel edge sprites one by one
           tl.to(edgeAMRef.current, {
@@ -253,7 +255,18 @@ export default function ForgeTriadAnimation({
       });
     });
 
+    // Pause/resume when user switches tabs to avoid RAF throttling glitches
+    const handleVis = () => {
+      if (document.hidden) {
+        tlRef.current?.pause();
+      } else {
+        tlRef.current?.resume();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVis);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVis);
       cancelAnimationFrame(raf);
       ctx?.revert();
     };
@@ -263,7 +276,7 @@ export default function ForgeTriadAnimation({
     <svg
       ref={rootRef}
       viewBox="0 0 300 200"
-      className="pointer-events-none absolute inset-0 z-[100] h-full w-full overflow-visible"
+      className="pointer-events-none absolute inset-0 z-100 h-full w-full overflow-visible"
       aria-hidden="true"
     >
       <title>Forge triad animation</title>
@@ -280,7 +293,13 @@ export default function ForgeTriadAnimation({
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-        <filter id="triad-glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+        <filter
+          id="triad-glow-strong"
+          x="-50%"
+          y="-50%"
+          width="200%"
+          height="200%"
+        >
           <feGaussianBlur stdDeviation="6" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />

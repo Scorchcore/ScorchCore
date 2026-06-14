@@ -30,8 +30,8 @@
  * ```
  */
 
-import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
 import { useCallback } from "react";
+import { useAccount, useBalance, useConnect, useDisconnect } from "wagmi";
 
 export interface UseWalletReturn {
   /** Dirección de la wallet conectada */
@@ -85,17 +85,19 @@ export function useWallet(): UseWalletReturn {
   });
 
   /**
-   * Conecta específicamente con Ronin Wallet (Waypoint)
-   * Busca el conector de Ronin y lo usa preferentemente
+   * Conecta específicamente con Ronin Wallet
+   * Prefiere la extensión; cae a Waypoint (keyless) si no está disponible.
+   * Para el flujo completo de selección usar el modal del Tanto Widget
+   * (useTantoModal de @sky-mavis/tanto-widget).
    */
   const connectRonin = useCallback(() => {
-    // Buscar el conector de Ronin Waypoint
-    const roninConnector = connectors.find(
-      (connector) =>
-        connector.id === "roninWaypoint" ||
-        connector.name.toLowerCase().includes("ronin") ||
-        connector.type === "roninWaypoint",
-    );
+    // Conectores oficiales del Tanto Widget: RONIN_WALLET y WAYPOINT
+    const roninConnector =
+      connectors.find((connector) => connector.id === "RONIN_WALLET") ??
+      connectors.find((connector) => connector.id === "WAYPOINT") ??
+      connectors.find((connector) =>
+        connector.name.toLowerCase().includes("ronin"),
+      );
 
     if (roninConnector) {
       connect({ connector: roninConnector });

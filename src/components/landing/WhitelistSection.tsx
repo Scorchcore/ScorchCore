@@ -1,5 +1,6 @@
 "use client";
 
+import { useTantoModal } from "@sky-mavis/tanto-widget";
 import {
   AlertCircle,
   CheckCircle,
@@ -22,7 +23,8 @@ export default function WhitelistSection() {
     validationError,
     submitRegistration,
   } = useWhitelistRegistration();
-  const { address, isConnected, connectRonin } = useWallet();
+  const { address, isConnected } = useWallet();
+  const { show: showConnectModal } = useTantoModal();
   const [triedSubmit, setTriedSubmit] = useState(false);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export default function WhitelistSection() {
     e.preventDefault();
     if (!isConnected) {
       setTriedSubmit(true);
-      connectRonin();
+      showConnectModal();
       return;
     }
     if (address) {

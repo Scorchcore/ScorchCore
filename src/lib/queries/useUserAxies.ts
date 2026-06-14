@@ -7,7 +7,7 @@ import { queryKeys } from "./queryKeys";
 
 export function useUserAxies() {
   const chainId = useChainId();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const nftFacade = useNFTFacade();
 
   return useQuery<AxieNFT[]>({
@@ -16,7 +16,9 @@ export function useUserAxies() {
       if (!address) throw new Error("Wallet address not available");
       return nftFacade.getAxiesFromWallet(address);
     },
-    enabled: !!address && isConnected,
+    // chain es undefined si la wallet está en una red no soportada — las
+    // lecturas pasan por el signer, así que solo consultar en la red correcta
+    enabled: !!address && isConnected && chain?.id === chainId,
     ...queryConfig.semiDynamic,
   });
 }
