@@ -1,15 +1,16 @@
 "use client";
 
-// Capture the REAL window.scrollBy before ForgeTour's interceptor
-// replaces it. We use this for the initial mount centre-scroll so it
-// isn't blocked during select-* steps.
-const REAL_SCROLL_BY =
-  typeof window !== "undefined" ? window.scrollBy.bind(window) : null;
-
 import gsap from "gsap";
 import { Hammer, Loader2, PackageOpen, RotateCcw } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { CoreMinerVideo } from "@/components/CoreMinerVideo";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import {
@@ -161,6 +162,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   const [sealSpin, setSealSpin] = useState<SealSpin>("normal");
   const [isForgeLoading, setIsForgeLoading] = useState(false);
   const forgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preservedScrollYRef = useRef<number | null>(null);
 
   const petitInfo = CATEGORY_INFO[GeodeCategory.PETIT];
   const aquaInfo = AXIE_CLASS_INFO[AxieClass.AQUA];
@@ -179,6 +181,23 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     if (!filename) return `CoreMiner #${revealedMinerIndex}`;
     return filename.replace(/\.mp4$/i, "").replace(/_/g, " ");
   }, [revealedMinerIndex]);
+
+  const setStageWithoutScrollShift = useCallback((nextStage: DemoStage) => {
+    preservedScrollYRef.current = window.scrollY;
+    setStage(nextStage);
+  }, []);
+
+  useLayoutEffect(() => {
+    const preservedScrollY = preservedScrollYRef.current;
+    if (preservedScrollY === null) return;
+
+    preservedScrollYRef.current = null;
+    window.scrollTo({
+      top: preservedScrollY,
+      left: window.scrollX,
+      behavior: "auto",
+    });
+  });
 
   /* Preload critical images asynchronously so SVG mounts instantly when forging starts.
      Cached via localStorage so we skip redundant preloads on refresh/tab-switch. */
@@ -227,120 +246,6 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     logger.info("Preload assets iniciado", { count: imgs.length });
   }, [petitInfo.icon, aquaInfo.icon]);
 
-  /* On mount, wait for viewport scroll to stabilise (layout-shift auto-scrolls
-     from Transmute mount), then centre the altar in the viewport.
-     Use a longer threshold (600 ms) so images & GSAP finish rendering. */
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let stableMs = 0;
-    const POLL_MS = 50;
-    const STABLE_THRESHOLD = 600;
-    const MOVE_EPSILON = 3;
-
-    const interval = setInterval(() => {
-      if (Math.abs(window.scrollY - lastScrollY) > MOVE_EPSILON) {
-        stableMs = 0;
-        lastScrollY = window.scrollY;
-        return;
-      }
-      stableMs += POLL_MS;
-      lastScrollY = window.scrollY;
-
-      if (stableMs >= STABLE_THRESHOLD) {
-        const stageEl = document.querySelector(
-          '[data-tour="stage"]',
-        ) as HTMLElement | null;
-        if (stageEl) {
-          const rect = stageEl.getBoundingClientRect();
-          const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
-          if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
-            REAL_SCROLL_BY({ top: delta, behavior: "auto" });
-          }
-        }
-        clearInterval(interval);
-      }
-    }, POLL_MS);
-
-    const safety = setTimeout(() => {
-      clearInterval(interval);
-      const stageEl = document.querySelector(
-        '[data-tour="stage"]',
-      ) as HTMLElement | null;
-      if (stageEl) {
-        const rect = stageEl.getBoundingClientRect();
-        const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
-        if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
-          REAL_SCROLL_BY({ top: delta, behavior: "auto" });
-        }
-      }
-    }, 2000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(safety);
-    };
-  }, []);
-
-  /* After every select-* stage change, re-centre the altar so the browser's
-     layout-shift auto-scroll doesn't push the asset out of view. */
-  const prevStageRef = useRef(stage);
-  useEffect(() => {
-    const prev = prevStageRef.current;
-    prevStageRef.current = stage;
-    // Only run on select-* → select-* transitions (not initial mount)
-    if (!prev.startsWith("select-") || !stage.startsWith("select-")) return;
-    if (prev === stage) return;
-
-    let lastScrollY = window.scrollY;
-    let stableMs = 0;
-    const POLL_MS = 50;
-    const STABLE_THRESHOLD = 400;
-    const MOVE_EPSILON = 3;
-
-    const interval = setInterval(() => {
-      if (Math.abs(window.scrollY - lastScrollY) > MOVE_EPSILON) {
-        stableMs = 0;
-        lastScrollY = window.scrollY;
-        return;
-      }
-      stableMs += POLL_MS;
-      lastScrollY = window.scrollY;
-
-      if (stableMs >= STABLE_THRESHOLD) {
-        const stageEl = document.querySelector(
-          '[data-tour="stage"]',
-        ) as HTMLElement | null;
-        if (stageEl) {
-          const rect = stageEl.getBoundingClientRect();
-          const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
-          if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
-            REAL_SCROLL_BY({ top: delta, behavior: "auto" });
-          }
-        }
-        clearInterval(interval);
-      }
-    }, POLL_MS);
-
-    const safety = setTimeout(() => {
-      clearInterval(interval);
-      const stageEl = document.querySelector(
-        '[data-tour="stage"]',
-      ) as HTMLElement | null;
-      if (stageEl) {
-        const rect = stageEl.getBoundingClientRect();
-        const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
-        if (Math.abs(delta) > 10 && REAL_SCROLL_BY) {
-          REAL_SCROLL_BY({ top: delta, behavior: "auto" });
-        }
-      }
-    }, 1500);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(safety);
-    };
-  }, [stage]);
-
   const beamPhase: BeamPhase = useMemo(() => {
     switch (stage) {
       case "geode-created":
@@ -369,15 +274,15 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   /* ── Handlers ── */
   const handleSelectGeode = () => {
     (document.activeElement as HTMLElement | null)?.blur();
-    setStage("select-class");
+    setStageWithoutScrollShift("select-class");
   };
   const handleSelectClass = () => {
     (document.activeElement as HTMLElement | null)?.blur();
-    setStage("select-axie");
+    setStageWithoutScrollShift("select-axie");
   };
   const handleSelectAxie = () => {
     (document.activeElement as HTMLElement | null)?.blur();
-    setStage("setup");
+    setStageWithoutScrollShift("setup");
   };
 
   const handleForge = useCallback(() => {
@@ -391,7 +296,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
       tx,
       clickToStartMs: Math.round(performance.now() - t0),
     });
-    setStage("forging");
+    setStageWithoutScrollShift("forging");
 
     // Safety net: if triad animation never completes, unblock UI after 6s
     forgeTimeoutRef.current = setTimeout(() => {
@@ -400,7 +305,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
       setSealSpin("normal");
       // Do NOT auto-advance; user must click Continue manually
     }, 6000);
-  }, [isForgeLoading, stage]);
+  }, [isForgeLoading, setStageWithoutScrollShift, stage]);
 
   const handleTriadConverge = useCallback(() => {
     logger.info("Trazas convergen — sello acelera");
@@ -411,28 +316,31 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
     const idx = getRandomPetitAquaMinerIndex();
     setRevealedMinerIndex(idx);
     logger.info("Abriendo geoda demo", { minerIndex: idx });
-    setStage("opening");
-  }, []);
+    setStageWithoutScrollShift("opening");
+  }, [setStageWithoutScrollShift]);
 
-  const handleRouletteComplete = useCallback((minerIndex: number) => {
-    logger.info("Ruleta demo completada", { minerIndex });
-    setRevealedMinerIndex(minerIndex);
-    setStage("revealed");
-  }, []);
+  const handleRouletteComplete = useCallback(
+    (minerIndex: number) => {
+      logger.info("Ruleta demo completada", { minerIndex });
+      setRevealedMinerIndex(minerIndex);
+      setStageWithoutScrollShift("revealed");
+    },
+    [setStageWithoutScrollShift],
+  );
 
   const handleForgeAgain = useCallback(() => {
     setMockTxHash("");
     setSealSpin("normal");
     setIsForgeLoading(false);
-    setStage("select-geode");
-  }, []);
+    setStageWithoutScrollShift("select-geode");
+  }, [setStageWithoutScrollShift]);
 
   const handlePreviousStep = useCallback(() => {
     const idx = STAGE_ORDER.indexOf(stage);
     if (idx > 0) {
-      setStage(STAGE_ORDER[idx - 1]);
+      setStageWithoutScrollShift(STAGE_ORDER[idx - 1]);
     }
-  }, [stage]);
+  }, [setStageWithoutScrollShift, stage]);
 
   const currentStep = STAGE_ORDER.indexOf(stage);
 
@@ -442,7 +350,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
   }, [stage, isForgeLoading]);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full [overflow-anchor:none]">
       {/* Contextual guided tour (auto-starts on every stage) */}
       <ForgeTour stepKey={stage} onPrevious={handlePreviousStep} />
 
@@ -827,7 +735,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
             {!isForgeLoading && (
               <button
                 type="button"
-                onClick={() => setStage("geode-created")}
+                onClick={() => setStageWithoutScrollShift("geode-created")}
                 className="inline-flex cursor-pointer items-center gap-2 border border-magma-gold/55 bg-orange-500/14 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-magma-gold shadow-[0_0_28px_rgba(240,106,18,0.16)] transition-all hover:border-magma-gold hover:bg-orange-500/22 hover:text-white"
               >
                 <PackageOpen className="h-4 w-4" />
