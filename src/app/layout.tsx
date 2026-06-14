@@ -69,6 +69,10 @@ export const metadata: Metadata = {
       },
     ],
   },
+  other: {
+    "talentapp:project_verification":
+      "1594dd93d9e645ec9975c8dc1105e380898dc2a8d6b0e8ba45af1c9c5213396068d7a290f4c7246ae539cf490070631f0e1460c9a293a1f3d4278dcd41757767",
+  },
 };
 
 export default function RootLayout({
