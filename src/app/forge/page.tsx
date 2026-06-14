@@ -17,9 +17,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { encodeFunctionData, numberToHex } from "viem";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { waitForTransactionReceipt } from "wagmi/actions";
+import { encodeFunctionData, parseUnits } from "viem";
+import { useAccount, useChainId } from "wagmi";
+import {
+  getWalletClient,
+  switchChain,
+  waitForTransactionReceipt,
+  writeContract,
+} from "wagmi/actions";
 import { AxieBonusIndicator } from "@/components/axie";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import {
@@ -35,6 +40,8 @@ import {
   Toast,
   useToast,
 } from "@/components/ui";
+import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
+import { TOKEN_ADDRESSES } from "@/lib/config/tokens";
 import { RONIN_TESTNET_ID, config as wagmiConfig } from "@/lib/config/wagmi";
 import {
   ALL_AXIE_CLASSES,
@@ -58,12 +65,9 @@ import {
 } from "@/lib/queries";
 import { ForgeFacade } from "@/lib/services/forge/ForgeFacade";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
-import { RONIN_TX_FEES } from "@/lib/utils/network/roninFeeSigner";
 
 const logger = createServiceLogger("ForgePage");
 const MOCK_AXIE_NFT_ADDRESS = "0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38";
-const FAKE_AXIE_FAUCET_GAS_LIMIT = 350000n;
-const FAKE_AXIE_FAUCET_DATA = "0x0ffbdea7";
 const MOCK_AXIE_NFT_ABI = [
   {
     type: "function",
@@ -73,6 +77,18 @@ const MOCK_AXIE_NFT_ABI = [
     outputs: [
       { name: "tokenIds", type: "uint256[]", internalType: "uint256[]" },
     ],
+  },
+] as const;
+const ERC20_APPROVE_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
 const AXIE_CLASS_NAMES = [
@@ -209,9 +225,8 @@ function GlossImageFill({
 export default function ForgePage() {
   const router = useRouter();
   const { isConnected } = useWallet();
-  const { address, chain: walletChain, connector } = useAccount();
+  const { address } = useAccount();
   const chainId = useChainId();
-  const { switchChainAsync } = useSwitchChain();
   const contracts = useContracts();
   const { contractManager, signer } = useContractManager();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
@@ -250,15 +265,17 @@ export default function ForgePage() {
   );
   const [selectedAxieIds, setSelectedAxieIds] = useState<string[]>([]);
   const [mementosToUse, setMementosToUse] = useState<number>(0);
-  const [forgeStep, setForgeStep] = useState<"select" | "forge" | "success">(
-    "select",
-  );
+  const [forgeStep, setForgeStep] = useState<
+    "select" | "approve" | "forge" | "success"
+  >("select");
   const [_isForging, setIsForging] = useState(false);
+  const [_isApproving, setIsApproving] = useState(false);
   const [isClaimingFakeAxies, setIsClaimingFakeAxies] = useState(false);
   const [faucetClaims, setFaucetClaims] = useState(0);
   const MAX_FAUCET_CLAIMS = 10;
   const [forgedGeodeId, setForgedGeodeId] = useState<bigint | null>(null);
   const [_forgeFailed, setForgeFailed] = useState(false);
+  const approvedMementosRef = useRef<number>(0);
   const [isTransmuting, setIsTransmuting] = useState(false);
   const [transmutationHeat, setTransmutationHeat] = useState(0);
   const [wizardStep, setWizardStep] = useState(1);
@@ -372,76 +389,115 @@ export default function ForgePage() {
     setForgeFailed(false);
     setForgedGeodeId(null);
     setSelectedAxieIds([]);
+    approvedMementosRef.current = 0;
   }, [selectedCategory, selectedClass]);
 
+  useEffect(() => {
+    if (
+      forgeStep === "forge" &&
+      mementosToUse !== approvedMementosRef.current
+    ) {
+      setForgeStep("approve");
+    }
+  }, [mementosToUse, forgeStep]);
+
   /* handlers */
-  // Nota: no hay paso de aprobación de tokens. El ForgeFactory desplegado en
-  // Saigon L2 tiene materialValidationEnabled=false y no cobra ERC20/ERC1155;
-  // forgeGeode solo consume los fake Axies seleccionados.
+  const handleApprove = async (): Promise<boolean> => {
+    logger.info("Iniciando aprobación de tokens", {
+      address,
+      selectedCategory,
+      selectedClass,
+      mementosToUse,
+      totalCost: { axsCost, totalMementoCost },
+      selectedAxieIds,
+    });
 
-  /**
-   * Garantiza que la wallet esté en Saigon L2 antes de firmar.
-   * `useChainId()` devuelve el chain del config (no el real de la wallet),
-   * por eso se usa `useAccount().chain` + switchChainAsync.
-   */
-  const ensureSaigonChain = async (): Promise<boolean> => {
-    const getConnectorChainId = async () => {
-      try {
-        const provider = (await connector?.getProvider()) as
-          | { request?: (args: { method: string }) => Promise<unknown> }
-          | undefined;
-        const providerChainId = await provider?.request?.({
-          method: "eth_chainId",
-        });
-        if (typeof providerChainId === "string") {
-          return Number(providerChainId);
-        }
-        return await connector?.getChainId();
-      } catch {
-        return undefined;
-      }
-    };
-
-    const currentConnectorChainId = await getConnectorChainId();
-    if (currentConnectorChainId === RONIN_TESTNET_ID) {
-      return true;
+    if (!address || !forgeFacade) {
+      showError("Wallet no conectada o facade no inicializado");
+      return false;
+    }
+    if (selectedCategory === undefined || selectedClass === undefined) {
+      showError("Selecciona una categoría y clase de geoda");
+      return false;
+    }
+    if (!hasRequiredAxieSelection) {
+      showError("Select the required fake Axies before approving");
+      return false;
+    }
+    if (!contracts) {
+      showError("Contratos no inicializados");
+      return false;
     }
 
     try {
-      showInfo("Switching wallet to Ronin Saigon Testnet...");
-      await switchChainAsync({ chainId: RONIN_TESTNET_ID });
+      setIsApproving(true);
+      showInfo("Aprobando tokens necesarios...");
 
-      for (let attempt = 0; attempt < 10; attempt += 1) {
-        const nextConnectorChainId = await getConnectorChainId();
-        if (nextConnectorChainId === RONIN_TESTNET_ID) {
-          return true;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 300));
+      showInfo("Aprobando AXS...");
+      const roninProvider = (window as any).ronin?.provider;
+      if (!roninProvider) {
+        showError("Ronin wallet no detectada");
+        return false;
       }
 
-      logger.error("Wallet stayed on the wrong chain after switch", undefined, {
-        expectedChainId: RONIN_TESTNET_ID,
-        walletChainId: walletChain?.id,
-        connectorChainId: await getConnectorChainId(),
+      const axsData = encodeFunctionData({
+        abi: ERC20_APPROVE_ABI,
+        functionName: "approve",
+        args: [CONTRACT_ADDRESSES.ForgeFactory, parseUnits(axsCost, 18)],
       });
-      showError(
-        "Ronin Wallet is still on mainnet. Switch to Ronin Saigon Testnet (202601) and try again",
-      );
+
+      const axsHash = await roninProvider.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: address,
+          to: TOKEN_ADDRESSES.AXS,
+          data: axsData,
+          gasPrice: "0xba43b74000", // 50 gwei in hex
+        }],
+      });
+
+      showInfo("Aprobando Mementos...");
+      const mementoData = encodeFunctionData({
+        abi: ERC20_APPROVE_ABI,
+        functionName: "approve",
+        args: [CONTRACT_ADDRESSES.ForgeFactory, BigInt(totalMementoCost)],
+      });
+
+      const mementoHash = await roninProvider.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: address,
+          to: TOKEN_ADDRESSES.MEMENTO,
+          data: mementoData,
+          gasPrice: "0xba43b74000", // 50 gwei in hex
+        }],
+      });
+
+      await waitForTransactionReceipt(wagmiConfig, {
+        hash: axsHash,
+        chainId: RONIN_TESTNET_ID,
+      });
+      await waitForTransactionReceipt(wagmiConfig, {
+        hash: mementoHash,
+        chainId: RONIN_TESTNET_ID,
+      });
 
       approvedMementosRef.current = mementosToUse;
       setForgeStep("forge");
       showSuccess("✅ Tokens aprobados correctamente");
-      setWizardStep(7);
       logger.info("Aprobación completada exitosamente");
+      return true;
     } catch (err) {
-      logger.error("Failed to switch chain", err, {
-        walletChainId: walletChain?.id,
-        connectorChainId: await getConnectorChainId(),
+      const errorMessage =
+        err instanceof Error ? err.message : "Error al aprobar tokens";
+      logger.error("Error en aprobación", err, {
+        selectedCategory,
+        selectedClass,
       });
-      showError(
-        "Switch your wallet to Ronin Saigon Testnet (202601) and try again",
-      );
+      showError(errorMessage);
       return false;
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -465,7 +521,8 @@ export default function ForgePage() {
       return;
     }
 
-    if (!(await ensureSaigonChain())) {
+    if (chainId !== RONIN_TESTNET_ID) {
+      showError("Switch to Ronin Saigon Testnet to get fake Axies");
       return;
     }
 
@@ -483,48 +540,12 @@ export default function ForgePage() {
       setIsClaimingFakeAxies(true);
       showInfo("Confirm the fake Axies claim in your wallet...");
 
-      const isWaypointConnector = connector?.id === "WAYPOINT";
-      if (isWaypointConnector) {
-        showError(
-          "Waypoint does not support Ronin Saigon L2 (202601) transactions yet. Use Ronin Wallet extension to claim fake Axies.",
-        );
-        return;
-      }
-
-      const provider = (await connector?.getProvider()) as
-        | {
-            request?: (args: {
-              method: string;
-              params: unknown[];
-            }) => Promise<unknown>;
-          }
-        | undefined;
-
-      if (!provider?.request) {
-        showError("Wallet provider not available");
-        return;
-      }
-
-      const data =
-        encodeFunctionData({
-          abi: MOCK_AXIE_NFT_ABI,
-          functionName: "claimFakeAxies",
-        }) || FAKE_AXIE_FAUCET_DATA;
-
-      const hash = (await provider.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: address,
-            to: MOCK_AXIE_NFT_ADDRESS,
-            data,
-            chainId: numberToHex(RONIN_TESTNET_ID),
-            type: "0x0",
-            gas: numberToHex(FAKE_AXIE_FAUCET_GAS_LIMIT),
-            gasPrice: numberToHex(RONIN_TX_FEES.gasPrice),
-          },
-        ],
-      })) as `0x${string}`;
+      const hash = await writeContract(wagmiConfig, {
+        address: MOCK_AXIE_NFT_ADDRESS,
+        abi: MOCK_AXIE_NFT_ABI,
+        functionName: "claimFakeAxies",
+        chainId: RONIN_TESTNET_ID,
+      });
 
       showInfo("Waiting for fake Axies confirmation...");
       await waitForTransactionReceipt(wagmiConfig, {
@@ -664,10 +685,6 @@ export default function ForgePage() {
       return;
     }
 
-    if (!(await ensureSaigonChain())) {
-      return;
-    }
-
     setIsTransmuting(true);
 
     const heatObj = { value: 0 };
@@ -677,6 +694,19 @@ export default function ForgePage() {
       ease: "power2.inOut",
       onUpdate: () => setTransmutationHeat(heatObj.value),
     });
+
+    const approved = await handleApprove();
+    if (!approved) {
+      gsap.to(heatObj, {
+        value: 0,
+        duration: 1.5,
+        ease: "power2.out",
+        overwrite: true,
+        onUpdate: () => setTransmutationHeat(heatObj.value),
+        onComplete: () => setIsTransmuting(false),
+      });
+      return;
+    }
 
     const forged = await handleForge();
     if (!forged) {
@@ -1340,40 +1370,8 @@ export default function ForgePage() {
               onClick={() => setWizardStep(4)}
               className="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-cyan-50/50 transition-colors hover:text-cyan-50"
             >
-              <ChevronLeft className="h-4 w-4" />
-              Volver
-            </button>
-            <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
-              5. Resumen de Forja
-            </h2>
-            <p className="mb-8 text-center text-sm text-cyan-50/60">
-              Verifica los costos antes de continuar
-            </p>
-
-            <div className="mb-6 text-center">
-              <h3 className="alchemy-heading-strong text-2xl">{geodeName}</h3>
-              <div className="mt-3 flex justify-center gap-2">
-                <Badge
-                  className="rounded-none border text-xs"
-                  style={{
-                    backgroundColor: `${categoryInfo.color}40`,
-                    borderColor: categoryInfo.color,
-                    color: categoryInfo.color,
-                  }}
-                >
-                  {categoryInfo.name}
-                </Badge>
-                <Badge
-                  className="rounded-none border text-xs"
-                  style={{
-                    backgroundColor: `${classInfo.color}40`,
-                    borderColor: classInfo.color,
-                    color: classInfo.color,
-                  }}
-                >
-                  {classInfo.displayName}
-                </Badge>
-              </div>
+              {/* Shader disabled temporarily due to performance issues */}
+              {/* <ForgeShader heat={transmutationHeat} maxFps={30} /> */}
             </div>
             <div className="relative z-10 flex w-full max-w-xl flex-col items-center px-4 sm:px-0">
               <button
@@ -1756,6 +1754,7 @@ export default function ForgePage() {
                         setForgedGeodeId(null);
                         setIsTransmuting(false);
                         setTransmutationHeat(0);
+                        approvedMementosRef.current = 0;
                       }}
                       className="w-full rounded-none border-cyan-100/20 bg-black/30 px-6 sm:w-auto"
                     >
@@ -1791,6 +1790,7 @@ export default function ForgePage() {
                     setForgedGeodeId(null);
                     setIsTransmuting(false);
                     setTransmutationHeat(0);
+                    approvedMementosRef.current = 0;
                   }}
                   className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
                 >
