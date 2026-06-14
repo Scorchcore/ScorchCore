@@ -362,9 +362,8 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
         {STAGE_ORDER.map((stageKey, i) => (
           <div
             key={stageKey}
-            className={`h-1 rounded-full transition-all duration-500 ${
-              currentStep >= i ? "w-5 bg-magma-gold" : "w-5 bg-cyan-100/15"
-            }`}
+            className={`h-1 rounded-full transition-all duration-500 ${currentStep >= i ? "w-5 bg-magma-gold" : "w-5 bg-cyan-100/15"
+              }`}
           />
         ))}
       </div>
@@ -376,7 +375,7 @@ export default function ForgeDemo({ onExit }: ForgeDemoProps) {
           sealPhase={sealPhase}
           sealSpin={sealSpin}
         >
-          {/* ── SELECT GEODE ── */}
+          {/* ── SELECT GEODE ─-─ */}
           {stage === "select-geode" && (
             <TriadAnchor point={TRIAD.geode} dataTour="icon-geode">
               <FloatingIcon onClick={handleSelectGeode} delay={0.2}>

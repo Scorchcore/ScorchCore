@@ -139,7 +139,7 @@ interface ForgeTourProps {
 export default function ForgeTour({ stepKey, onPrevious }: ForgeTourProps) {
   const [run, setRun] = useState(false);
 
-  // Re-open the tip whenever the stage (stepKey) changes
+  // RRe-open the tip whenever the stage (stepKey) changes
   useEffect(() => {
     setRun(Boolean(stepKey));
   }, [stepKey]);
