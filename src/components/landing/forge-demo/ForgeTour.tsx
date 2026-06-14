@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   EVENTS,
-  Joyride,
   type EventData,
+  Joyride,
   type Step,
   type TooltipRenderProps,
 } from "react-joyride";
@@ -137,179 +137,11 @@ interface ForgeTourProps {
 }
 
 export default function ForgeTour({ stepKey, onPrevious }: ForgeTourProps) {
-  const [run, setRun] = useState(true);
-  const stepKeyRef = useRef(stepKey);
-  stepKeyRef.current = stepKey;
+  const [run, setRun] = useState(false);
 
-  // Debug: intercept ALL scroll methods + poll for mystery scrolls.
-  // Also BLOCK scrolls during select-* steps to stop react-joyride
-  // (and any other lib) from auto-scrolling.
+  // RRe-open the tip whenever the stage (stepKey) changes
   useEffect(() => {
-    const logStack = (label: string) => {
-      const stack = new Error().stack || "";
-      const lines = stack.split("\n").slice(2, 5).join(" | ");
-      console.log(`[SCROLL ${label}]`, lines);
-    };
-
-    const origScrollTo = window.scrollTo.bind(window);
-    (window as any).scrollTo = function (...args: any[]) {
-      if (stepKeyRef.current?.startsWith("select-")) {
-        console.log(`[BLOCKED scrollTo for ${stepKeyRef.current}]`, args);
-        return;
-      }
-      console.log(`[scrollTo]`, args);
-      logStack("scrollTo");
-      return (origScrollTo as any)(...args);
-    };
-
-    const origScrollBy = window.scrollBy.bind(window);
-    (window as any).scrollBy = function (...args: any[]) {
-      if (stepKeyRef.current?.startsWith("select-")) {
-        console.log(`[BLOCKED scrollBy for ${stepKeyRef.current}]`, args);
-        return;
-      }
-      console.log(`[scrollBy]`, args);
-      logStack("scrollBy");
-      return (origScrollBy as any)(...args);
-    };
-
-    const origScrollIntoView = Element.prototype.scrollIntoView;
-    Element.prototype.scrollIntoView = function (...args: any[]) {
-      if (stepKeyRef.current?.startsWith("select-")) {
-        console.log(`[BLOCKED scrollIntoView for ${stepKeyRef.current}]`, args, this);
-        return;
-      }
-      console.log(`[scrollIntoView]`, args, this);
-      logStack("scrollIntoView");
-      return (origScrollIntoView as any).apply(this, args);
-    };
-
-    let lastY = window.scrollY;
-    let mysteryCount = 0;
-    const poll = () => {
-      if (Math.abs(window.scrollY - lastY) > 2) {
-        const delta = window.scrollY - lastY;
-        mysteryCount++;
-        console.log(
-          `[MYSTERY SCROLL #${mysteryCount}] y=${window.scrollY} delta=${delta.toFixed(1)}`,
-        );
-      }
-      lastY = window.scrollY;
-      requestAnimationFrame(poll);
-    };
-    const raf = requestAnimationFrame(poll);
-
-    return () => {
-      window.scrollTo = origScrollTo;
-      window.scrollBy = origScrollBy;
-      Element.prototype.scrollIntoView = origScrollIntoView;
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  // Re-open the tip whenever the stage (stepKey) changes
-  useEffect(() => {
-    if (!stepKey) {
-      setRun(false);
-      return;
-    }
-
-    // Disable smooth scroll & scroll anchoring so the browser doesn't
-    // auto-animate scroll adjustments caused by layout shifts / focus.
-    const html = document.documentElement;
-    const prevScrollBehavior = html.style.scrollBehavior;
-    html.style.scrollBehavior = "auto";
-    const stageWrap = document.querySelector('[data-tour="stage"]')?.parentElement as HTMLElement | null;
-    const prevOverflowAnchor = stageWrap?.style.overflowAnchor;
-    if (stageWrap) stageWrap.style.overflowAnchor = "none";
-
-    // Wait for window.scrollY to stabilise BEFORE activating react-joyride.
-    // This prevents react-joyride from auto-scrolling while the page is
-    // still shifting from stage changes / layout animations.
-    const needsScroll =
-      stepKey === "setup" ||
-      stepKey === "forging" ||
-      stepKey === "geode-created" ||
-      stepKey === "opening" ||
-      stepKey === "revealed";
-
-    let lastScrollY = window.scrollY;
-    let stableMs = 0;
-    let actionDone = false;
-    const POLL_MS = 50;
-    const STABLE_THRESHOLD = 250; // ms without scroll movement
-    const MOVE_EPSILON = 3; // px
-
-    const interval = setInterval(() => {
-      // Phase 1: wait for viewport scroll to stabilise
-      if (Math.abs(window.scrollY - lastScrollY) > MOVE_EPSILON) {
-        stableMs = 0;
-        lastScrollY = window.scrollY;
-        return;
-      }
-
-      stableMs += POLL_MS;
-      lastScrollY = window.scrollY;
-
-      // Phase 2: once stable, scroll (if needed) then show tooltip
-      if (stableMs >= STABLE_THRESHOLD && !actionDone) {
-        actionDone = true;
-
-        if (needsScroll) {
-          const stepDef = FORGE_TOUR_STEPS[stepKey];
-          const scrollSelector =
-            stepKey === "setup" ? '[data-tour="forge-btn"]'
-            : stepKey === "forging" ? '[data-tour="stage"]'
-            : stepDef?.target || '[data-tour="stage"]';
-          const targetEl = document.querySelector(scrollSelector) as HTMLElement | null;
-          if (targetEl) {
-            const rect = targetEl.getBoundingClientRect();
-            const delta = rect.top - window.innerHeight / 2;
-            console.log(
-              `[ForgeTour scroll] stepKey=${stepKey} | selector=${scrollSelector} | delta=${delta} | rect.top=${rect.top} | rect.height=${rect.height} | viewportH=${window.innerHeight} | scrollStableMs=${stableMs}`,
-            );
-            window.scrollBy({ top: delta, behavior: "auto" });
-          }
-        }
-        clearInterval(interval);
-        // Activate tooltip AFTER viewport is stable (and scroll done)
-        setRun(true);
-      }
-    }, POLL_MS);
-
-    // Safety timeout: show tooltip anyway after 2.5s even if never stable
-    const safety = setTimeout(() => {
-      if (!actionDone) {
-        actionDone = true;
-        if (needsScroll) {
-          const stepDef = FORGE_TOUR_STEPS[stepKey];
-          const scrollSelector =
-            stepKey === "setup" ? '[data-tour="forge-btn"]'
-            : stepKey === "forging" ? '[data-tour="stage"]'
-            : stepDef?.target || '[data-tour="stage"]';
-          const targetEl = document.querySelector(scrollSelector) as HTMLElement | null;
-          if (targetEl) {
-            const rect = targetEl.getBoundingClientRect();
-            const delta = rect.top - window.innerHeight / 2;
-            console.log(
-              `[ForgeTour scroll] SAFETY stepKey=${stepKey} | selector=${scrollSelector} | delta=${delta}`,
-            );
-            window.scrollBy({ top: delta, behavior: "auto" });
-          }
-        }
-        clearInterval(interval);
-        setRun(true);
-      }
-    }, 2500);
-
-    return () => {
-      html.style.scrollBehavior = prevScrollBehavior;
-      if (stageWrap && prevOverflowAnchor !== undefined) {
-        stageWrap.style.overflowAnchor = prevOverflowAnchor;
-      }
-      clearInterval(interval);
-      clearTimeout(safety);
-    };
+    setRun(Boolean(stepKey));
   }, [stepKey]);
 
   const def = stepKey ? FORGE_TOUR_STEPS[stepKey] : null;
@@ -321,6 +153,7 @@ export default function ForgeTour({ stepKey, onPrevious }: ForgeTourProps) {
       title: def.title,
       content: def.content,
       placement: def.placement,
+      skipScroll: true,
     },
   ];
 
@@ -342,10 +175,14 @@ export default function ForgeTour({ stepKey, onPrevious }: ForgeTourProps) {
       run={run}
       steps={steps}
       continuous={false}
+      scrollToFirstStep={false}
       tooltipComponent={TooltipWithBack}
       onEvent={handleEvent}
       options={{
         skipBeacon: true,
+        skipScroll: true,
+        scrollDuration: 0,
+        scrollOffset: 0,
         buttons: ["close"],
         overlayColor: "rgba(2,6,7,0.66)",
         spotlightPadding: 8,

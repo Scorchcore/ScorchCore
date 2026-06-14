@@ -4,7 +4,7 @@
 
 export const FORGE_DEMO_ASSETS = {
   altar: "/assets/Forge-assets/ALTAR.png",
-  axieAqua: "/assets/Forge-assets/AXIE_AQUA.png",
+  axieAqua: "/assets/Forge-assets/AXIE_AQUA.webp",
   altarEnergy: "/assets/Forge-assets/ALTAR_ENERGÍA.png",
   rayoAltar: "/assets/Forge-assets/RAYO_ALTAR.png",
 } as const;
