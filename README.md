@@ -18,7 +18,7 @@
 
 ## 📖 ¿Qué es ScorchCore?
 
-**ScorchCore** es un ecosistema Web3 Play-to-Earn que **reutiliza assets inactivos de Axie Infinity** transformándolos en nueva utilidad económica. El proyecto permite a los holders de Axies convertir sus NFTs en **CoreMiners** — entidades que generan pasivamente el token **$CORE**, creando un flujo de valor sostenible sobre la blockchain de Ronin.
+**ScorchCore** es un ecosistema Web3 Forge & Collect to-Earn que **reutiliza assets inactivos de Axie Infinity** transformándolos en nueva utilidad económica. El proyecto permite a los holders de Axies convertir sus NFTs en **CoreMiners** — entidades que generan pasivamente el token **$CORE**, creando un flujo de valor sostenible sobre la blockchain de Ronin.
 
 ### 💡 Propuesta de Valor
 
