@@ -1046,7 +1046,12 @@ export default function InventoryPage() {
       )}
 
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          title={toast.title}
+          onClose={hideToast}
+        />
       )}
 
       {(selectedGeode || selectedMiner) && lightboxVideoUrl && (

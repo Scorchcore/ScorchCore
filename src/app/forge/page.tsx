@@ -64,10 +64,10 @@ import {
 import { ForgeFacade } from "@/lib/services/forge/ForgeFacade";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 import { RONIN_TX_FEES } from "@/lib/utils/network/roninFeeSigner";
+import { addGasBuffer } from "@/lib/utils/network/transactionGas";
 
 const logger = createServiceLogger("ForgePage");
 const MOCK_AXIE_NFT_ADDRESS = "0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38";
-const FAKE_AXIE_FAUCET_GAS_LIMIT = 350000n;
 const FAKE_AXIE_FAUCET_DATA = "0x0ffbdea7";
 const PROTOCOL_FEE_ABI = [
   {
@@ -539,17 +539,28 @@ export default function ForgePage() {
           functionName: "claimFakeAxies",
         }) || FAKE_AXIE_FAUCET_DATA;
 
+      const transactionRequest = {
+        from: address,
+        to: MOCK_AXIE_NFT_ADDRESS,
+        data,
+        chainId: numberToHex(RONIN_TESTNET_ID),
+        type: "0x0",
+        gasPrice: numberToHex(RONIN_TX_FEES.gasPrice),
+      };
+      const gasEstimate = await provider.request({
+        method: "eth_estimateGas",
+        params: [transactionRequest],
+      });
+      if (typeof gasEstimate !== "string") {
+        throw new Error("Wallet returned an invalid gas estimate");
+      }
+
       const hash = (await provider.request({
         method: "eth_sendTransaction",
         params: [
           {
-            from: address,
-            to: MOCK_AXIE_NFT_ADDRESS,
-            data,
-            chainId: numberToHex(RONIN_TESTNET_ID),
-            type: "0x0",
-            gas: numberToHex(FAKE_AXIE_FAUCET_GAS_LIMIT),
-            gasPrice: numberToHex(RONIN_TX_FEES.gasPrice),
+            ...transactionRequest,
+            gas: numberToHex(addGasBuffer(BigInt(gasEstimate))),
           },
         ],
       })) as `0x${string}`;
@@ -597,7 +608,7 @@ export default function ForgePage() {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to get fake Axies";
       logger.error("Error claiming fake Axies", err);
-      showError(errorMessage);
+      showError(errorMessage, "Faucet transaction failed");
     } finally {
       setIsClaimingFakeAxies(false);
     }
@@ -1739,7 +1750,12 @@ export default function ForgePage() {
 
       {/* Toast */}
       {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          title={toast.title}
+          onClose={hideToast}
+        />
       )}
     </main>
   );
