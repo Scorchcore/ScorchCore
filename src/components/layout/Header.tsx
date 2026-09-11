@@ -27,6 +27,9 @@ export const Header: React.FC = () => {
     { href: "/trustscore", label: "TrustScore" },
     { href: "/economy", label: "Economy" },
     { href: "/vesting", label: "Vesting" },
+    { href: "/scholarship", label: "Scholarships" },
+    { href: "/airdrop", label: "Airdrops" },
+    { href: "/minigames", label: "Minigames" },
   ];
   const dropdownLinks = appLinks.slice(4);
   const isMoreActive = dropdownLinks.some((link) => pathname === link.href);
