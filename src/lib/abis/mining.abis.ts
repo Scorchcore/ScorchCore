@@ -889,30 +889,62 @@ export const MINERSTATSMANAGER_ABI = [
 
 export const REWARDSCALCULATOR_ABI = [
   {
+    "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
         "internalType": "address",
-        "name": "_coreMinerNFT",
+        "name": "previousAdmin",
         "type": "address"
       },
       {
+        "indexed": false,
         "internalType": "address",
-        "name": "_geodeNFT",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_minerStatsManager",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_bonusCalculator",
+        "name": "newAdmin",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "AdminChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOracle",
+        "type": "address"
+      }
+    ],
+    "name": "AxieRarityOracleSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
+      }
+    ],
+    "name": "BeaconUpgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -1046,6 +1078,19 @@ export const REWARDSCALCULATOR_ABI = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "AXIE_RESONANCE_POWER",
     "outputs": [
@@ -1053,19 +1098,6 @@ export const REWARDSCALCULATOR_ABI = [
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "CALCULATOR_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -1086,12 +1118,25 @@ export const REWARDSCALCULATOR_ABI = [
   },
   {
     "inputs": [],
-    "name": "GEODE_BASE_POWER",
+    "name": "DEFAULT_BONUS_BPS",
     "outputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "axieRarityOracle",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -1182,6 +1227,16 @@ export const REWARDSCALCULATOR_ABI = [
           },
           {
             "internalType": "uint256",
+            "name": "geodePower",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "coreMinerPower",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "productivePower",
             "type": "uint256"
           },
@@ -1201,10 +1256,10 @@ export const REWARDSCALCULATOR_ABI = [
   },
   {
     "inputs": [],
-    "name": "coreMinerNFT",
+    "name": "coreMinerStakingManager",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract ICoreMinerStakingManager",
         "name": "",
         "type": "address"
       }
@@ -1214,10 +1269,10 @@ export const REWARDSCALCULATOR_ABI = [
   },
   {
     "inputs": [],
-    "name": "geodeNFT",
+    "name": "geodeStakingManager",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IGeodeStakingManager",
         "name": "",
         "type": "address"
       }
@@ -1287,13 +1342,31 @@ export const REWARDSCALCULATOR_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "minerStatsManager",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "admin_",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "axieRarityOracle_",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -1338,6 +1411,61 @@ export const REWARDSCALCULATOR_ABI = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "newOracle",
+        "type": "address"
+      }
+    ],
+    "name": "setAxieRarityOracle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "ids",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "setStakedAxieIds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "stakedAxieIds",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -1375,7 +1503,7 @@ export const REWARDSCALCULATOR_ABI = [
         "type": "address"
       }
     ],
-    "name": "updateCoreMinerNFT",
+    "name": "updateCoreMinerStakingManager",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1388,7 +1516,7 @@ export const REWARDSCALCULATOR_ABI = [
         "type": "address"
       }
     ],
-    "name": "updateGeodeNFT",
+    "name": "updateGeodeStakingManager",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1397,13 +1525,31 @@ export const REWARDSCALCULATOR_ABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "newContract",
+        "name": "newImplementation",
         "type": "address"
       }
     ],
-    "name": "updateMinerStatsManager",
+    "name": "upgradeTo",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ] as const;
@@ -1910,6 +2056,11 @@ export const CYCLEMANAGER_ABI = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
         "internalType": "uint256[]",
         "name": "minerIds",
         "type": "uint256[]"
@@ -1954,30 +2105,94 @@ export const CYCLEMANAGER_ABI = [
 
 export const MININGPOOL_ABI = [
   {
+    "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
         "internalType": "address",
-        "name": "_coreToken",
+        "name": "previousAdmin",
         "type": "address"
       },
       {
+        "indexed": false,
         "internalType": "address",
-        "name": "_rewardsCalculator",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_cycleManager",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_emissionSchedule",
+        "name": "newAdmin",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "name": "AdminChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
+      }
+    ],
+    "name": "BeaconUpgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "cycleId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "CycleRewardsSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newFCoreToken",
+        "type": "address"
+      }
+    ],
+    "name": "FCoreTokenSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -1990,6 +2205,19 @@ export const MININGPOOL_ABI = [
       }
     ],
     "name": "PoolPowerUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newRewardsCalculator",
+        "type": "address"
+      }
+    ],
+    "name": "RewardsCalculatorSet",
     "type": "event"
   },
   {
@@ -2015,12 +2243,6 @@ export const MININGPOOL_ABI = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "cycleId",
-        "type": "uint256"
-      },
-      {
         "indexed": false,
         "internalType": "uint256",
         "name": "totalRewards",
@@ -2029,7 +2251,13 @@ export const MININGPOOL_ABI = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "participantCount",
+        "name": "cycleCount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
         "type": "uint256"
       }
     ],
@@ -2112,6 +2340,63 @@ export const MININGPOOL_ABI = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalPoolPower",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lastDistributionTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "userCount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "cycleCount",
+        "type": "uint256"
+      }
+    ],
+    "name": "StateImported",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Unpaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
@@ -2151,6 +2436,19 @@ export const MININGPOOL_ABI = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "activityTracker",
+    "outputs": [
+      {
+        "internalType": "contract IActivityTracker",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -2171,19 +2469,6 @@ export const MININGPOOL_ABI = [
   },
   {
     "inputs": [],
-    "name": "coreToken",
-    "outputs": [
-      {
-        "internalType": "contract ICoreToken",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "cycleManager",
     "outputs": [
       {
@@ -2196,7 +2481,18 @@ export const MININGPOOL_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "cycleIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
     "name": "distributeRewards",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -2208,6 +2504,19 @@ export const MININGPOOL_ABI = [
     "outputs": [
       {
         "internalType": "contract IEmissionSchedule",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fCoreToken",
+    "outputs": [
+      {
+        "internalType": "contract IfCoreToken",
         "name": "",
         "type": "address"
       }
@@ -2356,6 +2665,147 @@ export const MININGPOOL_ABI = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "totalPoolPower_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastDistributionTime_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "users",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "userPower",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "cycleIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "cycleRewards_",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "importState",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "fCoreToken_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "activityTracker_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "scholarshipManager_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "emissionSchedule_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "rewardsCalculator_",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "admin_",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "minerId",
+        "type": "uint256"
+      }
+    ],
+    "name": "lenderAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "migrated",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -2406,11 +2856,100 @@ export const MININGPOOL_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "minerId",
+        "type": "uint256"
+      }
+    ],
+    "name": "scholarAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "scholarshipManager",
+    "outputs": [
+      {
+        "internalType": "contract IScholarshipManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newCycleManager",
+        "type": "address"
+      }
+    ],
+    "name": "setCycleManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "cycleId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "setCycleRewards",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "newInterval",
         "type": "uint256"
       }
     ],
     "name": "setDistributionInterval",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newFCoreToken",
+        "type": "address"
+      }
+    ],
+    "name": "setFCoreToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newRewardsCalculator",
+        "type": "address"
+      }
+    ],
+    "name": "setRewardsCalculator",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -2456,6 +2995,57 @@ export const MININGPOOL_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newContract",
+        "type": "address"
+      }
+    ],
+    "name": "updateScholarshipManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgradeTo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ] as const;

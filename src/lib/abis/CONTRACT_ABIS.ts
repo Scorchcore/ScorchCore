@@ -16,7 +16,12 @@ import { VESTINGMANAGER_ABI } from './economy.abis';
 import { PRICEORACLE_ABI } from './economy.abis';
 import { BUYBACKFUND_ABI } from './economy.abis';
 import { ROYALTYMANAGER_ABI } from './economy.abis';
-import { FORGEFACTORY_ABI } from './forge.abis';
+import { ACTIVITYTRACKER_ABI } from './economy.abis';
+import { SCHOLARSHIPMANAGER_ABI } from './economy.abis';
+import { AIRDROPMANAGER_ABI } from './economy.abis';
+import { AXIERARITYORACLE_ABI } from './economy.abis';
+import { MINIGAMEMANAGER_ABI } from './gaming.abis';
+import { AXS_PRICE_ORACLE_ABI, FORGEFACTORY_ABI } from './forge.abis';
 import { RECIPEREGISTRY_ABI } from './forge.abis';
 import { SUPPLYTRACKER_ABI } from './forge.abis';
 import { HATCHINGRANDOMNESS_ABI } from './forge.abis';
@@ -59,9 +64,14 @@ export const CONTRACT_ABIS = {
   PriceOracle: PRICEORACLE_ABI,
   BuybackFund: BUYBACKFUND_ABI,
   RoyaltyManager: ROYALTYMANAGER_ABI,
+  ActivityTracker: ACTIVITYTRACKER_ABI,
+  ScholarshipManager: SCHOLARSHIPMANAGER_ABI,
+  AirdropManager: AIRDROPMANAGER_ABI,
+  AxieRarityOracle: AXIERARITYORACLE_ABI,
   
   // Forge
   ForgeFactory: FORGEFACTORY_ABI,
+  AxsPriceOracle: AXS_PRICE_ORACLE_ABI,
   RecipeRegistry: RECIPEREGISTRY_ABI,
   SupplyTracker: SUPPLYTRACKER_ABI,
   HatchingRandomness: HATCHINGRANDOMNESS_ABI,
@@ -69,6 +79,9 @@ export const CONTRACT_ABIS = {
   ChainlinkVRFProvider: CHAINLINKVRFPROVIDER_ABI,
   GeodeHatcher: GEODE_HATCHER_ABI,
   
+  // Gaming
+  MinigameManager: MINIGAMEMANAGER_ABI,
+
   // Mining
   MinerStatsManager: MINERSTATSMANAGER_ABI,
   RewardsCalculator: REWARDSCALCULATOR_ABI,

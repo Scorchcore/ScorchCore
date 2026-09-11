@@ -101,6 +101,10 @@ export interface IMiningContract extends IBlockchainContract<MiningEvents> {
    * @returns Resultado de la transacción
    */
   startMining(minerId: bigint): Promise<TransactionResult>;
+  startMining(
+    minerIds: bigint[],
+    cycleDuration: number,
+  ): Promise<TransactionResult & { cycleId: bigint }>;
   
   /**
    * Detiene la minería de un minero

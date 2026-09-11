@@ -17,8 +17,10 @@ export * from "./mining.abis";
 export * from "./nft.abis";
 export * from "./forge.abis";
 export * from "./economy.abis";
+export * from "./gaming.abis";
 export * from "./antibot.abis";
 export * from "./axie.abis";
+export * from "./v2.abis";
 
 // Alias para compatibilidad legacy
 export { FORGEFACTORY_ABI as TRANSMUTER_ABI } from "./forge.abis";

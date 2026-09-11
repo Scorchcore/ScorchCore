@@ -23,7 +23,10 @@ export interface IGeodeHatcher {
    * @throws Si el usuario no es el dueño
    * @throws Si el hatching está pausado
    */
-  openGeode(geodeId: bigint): Promise<HatchResult>;
+  openGeode(
+    geodeId: bigint,
+    overrides?: { value?: bigint },
+  ): Promise<HatchResult>;
 
   /**
    * Simula el hatching sin ejecutarlo (útil para previews en UI)

@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "abis:sync": "node scripts/sync-phase6-abis.mjs",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",

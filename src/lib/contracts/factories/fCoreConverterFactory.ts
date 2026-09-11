@@ -120,6 +120,22 @@ export class fCoreConverterFactory {
         return BigInt(rate.toString());
       },
 
+      async conversionFeeBps(): Promise<bigint> {
+        return BigInt((await contract.conversionFeeBps()).toString());
+      },
+
+      async minEarnedToConvert(): Promise<bigint> {
+        return BigInt((await contract.minEarnedToConvert()).toString());
+      },
+
+      async feeRecipient(): Promise<Address> {
+        return (await contract.feeRecipient()) as Address;
+      },
+
+      async activityTracker(): Promise<Address> {
+        return (await contract.activityTracker()) as Address;
+      },
+
       async getConvertibleAmount(user: Address): Promise<bigint> {
         try {
           const amount = await contract.getConvertibleAmount(user);

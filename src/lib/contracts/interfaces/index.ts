@@ -97,13 +97,21 @@ export type { ICoreMinerStakingManager } from "./ICoreMinerStakingManager";
 // Economy & Gaming (Phase 3 - 26-Jan-2026)
 export type {
   IScholarshipManager,
-  ScholarshipOffer,
+  LoanOffer,
+  ActiveLoan,
+  ScholarshipManagerEvents,
 } from "./IScholarshipManager";
+export { LoanStatus } from "./IScholarshipManager";
 export type {
   IMinigameManager,
   MinigameResult,
   MinigameConfig,
 } from "./IMinigameManager";
+export type {
+  IAirdropManager,
+  AirdropCampaign,
+  AirdropManagerEvents,
+} from "./IAirdropManager";
 export type {
   IPvPArena,
   RaidInfo,

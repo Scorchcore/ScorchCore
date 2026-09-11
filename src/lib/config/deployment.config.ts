@@ -7,7 +7,7 @@ export const DEPLOYMENT_INFO = {
   network: "saigon",
   chainId: 202601,
   deployer: "0xD598F9CBaD6de33A37E403647e25EA52DA7c07bA",
-  timestamp: "2026-01-15T04:14:53.293Z",
+  timestamp: "2026-07-01T03:00:00.000Z",
   verified: true,
 } as const;
 
@@ -17,50 +17,60 @@ export const DEPLOYMENT_INFO = {
  */
 export const CONTRACT_ADDRESSES = {
   // Core System
-  CoreToken: "0x725d916F4f9212057A63E3BE1B4790BCe8720bf5",
-  EmissionSchedule: "0x0d9C4Ad5509f457959c46bC39726b2B2723D57b6",
+  CoreToken: "0xc113Eb5aDfE5a20728E1E2279e72a93F4e72ad90",
+  EmissionSchedule: "0x61e99703De7af7396Aa0dFae954a9ABcfe336FD6",
   MetadataRegistry: "0x979dA45447434C1D9506c1edE4187B796A1d827D",
 
   // NFTs
-  CoreMinerNFT: "0xa105F44F96A733C1eADEecDd9ade3f03Ce11B79b",
-  GeodeNFT: "0x4581b630DC14905a2C13B21654610a547733A287",
+  CoreMinerNFT: "0xE1f95eeAa236E8C7ad95A8B0F1b82e7921cf681b",
+  GeodeNFT: "0xc83d7199c301C2DC750Da78c1F3AC4252F74833f",
+  CoreMinerNFTV2: "0xE1f95eeAa236E8C7ad95A8B0F1b82e7921cf681b",
+  GeodeNFTV2: "0xc83d7199c301C2DC750Da78c1F3AC4252F74833f",
+  GeodeHatcherV2: "0xc859dC6547F630c43eF5659f3b4c66fd775ad8Ca",
   axieNFT: "0x32950db2a7164aE833121501C797D79E7B79d74C", // Axie Contract (external NFT)
   //TOKENS
-  axsToken: "0x3C4e17b9056272Ce1b49F6900d8cFD6171a1869d", // Mock AXS de Saigon L2 (el que referencia el MaterialValidator desplegado)
+  axsToken: "0xa48B62457fA7D60E93239a84E0DB60748Fe92d20", // Mock AXS de Saigon L2 (el que referencia el MaterialValidator desplegado)
   slpToken: "0xa8754b9Fa15fc18BB59458815510E40a12cD2014",
   // Mining System
   MinerStatsManager: "0xCe5A06F4f2221bA8C42820F8507ADC322BD2B2E9",
   SetRegistry: "0x63685c0948274114d391c409483aE3F228B25a53",
   UserCollectionTracker: "0x42FC08E6bAba091A11D379258C2B257FE91C4434",
   BonusCalculator: "0x0a517d72D97d7FcB217a4738Ff8E558137f97bD9",
-  RewardsCalculator: "0x11AFc7BFfCD4B4cDe692f24777dDB4b3C312DCE8", // ✅ RE-DEPLOYED 26-Jan-2026
-  CycleManager: "0x516463ceD938697B53EE46df84899f019D89a341",
-  MiningPool: "0xCe168E28AED62EcF22A09137E7bbd40c56060A3C", // ✅ RE-DEPLOYED 26-Jan-2026
+  RewardsCalculator: "0x78647d60B22a8BFBFF87900E8151Da80d5Eda96a", // ✅ RE-DEPLOYED 26-Jan-2026
+  CycleManager: "0x0f39D43F82Fc4CD83568f9c5e4B885DAD5Fe93F5",
+  MiningPool: "0x825a395cdDF78E1BEfd1F9f36553616D12517aB3", // ✅ RE-DEPLOYED 26-Jan-2026
 
   // Integrations & Staking
   AxieIntegration: "0xf177F589c95162841C9FBFA342Ec6212fAdB1887",
-  AxieStakingManager: "0x0f00cce40b8aA690926daCDbDA5663b2bd39c2FB",
-  GeodeStakingManager: "0x5d863C0Ce30055EB9F9c941Ea44B2e58AE9dB0BB", // ✅ NEW 26-Jan-2026
-  CoreMinerStakingManager: "0xAe5B141B160500A291b6db7cbC6Cf57CD932A4FB", // ✅ NEW 26-Jan-2026
+  AxieStakingManager: "0xBcE97BDc77b732CF892EE0cE20B70e6A603bD60B",
+  GeodeStakingManager: "0x1989D526627F9eCc5F200D1FA52d3256E0B057a2", // ✅ NEW 26-Jan-2026
+  CoreMinerStakingManager: "0x7F3A84aEa920ECB4427A87CFb8Cae54f50B62F0F", // ✅ NEW 26-Jan-2026
 
   // Economy & Gaming (Phase 3 - 26-Jan-2026)
-  ScholarshipManager: "0x66da21090139EEC550DBa64E2dA9EAc9eECBD3c6", // ✅ NEW
-  MinigameManager: "0x0984733Ba837CaB92d26C634FffcAe6a21A08925", // ✅ NEW
+  ActivityTracker: "0xBC22Ad017664F49cd1b192a474781Cf943cf8EA1",
+  ScholarshipManager: "0x36814C3286923aD6645b6c24030a01a0D5D306C6", // ✅ NEW
+  MinigameManager: "0x69210Df31179da7418F84bf9B21B4409Df05839a", // ✅ NEW
+  AirdropManager: "0xF6E51eb7dB4Db09716F600A4d9b21601A77e498D",
+  AxieRarityOracle: "0x0D3b0EAba5E40dCD2C41BEb58F7638aDBE59F48a",
+  ScorchTreasury: "0x62B04C6ecF6a02713D495A3cce3b0Ed6308a17B1",
+  TimelockController: "0xbB22eF77Ba0E275D8Ac1C1bA49A9b9e49624F6c2",
+  Multisig: "0xD598F9CBaD6de33A37E403647e25EA52DA7c07bA",
   PvPArena: "0x2E5e9e89b4a40BAf1A0545e368fa5E8044647c93", // ✅ NEW
 
   // Memento System
   MementoToken: "0xfa3Ab001DA96e9D97574cec97D0e1A1eFc53CA25", // v2 Multi-Type (IDs 0-8)
   MementoValidator: "0x49a39C10fE707Fb78541fc17635b8492d093C6BC",
+  MementoFaucet: "0x5EE00970309B7f96EEff61b29B57C115EA0E9145",
 
   // Randomness
-  ChainlinkVRFProvider: "0x09103DfbF9f8C2D73f85BD945DF910643F5c416c",
-  HatchingRandomness: "0x03126e3234da9b88Bd481fe4c30DFd4953337f86",
+  ChainlinkVRFProvider: "0x763BE951d2464063b0D6752C543956b48bA205B9",
+  HatchingRandomness: "0x7f6D7e784bf580F220e1B93fDd5B3d269b67f3d7",
 
   // Phase 2A - Anti-Bot & Economy
-  ProofOfHumanityOracle: "0xf410C594165CB753e11F77D8EefC5021c654Fd56",
+  ProofOfHumanityOracle: "0xEc2fbfA18710519C742f2F92c5Dc81C1400dfFf3",
   IdNFT: "0x2dC6CB947bB666Ca997C8ae18219058FF793488d",
-  fCoreToken: "0xF525F3C43888da15d18cbE4006e0c173FC84f363",
-  fCoreConverter: "0xbDb650d371cE75aD2cab4bb36814d9d2A9523754",
+  fCoreToken: "0xEE334EF365f2EAdc658913BbBf3bdf9554fE8819",
+  fCoreConverter: "0x7eB8e85e88375AE653BF12Ca5fA1B5E8000BAe4B",
   VestingManager: "0xeB80aac037B0e47aB097CC4845b088815d66751C",
   PriceOracle: "0xd2952D4B4aeF2316f87F45814f3B73eE70fc3acd",
   BuyBackFund: "0xA5911Bd91eEc413299e942a73C875Df7b75c92F1",
@@ -71,8 +81,10 @@ export const CONTRACT_ADDRESSES = {
   RecipeRegistry: "0x0F429C4eaD95c7c5b09235b30986f0cD763199F4",
   SupplyTracker: "0x5007539245C4041A2f05F9519aFBFe448262E1A8",
   MaterialValidatorTestnet: "0xC6ad27d4254331F8e9A4FDC8d5d067AFf1ce251f", // Phase 2C: Material validation (AXS + SLP)
-  ForgeFactory: "0xe1C50543735A20f7A98b383DD7848350FdfB5FBF", // Phase 2C: Material validation system
-  GeodeHatcher: "0x7834bF804Bd7cCd4191e95250F8E6ffB3BC0c1a2", // FIXED: mintMiner() con poder calculado
+  ForgeFactory: "0x9B0Db42bA4403Dfc8B8Ae089eaD1d4dDc552159E", // Phase 2C: Material validation system
+  AxsPriceOracle: "0x5006E89efFbBd7ae5250878E7371B777f0952095",
+  ProtocolFeeManager: "0xA6D13070aD2E74a497A4C0A59F222E03909cD040",
+  GeodeHatcher: "0xc859dC6547F630c43eF5659f3b4c66fd775ad8Ca", // FIXED: mintMiner() con poder calculado
 } as const;
 
 /**

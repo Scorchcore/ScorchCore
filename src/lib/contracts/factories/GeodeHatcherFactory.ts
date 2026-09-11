@@ -6,6 +6,7 @@
  */
 
 import { Contract, Provider, Signer } from 'ethers';
+import { parseEther } from 'viem';
 import { GEODE_HATCHER_ABI } from '@/lib/abis/GeodeHatcher';
 import { createRateLimitedContract } from '@/lib/utils/network/RateLimitedContract';
 import type { IGeodeHatcher, HatchResult } from '../interfaces/IGeodeHatcher';
@@ -16,13 +17,15 @@ import type { IGeodeHatcher, HatchResult } from '../interfaces/IGeodeHatcher';
 class GeodeHatcherContract implements IGeodeHatcher {
   constructor(private contract: Contract) {}
 
-  async openGeode(geodeId: bigint): Promise<HatchResult> {
+  async openGeode(geodeId: bigint, overrides?: { value?: bigint }): Promise<HatchResult> {
     console.log('🟢 [GeodeHatcherContract] MÉTODO REAL openGeode llamado - ANTES del proxy');
     console.log('🐣 [GeodeHatcher] Iniciando openGeode para geoda:', geodeId.toString());
     
     // ✅ Enviar transacción
     console.log('📝 [GeodeHatcher] Enviando transacción openGeode...');
-    const tx = await this.contract.openGeode(geodeId);
+    const tx = await this.contract.openGeode(geodeId, {
+      value: overrides?.value ?? parseEther('0.05'),
+    });
     
     console.log('✅ [GeodeHatcher] Transacción enviada:', {
       hash: tx.hash,

@@ -59,13 +59,22 @@ class MiningPoolContract implements IMiningContract {
     return () => this.contract.off(eventName, callback as any);
   }
 
-  async startMining(minerId: bigint): Promise<TransactionResult> {
-    const transaction = await this.contract.startMining(minerId);
+  async startMining(
+    minerIdOrIds: bigint | bigint[],
+    cycleDuration = 0,
+  ): Promise<TransactionResult & { cycleId: bigint }> {
+    const minerIds = Array.isArray(minerIdOrIds) ? minerIdOrIds : [minerIdOrIds];
+    const cycleId = await this.contract.startMining.staticCall(
+      minerIds,
+      cycleDuration,
+    );
+    const transaction = await this.contract.startMining(minerIds, cycleDuration);
     const transactionReceipt = await transaction.wait();
     return {
       hash: transactionReceipt.hash,
       success: transactionReceipt.status === 1,
       receipt: transactionReceipt,
+      cycleId: BigInt(cycleId.toString()),
     };
   }
 
@@ -107,13 +116,15 @@ class MiningPoolContract implements IMiningContract {
     };
   }
 
-  async getPendingRewards(minerId: bigint): Promise<PendingRewards> {
-    const result = await this.contract.getPendingRewards(minerId);
+  async getPendingRewards(cycleId: bigint): Promise<PendingRewards> {
+    const result = BigInt(
+      (await this.contract.getPendingRewards(cycleId)).toString(),
+    );
     return {
-      coreAmount: result.coreAmount || result[0] || 0n,
-      bonusAmount: result.bonusAmount || result[1] || 0n,
-      totalAmount: result.totalAmount || result[2] || 0n,
-      lastUpdateTime: result.lastUpdateTime || result[3] || 0n,
+      coreAmount: result,
+      bonusAmount: 0n,
+      totalAmount: result,
+      lastUpdateTime: 0n,
     };
   }
 

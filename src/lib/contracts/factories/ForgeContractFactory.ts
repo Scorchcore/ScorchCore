@@ -6,7 +6,7 @@
  * Patrón: Concrete Factory (GoF)
  */
 
-import type { Address } from "viem";
+import { parseEther, type Address } from "viem";
 import {
   BaseContractFactory,
   type ContractConfig,
@@ -69,6 +69,7 @@ class ForgeContract implements IForgeContract {
     geodeType: number = 0,
     mementosToUse: number = 0,
     axieIds: bigint[] = [],
+    protocolFee?: bigint,
   ): Promise<ForgeResult> {
     // ForgeFactory.forgeGeode(category, geodeType, mementosToUse, axieIds)
     // recipeId es 1-indexed (1=Common, 2=Rare, 3=Epic, 4=Legendary, 5=Mythic)
@@ -83,6 +84,7 @@ class ForgeContract implements IForgeContract {
       geodeType,
       mementosToUse,
       axieIds,
+      { value: protocolFee ?? parseEther("0.05") },
     );
     const receipt = await tx.wait();
 

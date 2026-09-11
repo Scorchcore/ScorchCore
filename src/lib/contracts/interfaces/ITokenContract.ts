@@ -197,6 +197,11 @@ export interface IFCoreConverter extends IBlockchainContract {
    * @returns tasa en base 1e18 (actualmente 1:1 = 1e18)
    */
   getConversionRate(): Promise<bigint>;
+
+  conversionFeeBps(): Promise<bigint>;
+  minEarnedToConvert(): Promise<bigint>;
+  feeRecipient(): Promise<Address>;
+  activityTracker(): Promise<Address>;
   
   /**
    * Obtiene la cantidad de fCore que un usuario puede convertir

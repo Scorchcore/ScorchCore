@@ -536,7 +536,7 @@ export const GEODE_HATCHER_ABI = [
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {

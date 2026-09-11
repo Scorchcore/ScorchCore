@@ -22,7 +22,13 @@ import type {
   NFTOwner,
   ApprovedAddress,
 } from "../types/NFTTypes";
-import { GEODENFT_ABI, COREMINERNFT_ABI } from "@/lib/abis";
+import {
+  GEODENFT_ABI,
+  COREMINERNFT_ABI,
+  GEODENFT_V2_EXTRA,
+  COREMINERNFT_V2_EXTRA,
+} from "@/lib/abis";
+import { getGeodeName, AxieClass } from "@/lib/constants/geodes";
 
 /**
  * Implementación base para contratos NFT
@@ -116,6 +122,9 @@ abstract class BaseNFTContract {
   }
 
   async tokensOfOwner(owner: string): Promise<bigint[]> {
+    if (typeof this.contract.tokensOfOwner === "function") {
+      return await this.contract.tokensOfOwner(owner);
+    }
     const balance = await this.balanceOf(owner);
     const tokens: bigint[] = [];
     for (let i = 0; i < Number(balance); i++) {
@@ -151,11 +160,32 @@ class GeodeNFTContract extends BaseNFTContract implements IGeodeNFT {
   }
 
   async getGeodeName(tokenId: bigint): Promise<string> {
-    return await this.contract.getGeodeName(tokenId);
+    const data = await this.contract.getGeodeData(tokenId);
+    return getGeodeName(Number(data[0]), Number(data[1]) as AxieClass);
   }
 
   async isHatched(tokenId: bigint): Promise<boolean> {
     return await this.contract.isHatched(tokenId);
+  }
+
+  async getForgeProvenance(tokenId: bigint) {
+    const provenance = await this.contract.getForgeProvenance(tokenId);
+    return {
+      baseValueUsd: BigInt(provenance.baseValueUsd.toString()),
+      oraclePriceAxs: BigInt(provenance.oraclePriceAxs.toString()),
+      mementosTransferred: BigInt(provenance.mementosTransferred.toString()),
+      evolutionTier: Number(provenance.evolutionTier),
+    };
+  }
+
+  async getGeodeData(tokenId: bigint) {
+    const data = await this.contract.getGeodeData(tokenId);
+    return { category: Number(data[0]), geodeType: Number(data[1]) };
+  }
+
+  async getAxieTokenIds(tokenId: bigint): Promise<bigint[]> {
+    const ids = await this.contract.getAxieTokenIds(tokenId);
+    return ids.map((id: bigint) => BigInt(id.toString()));
   }
 }
 
@@ -206,6 +236,22 @@ class CoreMinerNFTContract extends BaseNFTContract implements ICoreMinerNFT {
 
   async getEffectivePower(tokenId: bigint): Promise<bigint> {
     return await this.contract.getEffectivePower(tokenId);
+  }
+
+  async getMinerProvenance(tokenId: bigint) {
+    const provenance = await this.contract.getMinerProvenance(tokenId);
+    return {
+      baseValueUsd: BigInt(provenance.baseValueUsd.toString()),
+      oraclePriceAxs: BigInt(provenance.oraclePriceAxs.toString()),
+      mementosTransferred: BigInt(provenance.mementosTransferred.toString()),
+      evolutionTier: Number(provenance.evolutionTier),
+      protocolVersion: Number(provenance.protocolVersion),
+    };
+  }
+
+  async getAxieTokenIds(tokenId: bigint): Promise<bigint[]> {
+    const ids = await this.contract.getAxieTokenIds(tokenId);
+    return ids.map((id: bigint) => BigInt(id.toString()));
   }
 
   async feedMiner(tokenId: bigint): Promise<TransactionResult> {
@@ -264,6 +310,26 @@ export class NFTContractFactory extends BaseContractFactory {
     const ethersContract = this.createEthersContract({
       ...config,
       abi: COREMINERNFT_ABI,
+    });
+    return new CoreMinerNFTContract(
+      config.address,
+      config.chainId,
+      ethersContract,
+    );
+  }
+
+  createGeodeNFTV2(config: Omit<ContractConfig, "abi">): IGeodeNFT {
+    const ethersContract = this.createEthersContract({
+      ...config,
+      abi: [...GEODENFT_ABI, ...GEODENFT_V2_EXTRA],
+    });
+    return new GeodeNFTContract(config.address, config.chainId, ethersContract);
+  }
+
+  createCoreMinerNFTV2(config: Omit<ContractConfig, "abi">): ICoreMinerNFT {
+    const ethersContract = this.createEthersContract({
+      ...config,
+      abi: [...COREMINERNFT_ABI, ...COREMINERNFT_V2_EXTRA],
     });
     return new CoreMinerNFTContract(
       config.address,

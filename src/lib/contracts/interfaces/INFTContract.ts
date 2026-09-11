@@ -168,6 +168,20 @@ export interface IGeodeNFT extends IEnumerableNFTContract {
    * Verifica si una geoda ya fue eclosionada
    */
   isHatched(tokenId: bigint): Promise<boolean>;
+
+  getForgeProvenance(tokenId: bigint): Promise<{
+    baseValueUsd: bigint;
+    oraclePriceAxs: bigint;
+    mementosTransferred: bigint;
+    evolutionTier: number;
+  }>;
+
+  getGeodeData(tokenId: bigint): Promise<{
+    category: number;
+    geodeType: number;
+  }>;
+
+  getAxieTokenIds(tokenId: bigint): Promise<bigint[]>;
 }
 
 /**
@@ -224,6 +238,16 @@ export interface ICoreMinerNFT extends IEnumerableNFTContract {
    * Obtiene el poder efectivo de un minero
    */
   getEffectivePower(tokenId: bigint): Promise<bigint>;
+
+  getMinerProvenance(tokenId: bigint): Promise<{
+    baseValueUsd: bigint;
+    oraclePriceAxs: bigint;
+    mementosTransferred: bigint;
+    evolutionTier: number;
+    protocolVersion: number;
+  }>;
+
+  getAxieTokenIds(tokenId: bigint): Promise<bigint[]>;
   
   /**
    * Alimenta un minero (renueva durability)

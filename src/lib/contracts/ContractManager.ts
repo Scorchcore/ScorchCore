@@ -58,10 +58,11 @@ import { GeodeHatcherFactory } from './factories/GeodeHatcherFactory';
 import { GeodeStakingManagerFactory } from './factories/GeodeStakingManagerFactory';
 import { CoreMinerStakingManagerFactory } from './factories/CoreMinerStakingManagerFactory';
 import { ScholarshipManagerFactory } from './factories/ScholarshipManagerFactory';
+import { AirdropManagerFactory } from './factories/AirdropManagerFactory';
 import { MinigameManagerFactory } from './factories/MinigameManagerFactory';
 import { PvPArenaFactory } from './factories/PvPArenaFactory';
 import { getContractAddress, type ContractName } from '@/lib/config/deployment.config';
-import type { IForgeContract, IMiningContract, IERC20Contract, IMinerStatsManager, ICycleContract, IFCoreToken, IFCoreConverter, IPohContract, IAxieContract, IAxieStakingManager, ITrustScoreContract, IRoyaltyContract, IBuyBackFund, IVestingManager, IEmissionSchedule, IRecipeRegistry, IPriceOracle, ICollectionTracker, ISetRegistry, IGeodeHatcher, IGeodeStakingManager, ICoreMinerStakingManager, IScholarshipManager, IMinigameManager, IPvPArena } from './interfaces';
+import type { IForgeContract, IMiningContract, IERC20Contract, IMinerStatsManager, ICycleContract, IFCoreToken, IFCoreConverter, IPohContract, IAxieContract, IAxieStakingManager, ITrustScoreContract, IRoyaltyContract, IBuyBackFund, IVestingManager, IEmissionSchedule, IRecipeRegistry, IPriceOracle, ICollectionTracker, ISetRegistry, IGeodeHatcher, IGeodeStakingManager, ICoreMinerStakingManager, IScholarshipManager, IAirdropManager, IMinigameManager, IPvPArena } from './interfaces';
 
 /**
  * Configuración global del ContractManager
@@ -137,10 +138,13 @@ export class ContractManager {
     // Forge System
     this.registerFactory('ForgeFactory', ForgeContractFactory, 'createForgeFactory', true);
     this.registerFactory('GeodeHatcher', GeodeHatcherFactory, 'create');
+    this.registerFactory('GeodeHatcherV2', GeodeHatcherFactory, 'create');
     
     // NFT System
     this.registerFactory('GeodeNFT', NFTContractFactory, 'createGeodeNFT', true);
     this.registerFactory('CoreMinerNFT', NFTContractFactory, 'createCoreMinerNFT', true);
+    this.registerFactory('GeodeNFTV2', NFTContractFactory, 'createGeodeNFTV2', true);
+    this.registerFactory('CoreMinerNFTV2', NFTContractFactory, 'createCoreMinerNFTV2', true);
     
     // Mining System
     this.registerFactory('MiningPool', MiningPoolFactory, 'createMiningPool', true);
@@ -170,6 +174,7 @@ export class ContractManager {
     
     // Economy & Gaming (Phase 3)
     this.registerFactory('ScholarshipManager', ScholarshipManagerFactory, 'create');
+    this.registerFactory('AirdropManager', AirdropManagerFactory, 'create');
     this.registerFactory('MinigameManager', MinigameManagerFactory, 'create');
     this.registerFactory('PvPArena', PvPArenaFactory, 'create');
     
@@ -372,6 +377,14 @@ export class ContractManager {
     return this.getContract('CoreMinerNFT', address);
   }
 
+  getGeodeNFTV2(address?: Address) {
+    return this.getContract('GeodeNFTV2', address);
+  }
+
+  getCoreMinerNFTV2(address?: Address) {
+    return this.getContract('CoreMinerNFTV2', address);
+  }
+
   /**
    * ✅ Obtiene el contrato Axie NFT (migrado - usa 'axieNFT' como key)
    */
@@ -493,6 +506,10 @@ export class ContractManager {
     return this.getContract<IGeodeHatcher>('GeodeHatcher', address);
   }
 
+  getGeodeHatcherV2(address?: Address): IGeodeHatcher {
+    return this.getContract<IGeodeHatcher>('GeodeHatcherV2', address);
+  }
+
   /**
    * ✅ Obtiene el contrato GeodeStakingManager
    */
@@ -512,6 +529,10 @@ export class ContractManager {
    */
   getScholarshipManager(address?: Address): IScholarshipManager {
     return this.getContract<IScholarshipManager>('ScholarshipManager', address);
+  }
+
+  getAirdropManager(address?: Address): IAirdropManager {
+    return this.getContract<IAirdropManager>('AirdropManager', address);
   }
 
   /**

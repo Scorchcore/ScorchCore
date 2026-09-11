@@ -85,7 +85,8 @@ export interface IForgeContract extends IBlockchainContract<ForgeEvents> {
     materials: MaterialInput[], 
     geodeType?: number, 
     mementosToUse?: number,
-    axieIds?: bigint[]
+    axieIds?: bigint[],
+    protocolFee?: bigint,
   ): Promise<ForgeResult>;
   
   /**
