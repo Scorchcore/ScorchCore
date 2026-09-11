@@ -1,11 +1,11 @@
 /**
  * Sistema de logging centralizado para ScorchCoreWeb
- * 
+ *
  * Reemplaza los console.log dispersos con un sistema estructurado
  * que permite control de niveles, contexto y envío a servicios externos.
- * 
+ *
  * **Elimina ~50+ console.log dispersos** en el código.
- * 
+ *
  * @pattern Singleton
  * @principle SRP - Responsabilidad única: logging
  */
@@ -47,14 +47,14 @@ interface LoggerConfig {
 
 /**
  * Logger centralizado
- * 
+ *
  * Proporciona logging estructurado con niveles, contexto y
  * capacidad de enviar a servicios externos (Sentry, LogRocket).
- * 
+ *
  * @example
  * ```typescript
  * import { logger } from '@/lib/utils/logger';
- * 
+ *
  * logger.info('Usuario conectado', { userId: address });
  * logger.error('Error en transacción', error, { txHash: '0x...' });
  * logger.transaction('Approval', txHash, true);
@@ -65,10 +65,11 @@ class Logger {
 
   constructor() {
     this.config = {
-      level: process.env.NODE_ENV === 'development' ? LogLevel.DEBUG : LogLevel.INFO,
-      enableConsole: true,
-      enableRemote: process.env.NODE_ENV === 'production',
-      isDevelopment: process.env.NODE_ENV === 'development',
+      level:
+        process.env.NODE_ENV === "development" ? LogLevel.DEBUG : LogLevel.NONE,
+      enableConsole: process.env.NODE_ENV === "development",
+      enableRemote: false,
+      isDevelopment: process.env.NODE_ENV === "development",
     };
   }
 
@@ -96,85 +97,89 @@ class Logger {
   /**
    * Formatea un mensaje con timestamp y nivel
    */
-  private formatMessage(level: string, message: string, context?: LogContext): string {
+  private formatMessage(
+    level: string,
+    message: string,
+    context?: LogContext,
+  ): string {
     const timestamp = new Date().toISOString();
-    let contextStr = '';
-    
+    let contextStr = "";
+
     if (context) {
       try {
         // Convertir BigInt a string automáticamente
         contextStr = ` ${JSON.stringify(context, (key, value) =>
-          typeof value === 'bigint' ? value.toString() : value
+          typeof value === "bigint" ? value.toString() : value,
         )}`;
       } catch (error) {
         // Fallback si JSON.stringify falla
-        contextStr = ` [Context serialization failed: ${error instanceof Error ? error.message : 'unknown'}]`;
+        contextStr = ` [Context serialization failed: ${error instanceof Error ? error.message : "unknown"}]`;
       }
     }
-    
+
     return `[${timestamp}] [${level}]${contextStr} ${message}`;
   }
 
   /**
    * Log nivel DEBUG
-   * 
+   *
    * Para información detallada de debugging.
    * Solo visible en desarrollo.
    */
   debug(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.DEBUG) && this.config.enableConsole) {
-      console.log(this.formatMessage('DEBUG', message, context));
+      console.log(this.formatMessage("DEBUG", message, context));
     }
   }
 
   /**
    * Log nivel INFO
-   * 
+   *
    * Para información general del flujo de la aplicación.
    */
   info(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.INFO) && this.config.enableConsole) {
-      console.info(this.formatMessage('INFO', message, context));
+      console.info(this.formatMessage("INFO", message, context));
     }
   }
 
   /**
    * Log nivel WARN
-   * 
+   *
    * Para situaciones potencialmente problemáticas.
    */
   warn(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.WARN) && this.config.enableConsole) {
-      console.warn(this.formatMessage('WARN', message, context));
+      console.warn(this.formatMessage("WARN", message, context));
     }
   }
 
   /**
    * Log nivel ERROR
-   * 
+   *
    * Para errores que requieren atención.
    * En producción, envía a servicios externos.
    */
   error(message: string, error?: Error | unknown, context?: LogContext): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       if (this.config.enableConsole) {
-        console.error(this.formatMessage('ERROR', message, context));
+        console.error(this.formatMessage("ERROR", message, context));
         if (error instanceof Error) {
           console.error(error.stack);
         } else if (error) {
           // Serializar error con soporte para BigInt
           try {
             const serialized = JSON.stringify(error, (key, value) =>
-              typeof value === 'bigint' ? value.toString() : value
+              typeof value === "bigint" ? value.toString() : value,
             );
-            console.error('Error details:', serialized);
+            console.error("Error details:", serialized);
           } catch {
             // Si falla la serialización, solo mostrar string
-            console.error('Error (not serializable):', String(error));
+            console.error("Error (not serializable):", String(error));
           }
         }
       }
-      
+
       // En producción, enviar a servicio externo
       if (this.config.enableRemote) {
         this.sendToExternalService(message, error, context);
@@ -188,7 +193,7 @@ class Logger {
   private sendToExternalService(
     message: string,
     error: Error | unknown,
-    context?: LogContext
+    context?: LogContext,
   ): void {
     // TODO: Integrar con Sentry cuando esté configurado
     // Sentry.captureException(error, {
@@ -202,7 +207,7 @@ class Logger {
 
   /**
    * Log para transacciones blockchain
-   * 
+   *
    * @example
    * ```typescript
    * logger.transaction('Token Approval', txHash, result.success);
@@ -210,50 +215,58 @@ class Logger {
    * ```
    */
   transaction(action: string, txHash: string, success: boolean): void {
-    const emoji = success ? '✅' : '❌';
+    const emoji = success ? "✅" : "❌";
     this.info(`${emoji} Transaction ${action}`, {
       txHash,
       success,
-      service: 'blockchain',
+      service: "blockchain",
     });
   }
 
   /**
    * Log para llamadas a contratos
-   * 
+   *
    * @example
    * ```typescript
    * logger.contractCall('MiningPool', 'startMining', { minerId: '1' });
    * ```
    */
-  contractCall(contract: string, method: string, params?: Record<string, unknown>): void {
+  contractCall(
+    contract: string,
+    method: string,
+    params?: Record<string, unknown>,
+  ): void {
     this.debug(`Calling ${contract}.${method}`, {
       contract,
       method,
       params,
-      service: 'blockchain',
+      service: "blockchain",
     });
   }
 
   /**
    * Log para operaciones de caché
-   * 
+   *
    * @example
    * ```typescript
    * logger.cache('HIT', 'balance-0x123-0xabc');
    * ```
    */
-  cache(action: 'HIT' | 'MISS' | 'INVALIDATE' | 'CLEAR', key: string): void {
-    this.debug(`Cache ${action}: ${key}`, { service: 'cache' });
+  cache(action: "HIT" | "MISS" | "INVALIDATE" | "CLEAR", key: string): void {
+    this.debug(`Cache ${action}: ${key}`, { service: "cache" });
   }
 
   /**
    * Log para operaciones de minería
    */
-  mining(action: string, minerId: string | bigint, data?: Record<string, unknown>): void {
+  mining(
+    action: string,
+    minerId: string | bigint,
+    data?: Record<string, unknown>,
+  ): void {
     this.info(`⛏️ Mining ${action}`, {
       minerId: minerId.toString(),
-      service: 'mining',
+      service: "mining",
       ...data,
     });
   }
@@ -261,10 +274,14 @@ class Logger {
   /**
    * Log para operaciones de forja
    */
-  forge(action: string, geodeId: string | bigint | undefined, data?: Record<string, unknown>): void {
+  forge(
+    action: string,
+    geodeId: string | bigint | undefined,
+    data?: Record<string, unknown>,
+  ): void {
     this.info(`🔨 Forge ${action}`, {
       geodeId: geodeId?.toString(),
-      service: 'forge',
+      service: "forge",
       ...data,
     });
   }
@@ -272,10 +289,14 @@ class Logger {
   /**
    * Log para operaciones de NFT
    */
-  nft(action: string, tokenId: string | bigint, data?: Record<string, unknown>): void {
+  nft(
+    action: string,
+    tokenId: string | bigint,
+    data?: Record<string, unknown>,
+  ): void {
     this.info(`🎨 NFT ${action}`, {
       tokenId: tokenId.toString(),
-      service: 'nft',
+      service: "nft",
       ...data,
     });
   }
@@ -286,9 +307,9 @@ export const logger = new Logger();
 
 /**
  * Helper para crear logger con contexto de servicio
- * 
+ *
  * Útil para servicios que hacen muchos logs.
- * 
+ *
  * @example
  * ```typescript
  * const log = createServiceLogger('TokenService');
@@ -298,16 +319,19 @@ export const logger = new Logger();
  */
 export function createServiceLogger(serviceName: string) {
   return {
-    debug: (message: string, context?: Omit<LogContext, 'service'>) =>
+    debug: (message: string, context?: Omit<LogContext, "service">) =>
       logger.debug(message, { ...context, service: serviceName }),
-    
-    info: (message: string, context?: Omit<LogContext, 'service'>) =>
+
+    info: (message: string, context?: Omit<LogContext, "service">) =>
       logger.info(message, { ...context, service: serviceName }),
-    
-    warn: (message: string, context?: Omit<LogContext, 'service'>) =>
+
+    warn: (message: string, context?: Omit<LogContext, "service">) =>
       logger.warn(message, { ...context, service: serviceName }),
-    
-    error: (message: string, error?: Error | unknown, context?: Omit<LogContext, 'service'>) =>
-      logger.error(message, error, { ...context, service: serviceName }),
+
+    error: (
+      message: string,
+      error?: Error | unknown,
+      context?: Omit<LogContext, "service">,
+    ) => logger.error(message, error, { ...context, service: serviceName }),
   };
 }

@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Cinzel_Decorative, Roboto_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import LoaderWrapper from "@/components/landing/LoaderWrapper";
 import { Header } from "@/components/layout";
@@ -15,6 +16,8 @@ import {
   softwareApplicationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
+
+const productionConsoleGuard = `(()=>{const noop=()=>{};for(const method of ["log","info","debug","warn","error","trace","table","group","groupEnd"]){Object.defineProperty(globalThis.console,method,{value:noop,writable:true,configurable:true})}})();`;
 
 const cinzelDecorative = Cinzel_Decorative({
   subsets: ["latin"],
@@ -82,6 +85,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning translate="no">
+      <head>
+        {process.env.NODE_ENV === "production" && (
+          <Script id="production-console-guard" strategy="beforeInteractive">
+            {productionConsoleGuard}
+          </Script>
+        )}
+      </head>
       <body
         className={`${cinzelDecorative.variable} ${robotoMono.variable} font-sans antialiased bg-black`}
       >
