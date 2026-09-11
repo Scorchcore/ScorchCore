@@ -192,6 +192,7 @@ export class ForgeFacade {
     geodeType?: number,
     mementosToUse?: number,
     axieIds: bigint[] = [],
+    protocolFee?: bigint,
   ): Promise<ForgeResult> {
     // Validar inputs
     const validated = validateInput(ForgeRecipeInputSchema, {
@@ -215,6 +216,7 @@ export class ForgeFacade {
           geodeType,
           mementosToUse,
           validated.axieIds ?? [],
+          protocolFee,
         ),
       {
         maxAttempts: 2, // Solo 2 intentos para forja (más costoso)

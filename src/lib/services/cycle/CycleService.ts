@@ -67,8 +67,8 @@ export class CycleService {
         );
       }
 
-      // Iniciar ciclo
-      const result = await cycleContract.startCycle(
+      // Iniciar ciclo a través de MiningPool, que posee CYCLE_MANAGER_ROLE
+      const result = await this.contractManager.getMiningPool().startMining(
         options.minerIds,
         options.duration,
       );
@@ -77,12 +77,7 @@ export class CycleService {
         throw new Error("Failed to start cycle");
       }
 
-      // Obtener el cycleId del último ciclo creado
-      const totalCycles = await chainReadClient.read(
-        () => cycleContract.getTotalCycles(),
-        { label: "CycleService.totalCyclesAfterStart" },
-      );
-      const cycleId = totalCycles; // El último creado
+      const cycleId = result.cycleId;
 
       log.info("Cycle started successfully", {
         cycleId: cycleId.toString(),

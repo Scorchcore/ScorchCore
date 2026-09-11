@@ -52,6 +52,7 @@ export class ForgeRecipeService extends BaseForgeService {
     geodeType?: number,
     mementosToUse?: number,
     axieIds: bigint[] = [],
+    protocolFee?: bigint,
   ): Promise<ForgeResult> {
     logger.forge("start", undefined, {
       recipeId,
@@ -69,6 +70,7 @@ export class ForgeRecipeService extends BaseForgeService {
           geodeType,
           mementosToUse,
           axieIds,
+          protocolFee,
         );
         logger.forge("complete", result.geodeId, {
           isCritical: result.isCritical,

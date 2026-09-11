@@ -1,5 +1,6 @@
 "use client";
 
+import { Contract } from "ethers";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 import {
@@ -17,8 +18,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { encodeFunctionData, numberToHex } from "viem";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { encodeFunctionData, numberToHex, parseEther } from "viem";
+import { useAccount, useChainId, useReadContract, useSwitchChain } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { AxieBonusIndicator } from "@/components/axie";
 import { GeodeVideo } from "@/components/GeodeVideo";
@@ -35,7 +36,10 @@ import {
   Toast,
   useToast,
 } from "@/components/ui";
+import { FORGEFACTORY_ABI } from "@/lib/abis/forge.abis";
+import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
 import { RONIN_TESTNET_ID, config as wagmiConfig } from "@/lib/config/wagmi";
+import type { GeodeType } from "@/lib/constants/forge";
 import {
   ALL_AXIE_CLASSES,
   AVAILABLE_CATEGORIES,
@@ -49,6 +53,7 @@ import type { MaterialInput } from "@/lib/contracts/interfaces/IForgeContract";
 import type { AxieNFT } from "@/lib/facades/NFTFacade";
 import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import { useContracts } from "@/lib/hooks/contracts/useContracts";
+import { useAxsPriceOracle } from "@/lib/hooks/useAxsPriceOracle";
 import { useWallet } from "@/lib/hooks/user/useWallet";
 import {
   useInvalidateOnTx,
@@ -64,6 +69,15 @@ const logger = createServiceLogger("ForgePage");
 const MOCK_AXIE_NFT_ADDRESS = "0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38";
 const FAKE_AXIE_FAUCET_GAS_LIMIT = 350000n;
 const FAKE_AXIE_FAUCET_DATA = "0x0ffbdea7";
+const PROTOCOL_FEE_ABI = [
+  {
+    type: "function",
+    name: "getProtocolFee",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+  },
+] as const;
 const MOCK_AXIE_NFT_ABI = [
   {
     type: "function",
@@ -267,6 +281,28 @@ export default function ForgePage() {
   const [previewCategory, setPreviewCategory] = useState<
     GeodeCategory | undefined
   >(undefined);
+  const oracle = useAxsPriceOracle(
+    (selectedCategory ?? GeodeCategory.PETIT) as unknown as GeodeType,
+  );
+  const { data: protocolFeeData } = useReadContract({
+    address: CONTRACT_ADDRESSES.ProtocolFeeManager as `0x${string}`,
+    abi: PROTOCOL_FEE_ABI,
+    functionName: "getProtocolFee",
+  });
+  const { data: trustScoreEnabledData } = useReadContract({
+    address: CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`,
+    abi: FORGEFACTORY_ABI,
+    functionName: "trustScoreEnabled",
+  });
+  const { data: forgeFailureEnabledData } = useReadContract({
+    address: CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`,
+    abi: FORGEFACTORY_ABI,
+    functionName: "forgeFailureEnabled",
+  });
+  const protocolFee =
+    (protocolFeeData as bigint | undefined) ?? parseEther("0.05");
+  const trustScoreEnabled = Boolean(trustScoreEnabledData);
+  const forgeFailureEnabled = Boolean(forgeFailureEnabledData);
 
   /* Faucet claim counter */
   useEffect(() => {
@@ -317,6 +353,7 @@ export default function ForgePage() {
       ? CATEGORY_TRUST_REQUIREMENTS[selectedCategory]
       : null;
   const hasAccessToCategory =
+    !trustScoreEnabled ||
     !categoryRequirement ||
     !trustScoreInfo ||
     trustScoreInfo.level >= categoryRequirement.level;
@@ -334,13 +371,14 @@ export default function ForgePage() {
   const hasForgeStaleError =
     hasForgeData && Boolean(mementoError || trustScoreError || axiesError);
 
-  const baseFailureChance = categoryInfo.failureRate;
+  const baseFailureChance = forgeFailureEnabled ? categoryInfo.failureRate : 0;
   const reduction = Math.floor(mementosToUse / 10);
   const currentFailureChance = Math.max(0, baseFailureChance - reduction);
 
-  const axsCost = categoryInfo.defaultCost.axs;
-  const mementoCost = categoryInfo.defaultCost.memento;
-  const totalMementoCost = Number(mementoCost) + mementosToUse;
+  const axsCost = oracle.axsCostDisplay;
+  const axsCostWei = oracle.axsCostWei;
+  const mementoCost = [100, 200, 300, 300, 500][categoryInfo.id];
+  const totalMementoCost = mementoCost + mementosToUse;
   const availableAxies = axies.filter((axie: AxieNFT) => !axie.isStaked);
   const selectedAxies = selectedAxieIds
     .map((tokenId) => availableAxies.find((axie) => axie.tokenId === tokenId))
@@ -522,6 +560,31 @@ export default function ForgePage() {
         chainId: RONIN_TESTNET_ID,
       });
 
+      if (signer) {
+        try {
+          showInfo("Claiming testnet AXS...");
+          const axsFaucet = new Contract(
+            CONTRACT_ADDRESSES.axsToken,
+            ["function faucet()"],
+            signer,
+          );
+          await (await axsFaucet.faucet()).wait();
+        } catch (error) {
+          logger.warn("AXS faucet claim skipped", { error });
+        }
+        try {
+          showInfo("Claiming testnet Mementos...");
+          const mementoFaucet = new Contract(
+            CONTRACT_ADDRESSES.MementoFaucet,
+            ["function claim()"],
+            signer,
+          );
+          await (await mementoFaucet.claim()).wait();
+        } catch (error) {
+          logger.warn("Memento faucet claim skipped", { error });
+        }
+      }
+
       const next = faucetClaims + 1;
       setFaucetClaims(next);
       localStorage.setItem(
@@ -529,7 +592,7 @@ export default function ForgePage() {
         String(next),
       );
       afterMockAxieClaim();
-      showSuccess("Fake Axies received in your wallet");
+      showSuccess("Testnet Axies and available forge materials claimed");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to get fake Axies";
@@ -550,7 +613,7 @@ export default function ForgePage() {
       selectedAxieIds,
     });
 
-    if (!address || !forgeFacade || !contracts) {
+    if (!address || !forgeFacade || !contracts || !signer) {
       showError("Wallet no conectada o facade no inicializado");
       return false;
     }
@@ -560,6 +623,10 @@ export default function ForgePage() {
     }
     if (!hasRequiredAxieSelection) {
       showError("Select the required fake Axies before forging");
+      return false;
+    }
+    if (axsCostWei <= 0n || !oracle.isFresh) {
+      showError("AXS price oracle is unavailable or stale");
       return false;
     }
 
@@ -590,14 +657,48 @@ export default function ForgePage() {
         return false;
       }
 
+      const forgeAddress = CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`;
+      const axsToken = contractManager.getERC20Token(contracts.axsToken);
+      const axsAllowance = await axsToken.allowance(address, forgeAddress);
+      if (axsAllowance < axsCostWei) {
+        showInfo("Approve AXS for ForgeFactory...");
+        await axsToken.approve(forgeAddress, axsCostWei);
+      }
+
+      const mementoToken = new Contract(
+        mementoAddress,
+        [
+          "function isApprovedForAll(address account, address operator) view returns (bool)",
+          "function setApprovalForAll(address operator, bool approved)",
+        ],
+        signer,
+      );
+      if (!(await mementoToken.isApprovedForAll(address, forgeAddress))) {
+        showInfo("Approve Mementos for ForgeFactory...");
+        await (await mementoToken.setApprovalForAll(forgeAddress, true)).wait();
+      }
+
+      const axieToken = new Contract(
+        MOCK_AXIE_NFT_ADDRESS,
+        [
+          "function isApprovedForAll(address owner, address operator) view returns (bool)",
+          "function setApprovalForAll(address operator, bool approved)",
+        ],
+        signer,
+      );
+      if (!(await axieToken.isApprovedForAll(address, forgeAddress))) {
+        showInfo("Approve Axies for ForgeFactory...");
+        await (await axieToken.setApprovalForAll(forgeAddress, true)).wait();
+      }
+
       const materials: MaterialInput[] = [
         {
           tokenAddress: contracts.axsToken as `0x${string}`,
-          amount: BigInt(Math.floor(Number(axsCost) * 1e18)),
+          amount: axsCostWei,
         },
         {
           tokenAddress: mementoAddress as `0x${string}`,
-          amount: BigInt(Math.floor(Number(totalMementoCost) * 1e18)),
+          amount: BigInt(totalMementoCost),
         },
       ];
 
@@ -611,6 +712,7 @@ export default function ForgePage() {
         selectedClass,
         mementosToUse,
         axieIds,
+        protocolFee,
       );
 
       if (result.success && result.geodeId) {
@@ -625,7 +727,7 @@ export default function ForgePage() {
       } else {
         setForgeFailed(true);
         showError(
-          `La forja falló debido al RNG (${currentFailureChance}% de probabilidad). Los tokens fueron consumidos.`,
+          `Forge transaction failed (${currentFailureChance}% configured failure chance).`,
         );
         return false;
       }
@@ -697,7 +799,9 @@ export default function ForgePage() {
   const openCategoryDetail = (cat: GeodeCategory) => {
     const requirement = CATEGORY_TRUST_REQUIREMENTS[cat];
     const hasAccess =
-      !trustScoreInfo || trustScoreInfo.level >= requirement.level;
+      !trustScoreEnabled ||
+      !trustScoreInfo ||
+      trustScoreInfo.level >= requirement.level;
     if (!hasAccess) return;
     setPreviewCategory(cat);
     setCategoryView("detail");
@@ -820,6 +924,7 @@ export default function ForgePage() {
                   {AVAILABLE_CATEGORIES.map((cat) => {
                     const requirement = CATEGORY_TRUST_REQUIREMENTS[cat.id];
                     const hasAccess =
+                      !trustScoreEnabled ||
                       !trustScoreInfo ||
                       trustScoreInfo.level >= requirement.level;
                     const isLocked = !hasAccess;

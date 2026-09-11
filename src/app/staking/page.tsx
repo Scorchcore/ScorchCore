@@ -1,44 +1,39 @@
 "use client";
 
-
-
-import { useState, useEffect, useMemo } from "react";
+import { ethers } from "ethers";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { useEffect, useState } from "react";
+import { CoreMinerVideo } from "@/components/CoreMinerVideo";
+import {
+  ActiveCycleCard,
+  CycleDurationSelector,
+  MinerLockedIndicator,
+} from "@/components/cycle";
+import { GeodeVideo } from "@/components/GeodeVideo";
+import { MinerStatsHistoryCardCompact } from "@/components/minerstats";
 import { Badge, Modal, Toast, useToast } from "@/components/ui";
-import { useWallet } from "@/lib/hooks/user/useWallet";
-import { useNFTs } from "@/lib/hooks/nfts/useNFTs";
-import { useMining } from "@/lib/hooks/mining/useMining";
-import { useContracts } from "@/lib/hooks/contracts/useContracts";
-import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
-
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import {
+  AXIE_CLASS_INFO,
+  type AxieClass,
+  CATEGORY_INFO,
+  type GeodeCategory,
+} from "@/lib/constants/geodes";
+import { CycleDuration } from "@/lib/contracts/interfaces/ICycleContract";
+import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
+import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
 import {
   useCycleManager,
   useGeodeStaking,
   useInventoryFacade,
 } from "@/lib/hooks";
-import {
-  CycleDurationSelector,
-  MinerLockedIndicator,
-  ActiveCycleCard,
-} from "@/components/cycle";
-import { MinerStatsHistoryCardCompact } from "@/components/minerstats";
+import { useContractManager } from "@/lib/hooks/contracts/useContractManager";
 import { useMinerStatsHistory } from "@/lib/hooks/mining/useMinerStatsHistory";
-import { CycleDuration } from "@/lib/contracts/interfaces/ICycleContract";
-import { GeodeVideo } from "@/components/GeodeVideo";
-import { CoreMinerVideo } from "@/components/CoreMinerVideo";
-import {
-  CATEGORY_INFO,
-  AXIE_CLASS_INFO,
-  GeodeCategory,
-  AxieClass,
-} from "@/lib/constants/geodes";
-import type { GeodeInventoryInfo } from "@/lib/facades/InventoryFacade";
-import { ethers } from "ethers";
-import Link from "next/link";
+import { useNFTs } from "@/lib/hooks/nfts/useNFTs";
+import { useWallet } from "@/lib/hooks/user/useWallet";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
-import type { CoreMinerNFT } from "@/lib/facades/NFTFacade";
 
 const logger = createServiceLogger("StakingPage");
 
@@ -55,7 +50,6 @@ interface MiningSession {
 export default function StakingPage() {
   const router = useRouter();
   const { address, isConnected } = useWallet();
-  const contracts = useContracts();
   const { contractManager } = useContractManager();
   const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
   const {
@@ -67,7 +61,7 @@ export default function StakingPage() {
     minersOnly: true,
   });
 
-  const [selectedMiner, setSelectedMiner] = useState<any>(null);
+  const [selectedMiner, setSelectedMiner] = useState<CoreMinerNFT | null>(null);
   const [showMiningModal, setShowMiningModal] = useState(false);
   const [activeMinerSessions, setActiveMinerSessions] = useState<
     Map<string, MiningSession>
@@ -75,12 +69,7 @@ export default function StakingPage() {
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
 
   // Cycle Management
-  const {
-    activeCycles,
-    bonusInfo,
-    endCycle,
-    isLoading: isCycleLoading,
-  } = useCycleManager();
+  const { activeCycles, endCycle } = useCycleManager();
 
   // Geode Staking
   const inventoryFacade = useInventoryFacade();
@@ -102,54 +91,48 @@ export default function StakingPage() {
   }, [isConnected, router]);
 
   const loadMiningSessions = async () => {
-    if (!miners.length || !contracts?.miningScheduler) return;
+    if (!miners.length || !activeCycles.length || !contractManager) {
+      setActiveMinerSessions(new Map());
+      return;
+    }
 
-    logger.info("Cargando sesiones de mining", { minerCount: miners.length });
+    logger.info("Loading Phase 6 mining cycles", {
+      minerCount: miners.length,
+      cycleCount: activeCycles.length,
+    });
     setIsLoadingSessions(true);
 
     try {
-      const { ContractManager } = await import(
-        "@/lib/contracts/ContractManager"
-      );
-      const contractManager = ContractManager.getInstance();
       const miningPool = contractManager.getMiningPool();
-
       const sessionsMap = new Map<string, MiningSession>();
 
-      for (const miner of miners) {
-        try {
-          const isMining = await miningPool.isMining(miner.tokenId);
+      for (const cycle of activeCycles) {
+        const pendingRewards = await miningPool.getPendingRewards(
+          cycle.cycleId,
+        );
+        const rewardPerMiner =
+          cycle.minerIds.length > 0
+            ? pendingRewards.totalAmount / BigInt(cycle.minerIds.length)
+            : 0n;
 
-          if (isMining) {
-            const [minerInfo, pendingRewards, minerStats] = await Promise.all([
-              miningPool.getMinerInfo(miner.tokenId),
-              miningPool.getPendingRewards(miner.tokenId),
-              miningPool.getMinerStats(miner.tokenId),
-            ]);
-
-            sessionsMap.set(miner.tokenId.toString(), {
-              owner: minerInfo.owner,
-              startTime: minerStats.lastClaimTime,
-              lastClaim: minerStats.lastClaimTime,
-              power: minerInfo.power,
-              efficiency: minerInfo.efficiency,
-              isActive: true,
-              pendingRewards: pendingRewards.totalAmount,
-            });
-          }
-        } catch (error) {
-          logger.warn(`Error cargando sesión para miner ${miner.tokenId}`, {
-            error,
+        for (const minerId of cycle.minerIds) {
+          const miner = miners.find((entry) => entry.tokenId === minerId);
+          if (!miner) continue;
+          sessionsMap.set(minerId.toString(), {
+            owner: address ?? miner.owner,
+            startTime: BigInt(cycle.startTime),
+            lastClaim: BigInt(cycle.startTime),
+            power: BigInt(miner.miningPower),
+            efficiency: BigInt(miner.efficiency),
+            isActive: cycle.isActive,
+            pendingRewards: rewardPerMiner,
           });
         }
       }
 
-      logger.info("Sesiones cargadas exitosamente", {
-        activeCount: sessionsMap.size,
-      });
       setActiveMinerSessions(sessionsMap);
     } catch (error) {
-      logger.error("Error cargando sesiones de mining", error);
+      logger.error("Error loading Phase 6 mining cycles", error);
     } finally {
       setIsLoadingSessions(false);
     }
@@ -158,22 +141,20 @@ export default function StakingPage() {
   // Cargar sesiones cuando cambien los miners
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (miners.length > 0 && contracts?.miningScheduler) {
-      loadMiningSessions();
-    }
-  }, [miners.length, contracts?.miningScheduler]);
+    void loadMiningSessions();
+  }, [miners.length, activeCycles.length, address]);
 
   // Auto-refresh cada 10 segundos
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!miners.length || !contracts?.miningScheduler) return;
+    if (!miners.length || !activeCycles.length) return;
 
     const interval = setInterval(() => {
-      loadMiningSessions();
+      void loadMiningSessions();
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [miners.length, contracts?.miningScheduler]);
+  }, [miners.length, activeCycles.length, address]);
 
   // Cargar geodas del usuario (disponibles + stakeadas)
   const loadGeodes = async () => {
@@ -190,7 +171,7 @@ export default function StakingPage() {
       const stakedIds = await getStakedGeodes(address);
 
       // 3. Si hay geodas stakeadas, cargarlas también
-      let stakedGeodes: GeodeInventoryInfo[] = [];
+      const stakedGeodes: GeodeInventoryInfo[] = [];
       if (stakedIds.length > 0) {
         // Cargar info de cada geoda stakeada individualmente
         const geodeContract = await contractManager?.getGeodeNFT();
@@ -578,6 +559,10 @@ export default function StakingPage() {
         {showMiningModal && selectedMiner && (
           <MiningModal
             miner={selectedMiner}
+            session={activeMinerSessions.get(selectedMiner.tokenId.toString())}
+            cycle={activeCycles.find((entry) =>
+              entry.minerIds.some((id) => id === selectedMiner.tokenId),
+            )}
             isOpen={showMiningModal}
             onClose={() => {
               setShowMiningModal(false);
@@ -727,16 +712,24 @@ function MinerCard({
 
 interface MiningModalProps {
   miner: CoreMinerNFT;
+  session?: MiningSession;
+  cycle?: import("@/lib/services/cycle").ActiveCycle;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void>;
 }
 
-function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
+function MiningModal({
+  miner,
+  session,
+  cycle,
+  isOpen,
+  onClose,
+  onSuccess,
+}: MiningModalProps) {
   const { address, isConnected } = useWallet();
-  const contracts = useContracts();
-  const { startMining, claimRewards, stopMining, isLoading } = useMining();
-  const { startCycle, bonusInfo } = useCycleManager();
+  const { contractManager } = useContractManager();
+  const { startCycle, endCycle, bonusInfo } = useCycleManager();
   const { toast, showSuccess, showError, showWarning, hideToast } = useToast();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<CycleDuration>(
@@ -750,14 +743,6 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
       return;
     }
 
-    if (!contracts?.miningScheduler) {
-      showWarning(
-        "Contratos no disponibles. Intenta reconectar tu wallet.",
-        "⚠️ Error de Conexión",
-      );
-      return;
-    }
-
     try {
       setActionLoading(true);
       logger.info("Iniciando mining con ciclo", {
@@ -767,16 +752,14 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
         cycleDuration: selectedDuration,
       });
 
-      // Iniciar ciclo si se seleccionó una duración
-      if (showCycleSelector && selectedDuration !== CycleDuration.SHORT) {
-        await startCycle({
-          minerIds: [miner.tokenId],
-          duration: selectedDuration,
-        });
-        logger.info("Ciclo iniciado", { duration: selectedDuration });
-      }
-
-      await startMining(miner.tokenId);
+      const duration = showCycleSelector
+        ? selectedDuration
+        : CycleDuration.SHORT;
+      await startCycle({
+        minerIds: [miner.tokenId],
+        duration,
+      });
+      logger.info("Cycle started", { duration });
 
       logger.info("Mining iniciado exitosamente", {
         minerId: miner.tokenId.toString(),
@@ -799,7 +782,8 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
       logger.info("Reclamando recompensas", {
         minerId: miner.tokenId.toString(),
       });
-      await claimRewards(miner.tokenId);
+      if (!cycle) throw new Error("No active cycle found");
+      await contractManager.getMiningPool().claimRewards(cycle.cycleId);
       logger.info("Recompensas reclamadas exitosamente");
       showSuccess("Recompensas reclamadas exitosamente", "✅ Éxito");
       onSuccess();
@@ -817,7 +801,8 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
     try {
       setActionLoading(true);
       logger.info("Deteniendo mining", { minerId: miner.tokenId.toString() });
-      await stopMining(miner.tokenId);
+      if (!cycle) throw new Error("No active cycle found");
+      await endCycle(cycle.cycleId);
       logger.info("Mining detenido exitosamente");
       showSuccess("Mining detenido exitosamente", "✅ Éxito");
       onSuccess();
@@ -831,9 +816,9 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
     }
   };
 
-  // TODO: Usar useMiningStats para obtener session info
-  const isActive = false; // Placeholder - requiere refactor a facades
-  const hasPending = false;
+  const isActive = Boolean(session && cycle?.isActive);
+  const hasPending = (session?.pendingRewards ?? 0n) > 0n;
+  const canClaim = Boolean(cycle?.isFinished && hasPending);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={miner.name}>
@@ -861,12 +846,14 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
             <button
               type="button"
               onClick={() => setShowCycleSelector(!showCycleSelector)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showCycleSelector ? "bg-purple-600" : "bg-gray-600"
-                }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                showCycleSelector ? "bg-purple-600" : "bg-gray-600"
+              }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showCycleSelector ? "translate-x-6" : "translate-x-1"
-                  }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showCycleSelector ? "translate-x-6" : "translate-x-1"
+                }`}
               />
             </button>
           </div>
@@ -888,7 +875,7 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
               variant="primary"
               className="w-full"
               onClick={handleStartMining}
-              disabled={actionLoading || isLoading || !isConnected}
+              disabled={actionLoading || !isConnected}
             >
               {actionLoading
                 ? "Iniciando..."
@@ -898,12 +885,12 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
             </Button>
           )}
 
-          {isActive && hasPending && (
+          {isActive && canClaim && (
             <Button
               variant="primary"
               className="w-full"
               onClick={handleClaimRewards}
-              disabled={actionLoading || isLoading}
+              disabled={actionLoading}
             >
               {actionLoading ? "Reclamando..." : `💰 Reclamar Recompensas`}
             </Button>
@@ -914,15 +901,46 @@ function MiningModal({ miner, isOpen, onClose, onSuccess }: MiningModalProps) {
               variant="outline"
               className="w-full"
               onClick={handleStopMining}
-              disabled={actionLoading || isLoading}
+              disabled={actionLoading || !cycle?.isFinished}
             >
-              {actionLoading ? "Deteniendo..." : "🛑 Detener Mining"}
+              {actionLoading
+                ? "Ending..."
+                : cycle?.isFinished
+                  ? "End cycle"
+                  : "Cycle locked"}
             </Button>
           )}
         </div>
 
-        {/* Info Adicional */}
-        {/* TODO: Implementar con useMiningStats para mostrar session info */}
+        {cycle && session && (
+          <div className="grid grid-cols-2 gap-3 border border-cyan-100/10 bg-black/30 p-4 text-sm">
+            <div>
+              <p className="text-xs text-cyan-50/45">Cycle</p>
+              <p className="mt-1 font-semibold text-white">
+                #{cycle.cycleId.toString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-cyan-50/45">Pending</p>
+              <p className="mt-1 font-semibold text-emerald-300">
+                {Number(ethers.formatEther(session.pendingRewards)).toFixed(2)}{" "}
+                fCORE
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-cyan-50/45">Ends</p>
+              <p className="mt-1 font-semibold text-white">
+                {new Date(cycle.endTime * 1000).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-cyan-50/45">Bonus</p>
+              <p className="mt-1 font-semibold text-magma-gold">
+                +{cycle.bonusPercentage / 100}%
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Toast para notificaciones del modal */}

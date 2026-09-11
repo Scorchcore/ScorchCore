@@ -63,6 +63,16 @@ export const GEODE_COSTS: Record<GeodeType, ForgeCosts> = {
   },
 } as const;
 
+export const TARGET_USD_WEI: Record<GeodeType, bigint> = {
+  [GeodeType.PETIT]: 6_500_000_000_000_000_000n,
+  [GeodeType.ALTO]: 8_000_000_000_000_000_000n,
+  [GeodeType.ANIMAL]: 10_000_000_000_000_000_000n,
+  [GeodeType.ULTRAMECH]: 20_000_000_000_000_000_000n,
+  [GeodeType.TANQUE]: 34_000_000_000_000_000_000n,
+};
+
+export const ONE_ETHER = 1_000_000_000_000_000_000n;
+
 // ==========================================
 // Sistema de Mementos
 // ==========================================

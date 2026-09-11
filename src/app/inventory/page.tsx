@@ -1,9 +1,11 @@
 "use client";
 
+import { Contract } from "ethers";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { parseEther } from "viem";
 import Lightbox from "yet-another-react-lightbox";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import { HatchRoulette } from "@/components/HatchRoulette";
@@ -30,6 +32,7 @@ import {
 import { Footer } from "@/components/layout";
 import type { HatchResult as ComponentHatchResult } from "@/components/types/HatchTypes";
 import { MinerVideoPlayer } from "@/components/ui/VideoPlayer";
+import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
 import {
   AXIE_CLASS_INFO,
   type AxieClass,
@@ -507,7 +510,8 @@ export default function InventoryPage() {
   } = useUserMiners();
 
   const isLoading = isLoadingGeodes || isLoadingMiners;
-  const isFetching = isFetchingGeodes || isFetchingMiners || isFetchingMoreGeodes;
+  const isFetching =
+    isFetchingGeodes || isFetchingMiners || isFetchingMoreGeodes;
   const error =
     geodesError || minersError
       ? geodesError?.message ||
@@ -619,8 +623,30 @@ export default function InventoryPage() {
           });
           showInfo("Enviando transacción de eclosión...");
 
+          const provider = contractManager.getProvider();
+          if (!provider) throw new Error("Blockchain provider unavailable");
+          const hatcherState = new Contract(
+            CONTRACT_ADDRESSES.GeodeHatcherV2,
+            ["function coreMinerNFT() view returns (address)"],
+            provider,
+          );
+          const cycleState = new Contract(
+            CONTRACT_ADDRESSES.CycleManager,
+            ["function coreMinerNFT() view returns (address)"],
+            provider,
+          );
+          const [hatcherMiner, cycleMiner] = await Promise.all([
+            hatcherState.coreMinerNFT(),
+            cycleState.coreMinerNFT(),
+          ]);
+          if (hatcherMiner.toLowerCase() !== cycleMiner.toLowerCase()) {
+            throw new Error(
+              "Hatching is temporarily disabled because GeodeHatcherV2 and CycleManager use different CoreMinerNFTV2 contracts.",
+            );
+          }
+
           logger.info("🔵 [DEBUG] Obteniendo GeodeHatcher contract");
-          const geodeHatcher = contractManager.getGeodeHatcher();
+          const geodeHatcher = contractManager.getGeodeHatcherV2();
 
           logger.info(
             "🔵 [DEBUG] GeodeHatcher obtenido, llamando openGeode...",
@@ -634,7 +660,9 @@ export default function InventoryPage() {
           let result: Awaited<ReturnType<typeof geodeHatcher.openGeode>>;
           try {
             logger.info("🔵 [DEBUG] JUSTO ANTES de llamar openGeode");
-            result = await geodeHatcher.openGeode(geodeId);
+            result = await geodeHatcher.openGeode(geodeId, {
+              value: parseEther("0.05"),
+            });
             logger.info("🔵 [DEBUG] JUSTO DESPUES de llamar openGeode", {
               txHash: result.transaction.hash,
               minerId: result.minerId.toString(),
@@ -925,6 +953,7 @@ export default function InventoryPage() {
                     {hasMoreGeodes && (
                       <div className="mt-6 flex justify-center">
                         <button
+                          type="button"
                           onClick={() => fetchMoreGeodes()}
                           disabled={isFetchingMoreGeodes}
                           className="alchemy-btn-secondary flex items-center gap-2 px-6 py-2.5 text-sm font-medium uppercase tracking-widest disabled:opacity-50"
@@ -935,7 +964,7 @@ export default function InventoryPage() {
                               Loading...
                             </>
                           ) : (
-                            <>Load More Geodes</>
+                            "Load More Geodes"
                           )}
                         </button>
                       </div>

@@ -10,7 +10,6 @@
 
 import { Contract } from "ethers";
 import type { Address } from "viem";
-import { getDeploymentBlock } from "@/lib/config/deployment.config";
 import type { ContractManager } from "@/lib/contracts/ContractManager";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 import { chainReadClient } from "@/lib/utils/network/chainReadClient";
@@ -119,7 +118,7 @@ export class NFTFacade {
         throw new Error("Provider not available");
       }
 
-      const minerContract = this.contractManager.getCoreMinerNFT();
+      const minerContract = this.contractManager.getCoreMinerNFTV2();
 
       const balance = await chainReadClient.read<bigint>(
         () => minerContract.balanceOf(address),
@@ -130,58 +129,19 @@ export class NFTFacade {
         return [];
       }
 
-      const currentBlock = await chainReadClient.read(
-        () => provider.getBlockNumber(),
-        { label: "NFTFacade.currentBlock" },
+      const tokenIds = await chainReadClient.read<bigint[]>(
+        () => minerContract.tokensOfOwner(address),
+        { label: "NFTFacade.tokensOfOwner" },
       );
-      const fromBlock = getDeploymentBlock(currentBlock);
 
-      logger.debug("Scanning MinerMinted events", {
-        fromBlock,
-        currentBlock,
-        balance: balance.toString(),
-      });
-
-      // Phase 1: Scan events to collect candidate tokenIds (fast, no ownerOf)
-      const candidateTokenIds: bigint[] = [];
-      await chainReadClient.readEventChunks({
-        label: "NFTFacade.MinerMinted",
-        fromBlock,
-        toBlock: currentBlock,
-        direction: "desc",
-        query: async (from, to) => {
-          const filter = minerContract.contract.filters.MinerMinted(address);
-          const events = await minerContract.contract.queryFilter(
-            filter,
-            from,
-            to,
-          );
-          for (const event of events) {
-            const tokenId = event.args?.tokenId;
-            if (tokenId) candidateTokenIds.push(tokenId);
-          }
-          return events;
-        },
-      });
-
-      logger.info("Candidate tokenIds from events", {
-        count: candidateTokenIds.length,
-      });
-
-      // Phase 2: Batch verify ownership + load data in parallel (with concurrency limit)
       const BATCH_SIZE = 5;
       const miners: CoreMinerNFT[] = [];
 
-      for (let i = 0; i < candidateTokenIds.length; i += BATCH_SIZE) {
-        const batch = candidateTokenIds.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < tokenIds.length; i += BATCH_SIZE) {
+        const batch = tokenIds.slice(i, i + BATCH_SIZE);
         const batchResults = await Promise.all(
           batch.map(async (tokenId) => {
             try {
-              const owner = await chainReadClient.read<string>(
-                () => minerContract.ownerOf(tokenId),
-                { label: `NFTFacade.ownerOf:${tokenId.toString()}` },
-              );
-              if (owner.toLowerCase() !== address.toLowerCase()) return null;
               return await this.getMinerData(tokenId, address);
             } catch {
               logger.debug(`Token ${tokenId} burned or nonexistent`);
@@ -192,7 +152,7 @@ export class NFTFacade {
         for (const miner of batchResults) {
           if (miner) {
             miners.push(miner);
-            options?.onProgress?.(miners);
+            options?.onProgress?.([...miners]);
           }
         }
       }
@@ -214,11 +174,12 @@ export class NFTFacade {
     owner: Address,
   ): Promise<CoreMinerNFT | null> {
     try {
-      const minerContract = this.contractManager.getCoreMinerNFT();
+      const minerContract = this.contractManager.getCoreMinerNFTV2();
       const minerData = await chainReadClient.read<{
         category: bigint | number;
         minerType: bigint | number;
         minerIndex: bigint | number;
+        power: bigint | number;
       }>(() => minerContract.getMinerData(tokenId), {
         label: `NFTFacade.getMinerData:${tokenId.toString()}`,
       });
@@ -227,16 +188,12 @@ export class NFTFacade {
       const { getLocalMinerName, getLocalMinerVideo, getLocalMinerType } =
         await import("@/lib/utils/data/localMinerData");
 
-      const { getMinerPower } = await import(
-        "@/lib/services/LocalMetadataService"
-      );
-
       // Extraer datos del contrato
       const category = Number(minerData.category);
       const minerType = Number(minerData.minerType);
       const minerIndex = Number(minerData.minerIndex);
 
-      // Generar nombre, video y poder desde metadata local
+      // Generar nombre y video desde metadata local; power es autoritativo on-chain
       const realMinerName = await getLocalMinerName(
         category,
         minerType,
@@ -247,7 +204,7 @@ export class NFTFacade {
         minerType,
         minerIndex,
       );
-      const power = await getMinerPower(category, minerType, minerIndex); // ✅ Poder real desde metadata
+      const power = Number(minerData.power);
       const typeString = getLocalMinerType(minerType);
 
       logger.info("Miner data loaded", {

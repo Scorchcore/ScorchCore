@@ -256,9 +256,8 @@ export function getMementoIcon(axieClass: AxieClass): string {
 }
 
 // Helper: verificar si una categoría está disponible (tiene assets)
-export function isCategoryAvailable(_category: GeodeCategory): boolean {
-  // Todas las categorías están disponibles ahora que tenemos iconos y videos
-  return true;
+export function isCategoryAvailable(category: GeodeCategory): boolean {
+  return category <= GeodeCategory.ANIMAL;
 }
 
 // Helper: verificar si una categoría tiene videos disponibles

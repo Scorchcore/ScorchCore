@@ -86,7 +86,7 @@ export function useContracts(): UseContractsReturn {
     coreMinerNFT: CONTRACT_ADDRESSES.CoreMinerNFT as Address,
     geodeNFT: CONTRACT_ADDRESSES.GeodeNFT as Address,
     miningContract: miningPoolAddress,
-    forgeContract: CONTRACT_ADDRESSES.GeodeNFT as Address, // GeodeNFT actúa como forge
+    forgeContract: CONTRACT_ADDRESSES.ForgeFactory as Address,
     coreToken: CONTRACT_ADDRESSES.CoreToken as Address,
     scorchHeartTransmuter: TESTNET_CONTRACTS.scorchHeartTransmuter,
     mementoToken: mementoAddress,

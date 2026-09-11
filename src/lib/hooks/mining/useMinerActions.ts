@@ -192,9 +192,15 @@ export function useMinerActions(): UseMinerActionsReturn {
       log.info('Claiming rewards', { minerId: minerId.toString() });
 
       const miningFacade = createMiningService(contractManager);
-      
-      // Reclamar recompensas
-      const result = await miningFacade.claimRewards(minerId);
+      const cycleService = createCycleService(contractManager);
+      const cycles = await cycleService.getUserActiveCycles(address);
+      const cycle = cycles.find((entry) =>
+        entry.minerIds.some((id) => id === minerId),
+      );
+      if (!cycle) {
+        throw new Error('No active cycle found for this miner');
+      }
+      const result = await miningFacade.claimRewards(cycle.cycleId);
 
       log.info('Rewards claimed successfully', {
         minerId: minerId.toString(),
