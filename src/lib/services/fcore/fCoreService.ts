@@ -1,23 +1,23 @@
 /**
  * fCoreService - Servicio de negocio para el sistema fCORE Anti-Bot
- * 
+ *
  * @pattern Service Layer Pattern
  * @pattern Facade Pattern - Simplifica interacción con múltiples contratos
  */
 
-import type { Address } from 'viem';
-import { formatUnits, parseUnits } from 'viem';
-import { ContractManager } from '@/lib/contracts/ContractManager';
-import type { 
-  fCoreBalanceState, 
-  PohVerificationInfo, 
-  ConvertfCoreParams, 
+import type { Address } from "viem";
+import { formatUnits, parseUnits } from "viem";
+import type { ContractManager } from "@/lib/contracts/ContractManager";
+import { createServiceLogger } from "@/lib/utils/logging/logger";
+import type {
+  ConvertfCoreParams,
   ConvertfCoreResult,
-  fCoreSystemInfo 
-} from './types';
-import { createServiceLogger } from '@/lib/utils/logging/logger';
+  fCoreBalanceState,
+  fCoreSystemInfo,
+  PohVerificationInfo,
+} from "./types";
 
-const log = createServiceLogger('fCoreService');
+const log = createServiceLogger("fCoreService");
 
 /**
  * Servicio para gestionar operaciones del sistema fCORE
@@ -34,21 +34,30 @@ export class fCoreService {
    */
   async getfCoreBalance(userAddress: Address): Promise<fCoreBalanceState> {
     try {
-      log.info('Getting fCORE balance', { userAddress });
+      log.info("Getting fCORE balance", { userAddress });
 
       const fCoreToken = this.contractManager.getfCoreToken();
       const fCoreConverter = this.contractManager.getfCoreConverter();
 
-      const [balance, canConvert, convertibleAmount, conversionRate] = await Promise.all([
+      const [
+        balance,
+        canConvert,
+        convertibleAmount,
+        conversionRate,
+        conversionFeeBps,
+        minEarnedToConvert,
+      ] = await Promise.all([
         fCoreToken.balanceOf(userAddress),
         fCoreConverter.canConvert(userAddress),
         fCoreConverter.getConvertibleAmount(userAddress),
         fCoreConverter.getConversionRate(),
+        fCoreConverter.conversionFeeBps(),
+        fCoreConverter.minEarnedToConvert(),
       ]);
 
       const balanceFormatted = formatUnits(balance, 18);
 
-      log.info('fCORE balance retrieved', {
+      log.info("fCORE balance retrieved", {
         userAddress,
         balance: balance.toString(),
         canConvert,
@@ -62,9 +71,11 @@ export class fCoreService {
         isPohVerified: canConvert && balance > 0n,
         convertibleAmount,
         conversionRate,
+        conversionFeeBps,
+        minEarnedToConvert,
       };
     } catch (error) {
-      log.error('Error getting fCORE balance', { userAddress, error });
+      log.error("Error getting fCORE balance", { userAddress, error });
       throw error;
     }
   }
@@ -74,7 +85,7 @@ export class fCoreService {
    */
   async getPohVerification(userAddress: Address): Promise<PohVerificationInfo> {
     try {
-      log.info('Getting PoH verification', { userAddress });
+      log.info("Getting PoH verification", { userAddress });
 
       const pohOracle = this.contractManager.getPohOracle();
 
@@ -84,9 +95,10 @@ export class fCoreService {
       ]);
 
       const now = BigInt(Math.floor(Date.now() / 1000));
-      const isExpired = verificationData.expiresAt > 0n && now > verificationData.expiresAt;
+      const isExpired =
+        verificationData.expiresAt > 0n && now > verificationData.expiresAt;
 
-      log.info('PoH verification retrieved', {
+      log.info("PoH verification retrieved", {
         userAddress,
         isVerified,
         level: verificationData.level,
@@ -101,7 +113,7 @@ export class fCoreService {
         isExpired,
       };
     } catch (error) {
-      log.error('Error getting PoH verification', { userAddress, error });
+      log.error("Error getting PoH verification", { userAddress, error });
       throw error;
     }
   }
@@ -113,46 +125,59 @@ export class fCoreService {
     const { amount, userAddress } = params;
 
     try {
-      log.info('Converting fCORE', { userAddress, amount: amount?.toString() });
+      log.info("Converting fCORE", { userAddress, amount: amount?.toString() });
 
       const fCoreConverter = this.contractManager.getfCoreConverter();
 
       // Verificar que el usuario puede convertir
       const canConvert = await fCoreConverter.canConvert(userAddress);
       if (!canConvert) {
-        log.warn('User cannot convert fCORE - PoH not verified or no balance', { userAddress });
+        log.warn("User cannot convert fCORE - PoH not verified or no balance", {
+          userAddress,
+        });
         return {
           success: false,
           fCoreConverted: 0n,
           coreReceived: 0n,
-          error: 'No tienes verificación PoH o no tienes balance de fCORE',
+          feeAmount: 0n,
+          error: "No tienes verificación PoH o no tienes balance de fCORE",
         };
       }
 
+      const fCoreToken = this.contractManager.getfCoreToken();
+      const fCoreConverted =
+        amount ?? (await fCoreToken.balanceOf(userAddress));
+      const [conversionRate, conversionFeeBps] = await Promise.all([
+        fCoreConverter.getConversionRate(),
+        fCoreConverter.conversionFeeBps(),
+      ]);
+
       // Convertir todo o cantidad específica
-      const result = amount 
+      const result = amount
         ? await fCoreConverter.convert(amount)
         : await fCoreConverter.convertAll();
 
       if (!result.success) {
-        log.error('Conversion failed', { userAddress, error: result.error });
+        log.error("Conversion failed", { userAddress, error: result.error });
         return {
           success: false,
           fCoreConverted: 0n,
           coreReceived: 0n,
-          error: result.error?.message || 'Error al convertir fCORE',
+          feeAmount: 0n,
+          error: result.error?.message || "Error al convertir fCORE",
         };
       }
 
-      // La conversión es 1:1, así que fCore convertido = Core recibido
-      const fCoreConverted = amount || await fCoreConverter.getConvertibleAmount(userAddress);
-      const coreReceived = fCoreConverted; // 1:1 ratio
+      const coreOut = (fCoreConverted * conversionRate) / 10n ** 18n;
+      const feeAmount = (coreOut * conversionFeeBps) / 10000n;
+      const coreReceived = coreOut - feeAmount;
 
-      log.info('fCORE converted successfully', {
+      log.info("fCORE converted successfully", {
         userAddress,
         txHash: result.hash,
         fCoreConverted: fCoreConverted.toString(),
         coreReceived: coreReceived.toString(),
+        feeAmount: feeAmount.toString(),
       });
 
       return {
@@ -160,14 +185,20 @@ export class fCoreService {
         txHash: result.hash,
         fCoreConverted,
         coreReceived,
+        feeAmount,
       };
     } catch (error) {
-      log.error('Error converting fCORE', { userAddress, amount: amount?.toString(), error });
+      log.error("Error converting fCORE", {
+        userAddress,
+        amount: amount?.toString(),
+        error,
+      });
       return {
         success: false,
         fCoreConverted: 0n,
         coreReceived: 0n,
-        error: error instanceof Error ? error.message : 'Error desconocido',
+        feeAmount: 0n,
+        error: error instanceof Error ? error.message : "Error desconocido",
       };
     }
   }
@@ -177,16 +208,16 @@ export class fCoreService {
    */
   async getSystemInfo(userAddress: Address): Promise<fCoreSystemInfo> {
     try {
-      log.info('Getting fCORE system info', { userAddress });
+      log.info("Getting fCORE system info", { userAddress });
 
       const [fCoreBalance, pohVerification] = await Promise.all([
         this.getfCoreBalance(userAddress),
         this.getPohVerification(userAddress),
       ]);
 
-      const canPerformConversion = 
-        fCoreBalance.canConvert && 
-        pohVerification.isVerified && 
+      const canPerformConversion =
+        fCoreBalance.canConvert &&
+        pohVerification.isVerified &&
         !pohVerification.isExpired &&
         fCoreBalance.balance > 0n;
 
@@ -199,7 +230,7 @@ export class fCoreService {
         estimatedCoreReceivable,
       };
     } catch (error) {
-      log.error('Error getting fCORE system info', { userAddress, error });
+      log.error("Error getting fCORE system info", { userAddress, error });
       throw error;
     }
   }
@@ -212,7 +243,7 @@ export class fCoreService {
       const fCoreConverter = this.contractManager.getfCoreConverter();
       return await fCoreConverter.getConversionRate();
     } catch (error) {
-      log.error('Error getting conversion rate', { error });
+      log.error("Error getting conversion rate", { error });
       throw error;
     }
   }
@@ -235,6 +266,8 @@ export class fCoreService {
 /**
  * Factory para crear instancia del servicio
  */
-export function createfCoreService(contractManager: ContractManager): fCoreService {
+export function createfCoreService(
+  contractManager: ContractManager,
+): fCoreService {
   return new fCoreService(contractManager);
 }

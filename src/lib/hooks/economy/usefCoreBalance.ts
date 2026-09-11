@@ -88,6 +88,7 @@ export function usefCoreBalance(): UsefCoreBalanceReturn {
           success: false,
           fCoreConverted: 0n,
           coreReceived: 0n,
+          feeAmount: 0n,
           error: "Wallet no conectado",
         };
       }
@@ -129,6 +130,7 @@ export function usefCoreBalance(): UsefCoreBalanceReturn {
           success: false,
           fCoreConverted: 0n,
           coreReceived: 0n,
+          feeAmount: 0n,
           error: errorMessage,
         };
       } finally {

@@ -76,8 +76,12 @@ export async function getMinerVideoUrl(
   minerId: bigint,
   metadataService?: MetadataService,
 ): Promise<string> {
+  if (!metadataService) {
+    return "/images/miners/fallback.mp4";
+  }
+
   try {
-    const service = metadataService || (await createMetadataServiceInstance());
+    const service = metadataService;
 
     log.debug("Fetching miner video URL from metadata", {
       minerId: minerId.toString(),
@@ -93,16 +97,16 @@ export async function getMinerVideoUrl(
       return metadata.animation_url;
     }
 
-    log.debug("No animation_url in metadata, using empty string", {
+    log.debug("No animation_url in metadata, using fallback", {
       minerId: minerId.toString(),
     });
-    return ""; // No hay video disponible
+    return "/images/miners/fallback.mp4";
   } catch (error) {
     log.warn("Failed to fetch miner video from metadata", {
       minerId: minerId.toString(),
       error: error instanceof Error ? error.message : String(error),
     });
-    return ""; // Fallback a sin video en caso de error
+    return "/images/miners/fallback.mp4";
   }
 }
 

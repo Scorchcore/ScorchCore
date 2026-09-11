@@ -14,6 +14,8 @@ export interface fCoreBalanceState {
   isPohVerified: boolean;
   convertibleAmount: bigint;
   conversionRate: bigint;
+  conversionFeeBps: bigint;
+  minEarnedToConvert: bigint;
 }
 
 /**
@@ -43,6 +45,7 @@ export interface ConvertfCoreResult {
   txHash?: string;
   fCoreConverted: bigint;
   coreReceived: bigint;
+  feeAmount: bigint;
   error?: string;
 }
 

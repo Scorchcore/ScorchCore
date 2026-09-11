@@ -37,8 +37,13 @@ export class TokenService implements ITokenService {
   async getBalance(tokenAddress: Address, userAddress: Address): Promise<bigint> {
     log.info('Getting balance', { token: tokenAddress, user: userAddress });
     
-    const tokenContract = this.contractManager.getERC20Token(tokenAddress);
-    return await tokenContract.balanceOf(userAddress);
+    try {
+      const tokenContract = this.contractManager.getERC20Token(tokenAddress);
+      return await tokenContract.balanceOf(userAddress);
+    } catch (error) {
+      log.error('Failed to get balance', { token: tokenAddress, user: userAddress, error });
+      return 0n;
+    }
   }
 
   /**
@@ -47,10 +52,12 @@ export class TokenService implements ITokenService {
   async getFormattedBalance(
     tokenAddress: Address,
     userAddress: Address,
-    decimals: number = 18
+    decimals?: number
   ): Promise<string> {
+    const tokenContract = this.contractManager.getERC20Token(tokenAddress);
     const balance = await this.getBalance(tokenAddress, userAddress);
-    return ethers.formatUnits(balance, decimals);
+    const tokenDecimals = decimals ?? await tokenContract.decimals();
+    return ethers.formatUnits(balance, tokenDecimals);
   }
 
   /**
@@ -121,7 +128,7 @@ export class TokenService implements ITokenService {
 
     return {
       hash: tx.hash || '',
-      success: true,
+      success: tx.success !== false,
     };
   }
 

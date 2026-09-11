@@ -8,6 +8,9 @@ interface fCoreBalanceCardProps {
   fCoreBalance: bigint;
   coreEstimate: bigint;
   conversionRate: bigint;
+  conversionFeeBps?: bigint;
+  minEarnedToConvert?: bigint;
+  userActivity?: bigint;
   isPohVerified: boolean;
   canConvert: boolean;
   onConvertClick: () => void;
@@ -21,6 +24,9 @@ export function fCoreBalanceCard({
   fCoreBalance,
   coreEstimate,
   conversionRate,
+  conversionFeeBps = 0n,
+  minEarnedToConvert = 0n,
+  userActivity = 0n,
   isPohVerified,
   canConvert,
   onConvertClick,
@@ -29,6 +35,10 @@ export function fCoreBalanceCard({
   const fCoreFormatted = formatUnits(fCoreBalance, 18);
   const coreFormatted = formatUnits(coreEstimate, 18);
   const rateFormatted = formatUnits(conversionRate, 18);
+  const feePercent = Number(conversionFeeBps) / 100;
+  const activityProgress = minEarnedToConvert > 0n
+    ? Math.min(100, Number((userActivity * 100n) / minEarnedToConvert))
+    : 100;
 
   const hasfCoreBalance = fCoreBalance > 0n;
 
@@ -83,9 +93,22 @@ export function fCoreBalanceCard({
         {/* Conversion Rate */}
         <div className="flex items-center justify-center gap-2 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
           <span className="text-sm text-gray-300">
-            Tasa de conversión: <span className="font-bold text-purple-300">1 fCORE = {rateFormatted} CORE</span>
+            Conversion rate: <span className="font-bold text-purple-300">1 fCORE = {rateFormatted} CORE</span>
+            {feePercent > 0 && ` · ${feePercent.toFixed(2)}% fee`}
           </span>
         </div>
+
+        {minEarnedToConvert > 0n && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span>Conversion activity requirement</span>
+              <span>{activityProgress.toFixed(0)}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-gray-700">
+              <div className="h-full rounded-full bg-amber-500" style={{ width: `${activityProgress}%` }} />
+            </div>
+          </div>
+        )}
 
         {/* Status & Actions */}
         {hasfCoreBalance ? (

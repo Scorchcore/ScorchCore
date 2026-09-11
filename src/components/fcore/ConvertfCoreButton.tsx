@@ -2,9 +2,15 @@
 
 import { useState } from 'react';
 import { ArrowRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { formatUnits } from 'viem';
 
 interface ConvertfCoreButtonProps {
-  onConvert: (amount?: bigint) => Promise<{ success: boolean; error?: string }>;
+  onConvert: (amount?: bigint) => Promise<{
+    success: boolean;
+    error?: string;
+    coreReceived?: bigint;
+    feeAmount?: bigint;
+  }>;
   disabled?: boolean;
   className?: string;
   variant?: 'full' | 'compact';
@@ -30,9 +36,19 @@ export function ConvertfCoreButton({
       const res = await onConvert();
       
       if (res.success) {
+        const core = res.coreReceived
+          ? Number(formatUnits(res.coreReceived, 18)).toFixed(2)
+          : null;
+        const fee = res.feeAmount
+          ? Number(formatUnits(res.feeAmount, 18)).toFixed(2)
+          : null;
         setResult({
           success: true,
-          message: '¡fCORE convertido exitosamente!',
+          message: core
+            ? fee
+              ? `Converted ${core} CORE (${fee} CORE fee)`
+              : `Converted ${core} CORE`
+            : 'fCORE converted successfully',
         });
         
         setTimeout(() => setResult(null), 3000);

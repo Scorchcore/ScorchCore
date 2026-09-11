@@ -73,7 +73,7 @@ describe('AXIE_CLASS_INFO', () => {
       expect(typeof classInfo.color).toBe('string');
       
       expect(classInfo.name.length).toBeGreaterThan(0);
-      expect(classInfo.icon).toContain('/images/');
+      expect(classInfo.icon).toMatch(/^\/(images|assets)\//);
       expect(classInfo.color).toMatch(/^#[0-9a-f]{6}$/i);
     });
   });
