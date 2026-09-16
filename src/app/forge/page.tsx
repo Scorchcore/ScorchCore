@@ -243,6 +243,7 @@ export default function ForgePage() {
     data: axies = [],
     isFetching: isFetchingAxies,
     error: axiesError,
+    refetch: refetchAxies,
   } = useUserAxies();
   const { afterForge, afterMockAxieClaim } = useInvalidateOnTx();
 
@@ -1180,24 +1181,41 @@ export default function ForgePage() {
                 <ChevronLeft className="h-4 w-4" />
                 Volver a clases
               </button>
-              {chainId === RONIN_TESTNET_ID && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
                   type="button"
-                  variant="primary"
+                  variant="secondary"
                   size="sm"
-                  onClick={handleClaimFakeAxies}
-                  isLoading={isClaimingFakeAxies}
-                  disabled={
-                    isClaimingFakeAxies || faucetClaims >= MAX_FAUCET_CLAIMS
+                  onClick={() => void refetchAxies()}
+                  disabled={isFetchingAxies}
+                  leftIcon={
+                    <RefreshCw
+                      className={`h-4 w-4 ${isFetchingAxies ? "animate-spin" : ""}`}
+                    />
                   }
-                  leftIcon={<Plus className="h-4 w-4" />}
                   className="w-full sm:w-auto text-[10px] sm:text-xs"
                 >
-                  {faucetClaims >= MAX_FAUCET_CLAIMS
-                    ? "Faucet limit reached"
-                    : `Faucet (${faucetClaims}/${MAX_FAUCET_CLAIMS})`}
+                  Actualizar
                 </Button>
-              )}
+                {chainId === RONIN_TESTNET_ID && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={handleClaimFakeAxies}
+                    isLoading={isClaimingFakeAxies}
+                    disabled={
+                      isClaimingFakeAxies || faucetClaims >= MAX_FAUCET_CLAIMS
+                    }
+                    leftIcon={<Plus className="h-4 w-4" />}
+                    className="w-full sm:w-auto text-[10px] sm:text-xs"
+                  >
+                    {faucetClaims >= MAX_FAUCET_CLAIMS
+                      ? "Faucet limit reached"
+                      : `Faucet (${faucetClaims}/${MAX_FAUCET_CLAIMS})`}
+                  </Button>
+                )}
+              </div>
             </div>
             <h2 className="alchemy-heading-strong text-balance text-center text-3xl leading-tight md:text-5xl mb-2">
               3. Selecciona tus Axies

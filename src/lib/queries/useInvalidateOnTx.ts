@@ -23,6 +23,9 @@ export function useInvalidateOnTx() {
     queryClient.invalidateQueries({
       queryKey: queryKeys.inventory.axies(chainId, address),
     });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.balances.mementos(chainId, address),
+    });
   }, [queryClient, chainId, address]);
 
   const afterHatch = useCallback(() => {
