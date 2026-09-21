@@ -1,11 +1,11 @@
 'use client';
 
 import { RefreshCw, Info, AlertTriangle } from 'lucide-react';
-import { Button, Loading, Card } from '@/components/ui';
+import { Button, Loading, Card, Toast } from '@/components/ui';
 import { useVesting } from '@/lib/hooks/economy/useVesting';
 import { VestingCard } from './VestingCard';
 import { VestingStatsCard } from './VestingStatsCard';
-import { useToast } from '@/components/ui';
+import { useTransactionErrorToast } from '@/components/ui';
 
 interface VestingDashboardProps {
   className?: string;
@@ -26,14 +26,15 @@ export function VestingDashboard({ className = '' }: VestingDashboardProps) {
     hasSchedules,
     hasReleasable,
   } = useVesting();
-  const { showSuccess, showError } = useToast();
+  const { toast, showSuccess, hideToast, showTransactionError } =
+    useTransactionErrorToast();
 
   const handleRelease = async (scheduleId: bigint) => {
     try {
       await release(scheduleId);
       showSuccess('Tokens liberados exitosamente');
     } catch (error) {
-      showError('Error al liberar tokens');
+      showTransactionError(error, 'Error al liberar tokens');
     }
   };
 
@@ -153,6 +154,17 @@ export function VestingDashboard({ className = '' }: VestingDashboardProps) {
           ))}
         </div>
       </div>
+
+      {/* Toast para errores de liberación */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          title={toast.title}
+          action={toast.action}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

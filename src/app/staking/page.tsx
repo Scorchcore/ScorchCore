@@ -12,7 +12,12 @@ import {
 } from "@/components/cycle";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import { MinerStatsHistoryCardCompact } from "@/components/minerstats";
-import { Badge, Modal, Toast, useToast } from "@/components/ui";
+import {
+  Badge,
+  Modal,
+  Toast,
+  useTransactionErrorToast,
+} from "@/components/ui";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import {
@@ -51,7 +56,14 @@ export default function StakingPage() {
   const router = useRouter();
   const { address, isConnected } = useWallet();
   const { contractManager } = useContractManager();
-  const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
+  const {
+    toast,
+    showSuccess,
+    showError,
+    showInfo,
+    hideToast,
+    showTransactionError,
+  } = useTransactionErrorToast();
   const {
     miners,
     isLoadingMiners,
@@ -243,9 +255,7 @@ export default function StakingPage() {
       await loadGeodes(); // Recarga todo (disponibles + stakeadas)
     } catch (error) {
       logger.error("Error stakeando geoda", error);
-      const errorMsg =
-        error instanceof Error ? error.message : "Error al stakear geoda";
-      showError(errorMsg);
+      showTransactionError(error, "Error al stakear geoda");
     }
   };
 
@@ -258,7 +268,7 @@ export default function StakingPage() {
       await loadGeodes(); // Recarga todo (disponibles + stakeadas)
     } catch (error) {
       logger.error("Error unstakeando geoda", error);
-      showError("Error al unstakear geoda");
+      showTransactionError(error, "Error al unstakear geoda");
     }
   };
 
@@ -584,6 +594,7 @@ export default function StakingPage() {
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}
@@ -730,7 +741,14 @@ function MiningModal({
   const { address, isConnected } = useWallet();
   const { contractManager } = useContractManager();
   const { startCycle, endCycle, bonusInfo } = useCycleManager();
-  const { toast, showSuccess, showError, showWarning, hideToast } = useToast();
+  const {
+    toast,
+    showSuccess,
+    showError,
+    showWarning,
+    hideToast,
+    showTransactionError,
+  } = useTransactionErrorToast();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<CycleDuration>(
     CycleDuration.SHORT,
@@ -768,9 +786,7 @@ function MiningModal({
       onSuccess();
     } catch (error) {
       logger.error("Error al iniciar mining", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Error desconocido";
-      showError(`Error al iniciar mining: ${errorMessage}`, "❌ Error");
+      showTransactionError(error, "Error al iniciar mining", "❌ Error");
     } finally {
       setActionLoading(false);
     }
@@ -789,9 +805,7 @@ function MiningModal({
       onSuccess();
     } catch (error) {
       logger.error("Error al reclamar recompensas", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Error desconocido";
-      showError(`Error al reclamar recompensas: ${errorMessage}`, "❌ Error");
+      showTransactionError(error, "Error al reclamar recompensas", "❌ Error");
     } finally {
       setActionLoading(false);
     }
@@ -808,9 +822,7 @@ function MiningModal({
       onSuccess();
     } catch (error) {
       logger.error("Error al detener mining", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Error desconocido";
-      showError(`Error al detener mining: ${errorMessage}`, "❌ Error");
+      showTransactionError(error, "Error al detener mining", "❌ Error");
     } finally {
       setActionLoading(false);
     }
@@ -949,6 +961,7 @@ function MiningModal({
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}

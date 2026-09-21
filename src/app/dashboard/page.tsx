@@ -36,7 +36,11 @@ import {
   MinerPerformanceChart,
   MinerStatsHistoryCard,
 } from "@/components/minerstats";
-import { Loading, Toast, useToast } from "@/components/ui";
+import {
+  Loading,
+  Toast,
+  useTransactionErrorToast,
+} from "@/components/ui";
 import type { AxieClass, GeodeCategory } from "@/lib/constants/geodes";
 import type { CycleDuration } from "@/lib/contracts/interfaces/ICycleContract";
 import { useMinerActions } from "@/lib/hooks/mining/useMinerActions";
@@ -456,7 +460,13 @@ export default function DashboardPage() {
     stakeAxie,
     unstakeAxie,
   } = useAxies();
-  const { toast, showSuccess, showError, hideToast } = useToast();
+  const {
+    toast,
+    showSuccess,
+    showError,
+    hideToast,
+    showTransactionError,
+  } = useTransactionErrorToast();
   const {
     activateMiner,
     deactivateMiner,
@@ -611,14 +621,14 @@ export default function DashboardPage() {
         setSelectedMinerForConfig(null);
         await refreshCycles();
       } else {
-        showError(result.error || "Error activating miner");
+        showTransactionError(result.error, "Error activating miner");
       }
     },
     [
       selectedMinerForConfig,
       activateMiner,
       showSuccess,
-      showError,
+      showTransactionError,
       refreshCycles,
     ],
   );
@@ -632,10 +642,10 @@ export default function DashboardPage() {
         );
         await refreshCycles();
       } else {
-        showError(result.error || "Error deactivating miner");
+        showTransactionError(result.error, "Error deactivating miner");
       }
     },
-    [deactivateMiner, showSuccess, showError, refreshCycles],
+    [deactivateMiner, showSuccess, showTransactionError, refreshCycles],
   );
 
   const handleClaimRewards = React.useCallback(
@@ -646,10 +656,10 @@ export default function DashboardPage() {
           `Rewards claimed! Tx: ${result.transactionHash?.slice(0, 10)}…`,
         );
       } else {
-        showError(result.error || "Error claiming rewards");
+        showTransactionError(result.error, "Error claiming rewards");
       }
     },
-    [claimRewards, showSuccess, showError],
+    [claimRewards, showSuccess, showTransactionError],
   );
 
   // ── Connection guard ───────────────────────────────────────────────────────
@@ -825,14 +835,13 @@ export default function DashboardPage() {
                         showSuccess("fCORE converted to CORE successfully");
                         afterFCoreConvert();
                       } else {
-                        showError(result.error || "Error converting fCORE");
+                        showTransactionError(
+                          result.error,
+                          "Error converting fCORE",
+                        );
                       }
                     } catch (error) {
-                      showError(
-                        error instanceof Error
-                          ? error.message
-                          : "Unknown error",
-                      );
+                      showTransactionError(error, "Error converting fCORE");
                     }
                   }}
                   isLoading={isLoadingfCore}
@@ -1267,9 +1276,7 @@ export default function DashboardPage() {
                         await stakeAxie(axieId);
                         showSuccess("Axie staked successfully");
                       } catch (error) {
-                        showError(
-                          `Staking error: ${error instanceof Error ? error.message : "Unknown error"}`,
-                        );
+                        showTransactionError(error, "Staking error");
                       }
                     }}
                     onUnstake={async (axieId) => {
@@ -1277,9 +1284,7 @@ export default function DashboardPage() {
                         await unstakeAxie(axieId);
                         showSuccess("Axie unstaked successfully");
                       } catch (error) {
-                        showError(
-                          `Unstaking error: ${error instanceof Error ? error.message : "Unknown error"}`,
-                        );
+                        showTransactionError(error, "Unstaking error");
                       }
                     }}
                     isLoading={isAxiesHookLoading}
@@ -1317,6 +1322,7 @@ export default function DashboardPage() {
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}

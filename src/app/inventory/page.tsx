@@ -10,7 +10,11 @@ import Lightbox from "yet-another-react-lightbox";
 import { GeodeVideo } from "@/components/GeodeVideo";
 import { HatchRoulette } from "@/components/HatchRoulette";
 import { HatchSuccessModal } from "@/components/HatchSuccessModal";
-import { Loading, Toast, useToast } from "@/components/ui";
+import {
+  Loading,
+  Toast,
+  useTransactionErrorToast,
+} from "@/components/ui";
 import { useWallet } from "@/lib/hooks/user/useWallet";
 import "yet-another-react-lightbox/styles.css";
 import {
@@ -486,7 +490,14 @@ function ChainStatusBanner({
 export default function InventoryPage() {
   const router = useRouter();
   const { isConnected } = useWallet();
-  const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
+  const {
+    toast,
+    showSuccess,
+    showError,
+    showInfo,
+    hideToast,
+    showTransactionError,
+  } = useTransactionErrorToast();
   const { contractManager } = useContractManager();
   const { afterHatch, refreshInventory } = useInvalidateOnTx();
 
@@ -699,27 +710,8 @@ export default function InventoryPage() {
 
           logger.debug("Eclosión confirmada - esperando animación de ruleta");
         } catch (contractError) {
-          const errorMsg =
-            contractError instanceof Error
-              ? contractError.message
-              : String(contractError);
-          logger.error("Error en eclosión", { error: errorMsg });
-
-          let errorMessage = "Error al eclosionar geoda";
-          if (contractError instanceof Error) {
-            if (
-              contractError.message.includes("user rejected") ||
-              contractError.message.includes("User rejected")
-            ) {
-              errorMessage = "Transacción cancelada por el usuario";
-            } else if (contractError.message.includes("insufficient funds")) {
-              errorMessage = "Fondos insuficientes para gas";
-            } else {
-              errorMessage = contractError.message.substring(0, 100);
-            }
-          }
-
-          showError(errorMessage);
+          logger.error("Error en eclosión", { error: contractError });
+          showTransactionError(contractError, "Error al eclosionar geoda");
           setShowHatchAnimation(false);
           setHatchingGeodeId(null);
           setHatchingGeode(null);
@@ -1050,6 +1042,7 @@ export default function InventoryPage() {
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}

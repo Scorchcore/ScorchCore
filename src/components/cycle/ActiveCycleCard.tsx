@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Clock, TrendingUp, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { CYCLE_DURATION_NAMES, type ActiveCycle } from '@/lib/services/cycle';
 import { createServiceLogger } from '@/lib/utils/logging/logger';
-import { Toast, useToast } from '@/components/ui';
+import { Toast, useTransactionErrorToast } from '@/components/ui';
 
 const log = createServiceLogger('ActiveCycleCard');
 
@@ -21,7 +21,7 @@ export function ActiveCycleCard({
 }: ActiveCycleCardProps) {
   const [isEnding, setIsEnding] = useState(false);
   const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
-  const { toast, showError, hideToast } = useToast();
+  const { toast, hideToast, showTransactionError } = useTransactionErrorToast();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,11 +43,12 @@ export function ActiveCycleCard({
     try {
       await onEndCycle(cycle.cycleId);
     } catch (error) {
-      log.error('Failed to end cycle', error, { 
+      log.error('Failed to end cycle', error, {
         cycleId: cycle.cycleId.toString(),
-        minerCount: cycle.minerCount 
+        minerCount: cycle.minerCount
       });
-      showError(
+      showTransactionError(
+        error,
         'No se pudo finalizar el ciclo. Por favor intenta de nuevo.',
         'Error al Finalizar Ciclo'
       );
@@ -216,6 +217,7 @@ export function ActiveCycleCard({
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}

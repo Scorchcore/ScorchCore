@@ -159,6 +159,12 @@ export function getDeploymentBlock(currentBlock: number): number {
 }
 
 /**
+ * Faucet oficial de RON testnet para Saigon L2.
+ * No existe API/friendbot público: es solo web (5 RON por request, límite diario por IP).
+ */
+export const SAIGON_FAUCET_URL = "https://faucet.roninchain.com/";
+
+/**
  * Explorer links para debugging
  */
 export function getExplorerLink(address: string): string {

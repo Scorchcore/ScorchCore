@@ -34,7 +34,7 @@ import {
   ForgeShader,
   Loading,
   Toast,
-  useToast,
+  useTransactionErrorToast,
 } from "@/components/ui";
 import { FORGEFACTORY_ABI } from "@/lib/abis/forge.abis";
 import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
@@ -228,7 +228,14 @@ export default function ForgePage() {
   const { switchChainAsync } = useSwitchChain();
   const contracts = useContracts();
   const { contractManager, signer } = useContractManager();
-  const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
+  const {
+    toast,
+    showSuccess,
+    showError,
+    showInfo,
+    hideToast,
+    showTransactionError,
+  } = useTransactionErrorToast();
   const {
     data: mementoBalances,
     isFetching: isFetchingMementos,
@@ -606,10 +613,12 @@ export default function ForgePage() {
       afterMockAxieClaim();
       showSuccess("Testnet Axies and available forge materials claimed");
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to get fake Axies";
       logger.error("Error claiming fake Axies", err);
-      showError(errorMessage, "Faucet transaction failed");
+      showTransactionError(
+        err,
+        "Failed to get fake Axies",
+        "Faucet transaction failed",
+      );
     } finally {
       setIsClaimingFakeAxies(false);
     }
@@ -744,11 +753,9 @@ export default function ForgePage() {
         return false;
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error al forjar geoda";
       logger.error("Error en forja", err, { selectedCategory, selectedClass });
       setForgeFailed(true);
-      showError(errorMessage);
+      showTransactionError(err, "Error al forjar geoda");
       return false;
     } finally {
       setIsForging(false);
@@ -1772,6 +1779,7 @@ export default function ForgePage() {
           message={toast.message}
           type={toast.type}
           title={toast.title}
+          action={toast.action}
           onClose={hideToast}
         />
       )}

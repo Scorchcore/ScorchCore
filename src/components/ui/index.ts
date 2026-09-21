@@ -7,5 +7,6 @@ export * from "./Loading";
 export * from "./Badge";
 export * from "./Tooltip";
 export * from "./Toast";
+export * from "./useTransactionErrorToast";
 export * from "./VideoPlayer";
 export { default as ForgeShader } from "./ForgeShader";
