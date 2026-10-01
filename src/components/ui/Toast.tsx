@@ -33,14 +33,15 @@ interface ToastProps {
 export function Toast({ type, message, title, action, onClose }: ToastProps) {
   const [copied, setCopied] = React.useState(false);
   const typeStyles = {
-    success: "bg-green-500/20 border-green-500 text-green-500",
+    success:
+      "bg-cyan-300/10 border-ethereal-cyan text-ethereal-cyan shadow-[0_0_28px_rgba(125,249,255,0.16)]",
     error: "bg-red-500/20 border-red-500 text-red-500",
     info: "bg-blue-500/20 border-blue-500 text-blue-500",
     warning: "bg-yellow-500/20 border-yellow-500 text-yellow-500",
   };
 
   const icons = {
-    success: "✅",
+    success: "✓",
     error: "❌",
     info: "ℹ️",
     warning: "⚠️",
