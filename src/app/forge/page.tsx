@@ -37,6 +37,7 @@ import {
   useTransactionErrorToast,
 } from "@/components/ui";
 import { FORGEFACTORY_ABI } from "@/lib/abis/forge.abis";
+import { MOCK_AXIE_NFT_V2_ABI } from "@/lib/abis/mock-axie.abis";
 import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
 import { RONIN_TESTNET_ID, config as wagmiConfig } from "@/lib/config/wagmi";
 import type { GeodeType } from "@/lib/constants/forge";
@@ -67,8 +68,7 @@ import { RONIN_TX_FEES } from "@/lib/utils/network/roninFeeSigner";
 import { addGasBuffer } from "@/lib/utils/network/transactionGas";
 
 const logger = createServiceLogger("ForgePage");
-const MOCK_AXIE_NFT_ADDRESS = "0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38";
-const FAKE_AXIE_FAUCET_DATA = "0x0ffbdea7";
+const MOCK_AXIE_NFT_ADDRESS = CONTRACT_ADDRESSES.MockAxieNFTV2;
 const PROTOCOL_FEE_ABI = [
   {
     type: "function",
@@ -76,17 +76,6 @@ const PROTOCOL_FEE_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-  },
-] as const;
-const MOCK_AXIE_NFT_ABI = [
-  {
-    type: "function",
-    name: "claimFakeAxies",
-    stateMutability: "nonpayable",
-    inputs: [],
-    outputs: [
-      { name: "tokenIds", type: "uint256[]", internalType: "uint256[]" },
-    ],
   },
 ] as const;
 const AXIE_CLASS_NAMES = [
@@ -297,6 +286,14 @@ export default function ForgePage() {
     abi: PROTOCOL_FEE_ABI,
     functionName: "getProtocolFee",
   });
+  const { data: faucetClaimsData, refetch: refetchFaucetClaims } =
+    useReadContract({
+      address: MOCK_AXIE_NFT_ADDRESS,
+      abi: MOCK_AXIE_NFT_V2_ABI,
+      functionName: "claimsByWallet",
+      args: address ? [address] : undefined,
+      query: { enabled: !!address },
+    });
   const { data: trustScoreEnabledData } = useReadContract({
     address: CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`,
     abi: FORGEFACTORY_ABI,
@@ -314,12 +311,8 @@ export default function ForgePage() {
 
   /* Faucet claim counter */
   useEffect(() => {
-    if (address) {
-      const key = `forge_faucet_claims:${address.toLowerCase()}`;
-      const stored = Number(localStorage.getItem(key) || "0");
-      setFaucetClaims(stored);
-    }
-  }, [address]);
+    setFaucetClaims(Number(faucetClaimsData ?? 0));
+  }, [faucetClaimsData]);
 
   /* GSAP transition */
   useEffect(() => {
@@ -541,11 +534,10 @@ export default function ForgePage() {
         return;
       }
 
-      const data =
-        encodeFunctionData({
-          abi: MOCK_AXIE_NFT_ABI,
-          functionName: "claimFakeAxies",
-        }) || FAKE_AXIE_FAUCET_DATA;
+      const data = encodeFunctionData({
+        abi: MOCK_AXIE_NFT_V2_ABI,
+        functionName: "claimFakeAxies",
+      });
 
       const transactionRequest = {
         from: address,
@@ -604,12 +596,8 @@ export default function ForgePage() {
         }
       }
 
-      const next = faucetClaims + 1;
-      setFaucetClaims(next);
-      localStorage.setItem(
-        `forge_faucet_claims:${address.toLowerCase()}`,
-        String(next),
-      );
+      setFaucetClaims((current) => current + 1);
+      await refetchFaucetClaims();
       afterMockAxieClaim();
       showSuccess("Testnet Axies and available forge materials claimed");
     } catch (err) {

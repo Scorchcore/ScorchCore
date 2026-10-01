@@ -16,7 +16,7 @@ forgeGeode(category, geodeType, mementosToUse, axieIds)
 The fake Axie faucet contract on Ronin Saigon is:
 
 ```txt
-0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38
+0x8F6e72e38253D09322A329a12891A82f37ADe8b3
 ```
 
 The frontend reads fake Axies from this contract on chain `202601` and maps classes as:

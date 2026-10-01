@@ -20,6 +20,7 @@ export * from "./economy.abis";
 export * from "./gaming.abis";
 export * from "./antibot.abis";
 export * from "./axie.abis";
+export * from "./mock-axie.abis";
 export * from "./v2.abis";
 
 // Alias para compatibilidad legacy

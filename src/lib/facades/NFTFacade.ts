@@ -10,19 +10,14 @@
 
 import { Contract } from "ethers";
 import type { Address } from "viem";
+import { MOCK_AXIE_NFT_V2_ABI } from "@/lib/abis/mock-axie.abis";
+import { CONTRACT_ADDRESSES } from "@/lib/config/deployment.config";
 import type { ContractManager } from "@/lib/contracts/ContractManager";
 import { createServiceLogger } from "@/lib/utils/logging/logger";
 import { chainReadClient } from "@/lib/utils/network/chainReadClient";
 
 const logger = createServiceLogger("NFTFacade");
 const RONIN_TESTNET_ID = 202601;
-const MOCK_AXIE_NFT_ADDRESS = "0xC1cc4ac6f5d6Bf893EF44f6eDA0Dc7d019222b38";
-const MOCK_AXIE_NFT_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function axieClass(uint256 tokenId) view returns (uint8)",
-] as const;
 const AXIE_CLASS_NAMES = [
   "Beast",
   "Aqua",
@@ -362,64 +357,41 @@ export class NFTFacade {
     }
 
     const mockAxieContract = new Contract(
-      MOCK_AXIE_NFT_ADDRESS,
-      MOCK_AXIE_NFT_ABI,
+      CONTRACT_ADDRESSES.MockAxieNFTV2,
+      MOCK_AXIE_NFT_V2_ABI,
       provider,
     );
-
-    const balance = await chainReadClient.read<bigint>(
-      () => mockAxieContract.balanceOf(address),
-      { label: "NFTFacade.mockAxieBalance" },
-    );
-
-    if (balance === 0n) {
-      return [];
+    const [tokenIds, classIds] = await chainReadClient.read<
+      readonly [readonly bigint[], readonly bigint[]]
+    >(() => mockAxieContract.getAxiesOfOwner(address), {
+      label: "NFTFacade.getMockAxiesOfOwner",
+    });
+    if (tokenIds.length !== classIds.length) {
+      throw new Error("Mock Axie owner data is inconsistent");
     }
 
-    const axies: AxieNFT[] = [];
-    for (let i = 0n; i < balance; i++) {
-      try {
-        const tokenId = await chainReadClient.read<bigint>(
-          () => mockAxieContract.tokenOfOwnerByIndex(address, i),
-          { label: `NFTFacade.mockAxieByIndex:${i.toString()}` },
-        );
-        const owner = await chainReadClient.read<string>(
-          () => mockAxieContract.ownerOf(tokenId),
-          { label: `NFTFacade.mockAxieOwner:${tokenId.toString()}` },
-        );
-        const classId = Number(
-          await chainReadClient.read<bigint>(
-            () => mockAxieContract.axieClass(tokenId),
-            { label: `NFTFacade.mockAxieClass:${tokenId.toString()}` },
-          ),
-        );
-        const className = AXIE_CLASS_NAMES[classId] ?? "Unknown";
-
-        axies.push({
-          tokenId: tokenId.toString(),
-          owner,
-          isStaked: false,
-          metadata: {
-            id: tokenId.toString(),
-            name: `Fake ${className} Axie #${tokenId}`,
-            image: "",
-            class: className,
-            genes: classId.toString(),
-            stats: {
-              hp: 0,
-              speed: 0,
-              skill: 0,
-              morale: 0,
-            },
+    const axies = tokenIds.map((tokenId, index): AxieNFT => {
+      const classId = Number(classIds[index]);
+      const className = AXIE_CLASS_NAMES[classId] ?? "Unknown";
+      return {
+        tokenId: tokenId.toString(),
+        owner: address,
+        isStaked: false,
+        metadata: {
+          id: tokenId.toString(),
+          name: `Fake ${className} Axie #${tokenId}`,
+          image: "",
+          class: className,
+          genes: classId.toString(),
+          stats: {
+            hp: 0,
+            speed: 0,
+            skill: 0,
+            morale: 0,
           },
-        });
-      } catch (error) {
-        logger.warn("Error obteniendo fake Axie por índice", {
-          index: i,
-          error,
-        });
-      }
-    }
+        },
+      };
+    });
 
     logger.info("Fake Axies obtenidos exitosamente", { count: axies.length });
     return axies;
