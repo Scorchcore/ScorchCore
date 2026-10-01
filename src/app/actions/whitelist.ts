@@ -29,7 +29,10 @@ export async function registerToWhitelist(input: unknown) {
   );
 
   if (error) {
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: "We could not save your registration. Please try again.",
+    };
   }
 
   return { success: true };

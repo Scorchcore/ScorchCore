@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { CoreMinerCard } from "@/components/CoreMinerCard";
 import Image from "next/image";
 import type { AxieNFT, MinerNFT } from "./types";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 interface NFTInventoryProps {
   stakingContractAddress?: string;
@@ -51,7 +52,9 @@ export function NFTInventory({
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600">Error: {error}</p>
+        <p className="text-red-600">
+          {getUserFacingErrorMessage(error, "No se pudieron cargar tus NFTs")}
+        </p>
         <Button onClick={reload} className="mt-2">
           Reintentar
         </Button>

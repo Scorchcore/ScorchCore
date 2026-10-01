@@ -8,6 +8,7 @@ import { formatUnits } from "viem";
 import { Loading } from "@/components/ui";
 import { useAirdrop } from "@/lib/hooks/economy/useAirdrop";
 import { useWallet } from "@/lib/hooks/user/useWallet";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 import type { AirdropCampaignState } from "@/lib/services/AirdropService";
 
 const configuredIds = (process.env.NEXT_PUBLIC_AIRDROP_CAMPAIGN_IDS ?? "")
@@ -196,7 +197,12 @@ export default function AirdropPage() {
             <div
               className={`mt-6 border p-4 text-sm ${error ? "border-red-400/35 text-red-300" : "border-emerald-400/35 text-emerald-300"}`}
             >
-              {error?.message ?? message}
+              {error
+                ? getUserFacingErrorMessage(
+                    error,
+                    "We could not complete the airdrop operation",
+                  )
+                : message}
             </div>
           )}
         </div>

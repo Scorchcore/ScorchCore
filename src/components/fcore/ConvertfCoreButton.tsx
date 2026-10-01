@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { formatUnits } from 'viem';
+import { getUserFacingErrorMessage } from '@/lib/utils/errors/transactionError';
 
 interface ConvertfCoreButtonProps {
   onConvert: (amount?: bigint) => Promise<{
@@ -55,7 +56,10 @@ export function ConvertfCoreButton({
       } else {
         setResult({
           success: false,
-          message: res.error || 'Error al convertir fCORE',
+          message: getUserFacingErrorMessage(
+            res.error,
+            'No se pudo convertir fCORE',
+          ),
         });
         
         setTimeout(() => setResult(null), 5000);
@@ -63,7 +67,10 @@ export function ConvertfCoreButton({
     } catch (error) {
       setResult({
         success: false,
-        message: error instanceof Error ? error.message : 'Error desconocido',
+        message: getUserFacingErrorMessage(
+          error,
+          'No se pudo convertir fCORE',
+        ),
       });
       
       setTimeout(() => setResult(null), 5000);

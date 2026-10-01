@@ -16,6 +16,7 @@ import {
   useTransactionErrorToast,
 } from "@/components/ui";
 import { useWallet } from "@/lib/hooks/user/useWallet";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 import "yet-another-react-lightbox/styles.css";
 import {
   Backpack,
@@ -523,12 +524,13 @@ export default function InventoryPage() {
   const isLoading = isLoadingGeodes || isLoadingMiners;
   const isFetching =
     isFetchingGeodes || isFetchingMiners || isFetchingMoreGeodes;
-  const error =
-    geodesError || minersError
-      ? geodesError?.message ||
-        minersError?.message ||
-        "Error loading inventory"
-      : null;
+  const inventoryError = geodesError || minersError;
+  const error = inventoryError
+    ? getUserFacingErrorMessage(
+        inventoryError,
+        "We could not load your inventory",
+      )
+    : null;
 
   const [activeTab, setActiveTab] = useState<TabValue>("all");
   const [showHatchAnimation, setShowHatchAnimation] = useState(false);

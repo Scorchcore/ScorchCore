@@ -9,6 +9,7 @@
 import Image from "next/image";
 import type { MaterialCosts } from "@/lib/contracts/interfaces/IMaterialValidatorContract";
 import { formatEther } from "viem";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 export interface ForgeCostDisplayProps {
   category: number;
@@ -48,7 +49,13 @@ export const ForgeCostDisplay: React.FC<ForgeCostDisplayProps> = ({
       <div
         className={`bg-red-900/20 border border-red-500/50 rounded-lg p-4 ${className}`}
       >
-        <p className="text-red-400 text-sm">⚠️ {error}</p>
+        <p className="text-red-400 text-sm">
+          ⚠️{" "}
+          {getUserFacingErrorMessage(
+            error,
+            "We could not load the forging costs",
+          )}
+        </p>
       </div>
     );
   }

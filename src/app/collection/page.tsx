@@ -15,6 +15,7 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 /**
  * Página de Collection - Sistema de Bonuses por Sets
@@ -71,7 +72,10 @@ export default function CollectionPage() {
             Error al cargar colecciones
           </h2>
           <p className="text-gray-400 text-center mb-6">
-            {error.message || "Error desconocido"}
+            {getUserFacingErrorMessage(
+              error,
+              "No se pudieron cargar tus colecciones",
+            )}
           </p>
           <div className="flex justify-center">
             <Button

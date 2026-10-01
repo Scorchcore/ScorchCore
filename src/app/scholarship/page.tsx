@@ -9,6 +9,7 @@ import type { ActiveLoan, LoanOffer } from "@/lib/contracts/interfaces";
 import { useScholarship } from "@/lib/hooks/user/useScholarship";
 import { useWallet } from "@/lib/hooks/user/useWallet";
 import { useUserMiners } from "@/lib/queries";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 export default function ScholarshipPage() {
   const router = useRouter();
@@ -272,7 +273,12 @@ export default function ScholarshipPage() {
             <div
               className={`mt-6 border p-4 text-sm ${scholarship.error ? "border-red-400/35 text-red-300" : "border-emerald-400/35 text-emerald-300"}`}
             >
-              {scholarship.error?.message ?? message}
+              {scholarship.error
+                ? getUserFacingErrorMessage(
+                    scholarship.error,
+                    "We could not complete the scholarship operation",
+                  )
+                : message}
             </div>
           )}
         </div>

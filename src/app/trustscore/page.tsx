@@ -17,6 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 /**
  * Página de TrustScore - Sistema de Reputación
@@ -76,10 +77,10 @@ export default function TrustScorePage() {
             Error al cargar TrustScore
           </h2>
           <p className="text-gray-400 text-center mb-6">
-            {typeof error === "string"
-              ? error
-              : error?.message ||
-                "No se pudo obtener información del TrustScore"}
+            {getUserFacingErrorMessage(
+              error,
+              "No se pudo obtener información del TrustScore",
+            )}
           </p>
           <div className="flex justify-center gap-4">
             <Button

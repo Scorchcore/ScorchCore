@@ -5,6 +5,7 @@ import { Button, Loading, Card } from '@/components/ui';
 import { useBuyBack } from '@/lib/hooks/economy/useBuyBack';
 import { BuyBackReservesCard } from './BuyBackReservesCard';
 import { BuyBackStatsTable } from './BuyBackStatsTable';
+import { getUserFacingErrorMessage } from '@/lib/utils/errors/transactionError';
 
 interface BuyBackDashboardProps {
   className?: string;
@@ -31,7 +32,12 @@ export function BuyBackDashboard({ className = '' }: BuyBackDashboardProps) {
       <Card variant="glass" className="p-6">
         <div className="text-center text-red-400">
           <p className="font-bold mb-2">Error al cargar información</p>
-          <p className="text-sm text-gray-400">{error.message}</p>
+          <p className="text-sm text-gray-400">
+            {getUserFacingErrorMessage(
+              error,
+              'No se pudo cargar la información del BuyBack Fund',
+            )}
+          </p>
           <Button onClick={refresh} className="mt-4">
             Reintentar
           </Button>

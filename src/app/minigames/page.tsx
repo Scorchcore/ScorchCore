@@ -14,6 +14,7 @@ import type {
 } from "@/lib/contracts/interfaces/IMinigameManager";
 import { useMinigame } from "@/lib/hooks/user/useMinigame";
 import { useWallet } from "@/lib/hooks/user/useWallet";
+import { getUserFacingErrorMessage } from "@/lib/utils/errors/transactionError";
 
 const GAME_NAMES: Record<GameType, string> = {
   0: "Core Stabilization",
@@ -229,7 +230,12 @@ export default function MinigamesPage() {
             <div
               className={`mt-6 border p-4 text-sm ${error ? "border-red-400/35 text-red-300" : "border-emerald-400/35 text-emerald-300"}`}
             >
-              {error?.message ?? message}
+              {error
+                ? getUserFacingErrorMessage(
+                    error,
+                    "We could not complete the minigame operation",
+                  )
+                : message}
             </div>
           )}
         </div>

@@ -18,12 +18,14 @@
 export type TransactionErrorKind =
   | "insufficient-funds"
   | "user-rejected"
+  | "wrong-network"
+  | "network-error"
   | "reverted"
   | "unknown";
 
 export interface ClassifiedTransactionError {
   kind: TransactionErrorKind;
-  /** Mensaje crudo extraído del error (truncado) para logs y "copy error". */
+  /** Mensaje crudo extraído del error (truncado) solo para diagnóstico interno. */
   rawMessage: string;
 }
 
@@ -62,6 +64,37 @@ const USER_REJECTED_PATTERNS = [
   "request rejected",
   "transacción rechazada",
   "transacción cancelada",
+];
+
+const WRONG_NETWORK_CODES = new Set(["CHAIN_MISMATCH", "UNSUPPORTED_CHAIN"]);
+const WRONG_NETWORK_NAMES = new Set([
+  "ChainMismatchError",
+  "ChainNotConfiguredError",
+  "SwitchChainError",
+]);
+const WRONG_NETWORK_PATTERNS = [
+  "chain mismatch",
+  "unsupported chain",
+  "wrong network",
+  "switch chain",
+];
+
+const NETWORK_ERROR_CODES = new Set([
+  "NETWORK_ERROR",
+  "SERVER_ERROR",
+  "TIMEOUT",
+]);
+const NETWORK_ERROR_NAMES = new Set([
+  "HttpRequestError",
+  "RpcRequestError",
+  "TimeoutError",
+]);
+const NETWORK_ERROR_PATTERNS = [
+  "failed to fetch",
+  "network request failed",
+  "could not detect network",
+  "rpc endpoint returned",
+  "request timeout",
 ];
 
 const REVERTED_CODES = new Set(["CALL_EXCEPTION"]);
@@ -141,9 +174,9 @@ function matchesAny(texts: string[], patterns: string[]): boolean {
 
 /**
  * Clasifica un error de transacción. La prioridad es:
- * insufficient-funds > user-rejected > reverted > unknown, porque las
- * señales anidadas (p. ej. un RPC -32000 dentro de un CALL_EXCEPTION de
- * ethers) describen la causa raíz mejor que el wrapper externo.
+ * insufficient-funds > user-rejected > wrong-network > reverted >
+ * network-error > unknown, porque las señales anidadas describen la causa
+ * raíz mejor que el wrapper externo.
  */
 export function classifyTransactionError(
   error: unknown,
@@ -172,11 +205,25 @@ export function classifyTransactionError(
       return "user-rejected";
     }
     if (
+      signals.codes.some((code) => WRONG_NETWORK_CODES.has(code)) ||
+      signals.names.some((name) => WRONG_NETWORK_NAMES.has(name)) ||
+      matchesAny(signals.texts, WRONG_NETWORK_PATTERNS)
+    ) {
+      return "wrong-network";
+    }
+    if (
       signals.codes.some((code) => REVERTED_CODES.has(code)) ||
       signals.names.some((name) => REVERTED_NAMES.has(name)) ||
       matchesAny(signals.texts, REVERTED_PATTERNS)
     ) {
       return "reverted";
+    }
+    if (
+      signals.codes.some((code) => NETWORK_ERROR_CODES.has(code)) ||
+      signals.names.some((name) => NETWORK_ERROR_NAMES.has(name)) ||
+      matchesAny(signals.texts, NETWORK_ERROR_PATTERNS)
+    ) {
+      return "network-error";
     }
     return "unknown";
   })();
@@ -194,14 +241,16 @@ export function isUserRejectedError(error: unknown): boolean {
 
 /**
  * Traduce el error clasificado a contenido de toast accionable.
- * Para `reverted`/`unknown` antepone el `fallback` de contexto al mensaje
- * crudo; para los demás devuelve copy fijo (claro y consistente).
+ * Para `reverted`/`unknown` usa el `fallback` de contexto sin exponer datos
+ * técnicos; para los demás devuelve copy fijo (claro y consistente).
  */
 export function describeTransactionError(
   error: unknown,
   fallback = "Transaction failed",
 ): TransactionErrorDescription {
-  const { kind, rawMessage } = classifyTransactionError(error);
+  const { kind } = classifyTransactionError(error);
+  const context =
+    fallback.trim().replace(/[.!?]+$/, "") || "Transaction failed";
 
   switch (kind) {
     case "insufficient-funds":
@@ -217,10 +266,38 @@ export function describeTransactionError(
         title: "Transaction cancelled",
         message: "You rejected the transaction in your wallet.",
       };
+    case "wrong-network":
+      return {
+        kind,
+        title: "Wrong network",
+        message:
+          "Switch your wallet to Ronin Saigon testnet and try the operation again.",
+      };
+    case "network-error":
+      return {
+        kind,
+        title: "Network unavailable",
+        message:
+          "Ronin Saigon is not responding. Check your connection and try again.",
+      };
+    case "reverted":
+      return {
+        kind,
+        title: "Transaction failed",
+        message: `${context}. The contract rejected the operation. Check the requirements and try again.`,
+      };
     default:
       return {
         kind,
-        message: rawMessage ? `${fallback}: ${rawMessage}` : fallback,
+        title: "Transaction failed",
+        message: `${context}. Try again. If the problem continues, refresh the page or reconnect your wallet.`,
       };
   }
+}
+
+export function getUserFacingErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  return describeTransactionError(error, fallback).message;
 }

@@ -6,6 +6,7 @@ import { useVesting } from '@/lib/hooks/economy/useVesting';
 import { VestingCard } from './VestingCard';
 import { VestingStatsCard } from './VestingStatsCard';
 import { useTransactionErrorToast } from '@/components/ui';
+import { getUserFacingErrorMessage } from '@/lib/utils/errors/transactionError';
 
 interface VestingDashboardProps {
   className?: string;
@@ -51,7 +52,12 @@ export function VestingDashboard({ className = '' }: VestingDashboardProps) {
       <Card variant="glass" className="p-6">
         <div className="text-center text-red-400">
           <p className="font-bold mb-2">Error al cargar información</p>
-          <p className="text-sm text-gray-400">{error.message}</p>
+          <p className="text-sm text-gray-400">
+            {getUserFacingErrorMessage(
+              error,
+              'No se pudo cargar la información de vesting',
+            )}
+          </p>
           <Button onClick={refresh} className="mt-4">
             Reintentar
           </Button>

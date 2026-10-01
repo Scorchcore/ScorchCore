@@ -133,6 +133,17 @@ describe("classifyTransactionError · reverted / unknown", () => {
     expect(classifyTransactionError(error).kind).toBe("reverted");
   });
 
+  it("prioriza un revert anidado sobre el wrapper SERVER_ERROR", () => {
+    const error = Object.assign(new Error("server response error"), {
+      code: "SERVER_ERROR",
+      error: Object.assign(new Error("execution reverted"), {
+        code: "CALL_EXCEPTION",
+      }),
+    });
+
+    expect(classifyTransactionError(error).kind).toBe("reverted");
+  });
+
   it.each([null, undefined, 42, {}, new Error("something odd happened")])(
     "clasifica como unknown lo irreconocible %#",
     (error) => {
@@ -168,14 +179,67 @@ describe("describeTransactionError", () => {
     expect(described.title).toBe("Transaction cancelled");
   });
 
-  it("antepone el fallback al mensaje crudo para errores desconocidos", () => {
+  it("no expone el mensaje crudo de errores desconocidos", () => {
     const described = describeTransactionError(
-      new Error("weird rpc blob"),
+      new Error(
+        'could not decode result data (value="0x", info={ method: "ownerOf" })',
+      ),
       "Error al eclosionar geoda",
     );
 
     expect(described.kind).toBe("unknown");
-    expect(described.message).toBe("Error al eclosionar geoda: weird rpc blob");
-    expect(described.title).toBeUndefined();
+    expect(described.message).toContain("Error al eclosionar geoda");
+    expect(described.message).not.toContain("could not decode");
+    expect(described.message).not.toContain("ownerOf");
+    expect(described.title).toBe("Transaction failed");
+  });
+
+  it("no expone reason, código ni datos de un contract revert", () => {
+    const described = describeTransactionError(
+      Object.assign(
+        new Error(
+          "execution reverted: ERC20InsufficientBalance(0x1234, 0, 1000000000000000000)",
+        ),
+        { code: "CALL_EXCEPTION", data: "0xe450d38c" },
+      ),
+      "No se pudo completar la operación",
+    );
+
+    expect(described.kind).toBe("reverted");
+    expect(described.message).toContain("No se pudo completar la operación");
+    expect(described.message).not.toContain("execution reverted");
+    expect(described.message).not.toContain("ERC20InsufficientBalance");
+    expect(described.message).not.toContain("0x1234");
+  });
+
+  it.each([
+    Object.assign(new Error("chain mismatch"), { name: "ChainMismatchError" }),
+    Object.assign(new Error("unsupported chain 1"), {
+      name: "ChainNotConfiguredError",
+    }),
+  ])("explica cómo resolver una red incorrecta %#", (error) => {
+    const described = describeTransactionError(error);
+
+    expect(described.kind).toBe("wrong-network");
+    expect(described.title).toBe("Wrong network");
+    expect(described.message).toContain("Ronin Saigon");
+    expect(described.message).not.toContain(error.message);
+  });
+
+  it.each([
+    Object.assign(new Error("HTTP request failed"), {
+      name: "HttpRequestError",
+    }),
+    Object.assign(new Error("could not detect network"), {
+      code: "NETWORK_ERROR",
+    }),
+    new Error("Failed to fetch"),
+  ])("expone copy amigable para fallos de red %#", (error) => {
+    const described = describeTransactionError(error);
+
+    expect(described.kind).toBe("network-error");
+    expect(described.title).toBe("Network unavailable");
+    expect(described.message).toContain("Ronin Saigon");
+    expect(described.message).not.toContain(error.message);
   });
 });

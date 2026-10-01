@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Badge } from '@/components/ui';
 import { RecipeCategory, MinerType, MINER_TYPE_NAMES, CATEGORY_NAMES } from '@/lib/contracts/interfaces/IRecipeRegistry';
+import { getUserFacingErrorMessage } from '@/lib/utils/errors/transactionError';
 
 export interface AddRecipeModalProps {
   isOpen: boolean;
@@ -58,10 +59,12 @@ export function AddRecipeModal({
         setIsActive(true);
         onClose();
       } else {
-        setError(result.error || 'Error al crear receta');
+        setError(
+          getUserFacingErrorMessage(result.error, 'No se pudo crear la receta'),
+        );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(getUserFacingErrorMessage(err, 'No se pudo crear la receta'));
     } finally {
       setIsSubmitting(false);
     }

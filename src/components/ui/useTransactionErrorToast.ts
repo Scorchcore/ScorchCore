@@ -27,7 +27,9 @@ export function useTransactionErrorToast() {
     const described = describeTransactionError(error, fallback);
     toastApi.showError(
       described.message,
-      title ?? described.title,
+      described.kind === "unknown" || described.kind === "reverted"
+        ? (title ?? described.title)
+        : described.title,
       described.kind === "insufficient-funds"
         ? {
             label: "Get testnet RON",

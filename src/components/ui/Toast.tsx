@@ -80,7 +80,7 @@ export function Toast({ type, message, title, action, onClose }: ToastProps) {
                   onClick={copyMessage}
                   className="rounded border border-white/25 px-2 py-1 text-xs text-white/80 transition-colors hover:border-white/50 hover:text-white"
                 >
-                  {copied ? "Copied" : "Copy error"}
+                  {copied ? "Copied" : "Copy message"}
                 </button>
               )}
             </div>
