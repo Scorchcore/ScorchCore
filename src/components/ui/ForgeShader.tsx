@@ -9,6 +9,58 @@ export const FORGE_SHADER_PROFILES = {
 
 export type ForgeShaderQuality = keyof typeof FORGE_SHADER_PROFILES;
 
+export const FORGE_SHADER_QUALITY_CACHE_KEY =
+  "scorchcore:forge-shader-quality:v1";
+export const FORGE_SHADER_QUALITY_TTL_MS = 30 * 24 * 60 * 60 * 1_000;
+
+interface ShaderQualityStorage {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+}
+
+export function readCachedShaderQuality(
+  storage: ShaderQualityStorage,
+  now = Date.now(),
+): ForgeShaderQuality | null {
+  try {
+    const value = storage.getItem(FORGE_SHADER_QUALITY_CACHE_KEY);
+    if (!value) return null;
+    const parsed = JSON.parse(value) as {
+      quality?: unknown;
+      measuredAt?: unknown;
+    };
+    if (parsed.quality !== "high" && parsed.quality !== "compatible") {
+      return null;
+    }
+    if (
+      typeof parsed.measuredAt !== "number" ||
+      parsed.measuredAt > now ||
+      now - parsed.measuredAt > FORGE_SHADER_QUALITY_TTL_MS
+    ) {
+      return null;
+    }
+    return parsed.quality;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCachedShaderQuality(
+  storage: ShaderQualityStorage,
+  quality: ForgeShaderQuality,
+  measuredAt = Date.now(),
+): boolean {
+  try {
+    storage.setItem(
+      FORGE_SHADER_QUALITY_CACHE_KEY,
+      JSON.stringify({ quality, measuredAt }),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function createShaderSource(quality: ForgeShaderQuality): string {
   const profile = FORGE_SHADER_PROFILES[quality];
   return `#version 300 es
@@ -231,9 +283,21 @@ export default function ForgeShader({
     const prefersReducedMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    let cachedQuality: ForgeShaderQuality | null = null;
+    if (quality === "auto") {
+      try {
+        cachedQuality = readCachedShaderQuality(window.localStorage);
+      } catch {}
+    }
     let selectedQuality: ForgeShaderQuality =
-      quality === "auto" ? "high" : quality;
-    let qualitySelected = quality !== "auto";
+      quality === "auto" ? (cachedQuality ?? "high") : quality;
+    let qualitySelected = quality !== "auto" || cachedQuality !== null;
+    const persistSelectedQuality = (value: ForgeShaderQuality) => {
+      if (quality !== "auto") return;
+      try {
+        writeCachedShaderQuality(window.localStorage, value);
+      } catch {}
+    };
     let vao: WebGLVertexArrayObject | null = null;
     let vbo: WebGLBuffer | null = null;
     let highProgram: ShaderProgram | null = null;
@@ -331,10 +395,12 @@ export default function ForgeShader({
     if (selectedQuality === "high" && !highProgram) {
       selectedQuality = "compatible";
       qualitySelected = true;
+      persistSelectedQuality(selectedQuality);
     }
     if (selectedQuality === "compatible" && !compatibleProgram) {
       selectedQuality = "high";
       qualitySelected = true;
+      persistSelectedQuality(selectedQuality);
     }
     activeProgram =
       selectedQuality === "compatible" ? compatibleProgram : highProgram;
@@ -443,6 +509,7 @@ export default function ForgeShader({
                 ? (compatibleProgram ?? highProgram)
                 : (highProgram ?? compatibleProgram);
             qualitySelected = true;
+            persistSelectedQuality(selectedQuality);
             sampledFrameTime = 0;
             sampledFrames = 0;
           }

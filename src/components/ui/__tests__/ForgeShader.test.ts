@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   FORGE_SHADER_PROFILES,
+  FORGE_SHADER_QUALITY_CACHE_KEY,
+  FORGE_SHADER_QUALITY_TTL_MS,
   isFrameTimingSample,
+  readCachedShaderQuality,
   selectShaderQuality,
   shouldReduceQuality,
+  writeCachedShaderQuality,
 } from "../ForgeShader";
 
 describe("ForgeShader quality selection", () => {
@@ -41,5 +45,54 @@ describe("ForgeShader quality selection", () => {
     const targetFrameMs = 1_000 / 24;
     expect(shouldReduceQuality(63, targetFrameMs)).toBe(true);
     expect(selectShaderQuality(63, targetFrameMs)).toBe("compatible");
+  });
+
+  it("persists and restores a measured quality", () => {
+    const values = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+    };
+    expect(writeCachedShaderQuality(storage, "compatible", 1_000)).toBe(true);
+    expect(values.has(FORGE_SHADER_QUALITY_CACHE_KEY)).toBe(true);
+    expect(readCachedShaderQuality(storage, 1_001)).toBe("compatible");
+  });
+
+  it("expires a measured quality after thirty days", () => {
+    const storage = {
+      getItem: () => JSON.stringify({ quality: "high", measuredAt: 1_000 }),
+      setItem: () => undefined,
+    };
+    expect(
+      readCachedShaderQuality(storage, 1_000 + FORGE_SHADER_QUALITY_TTL_MS + 1),
+    ).toBeNull();
+  });
+
+  it("ignores malformed, future, or blocked storage", () => {
+    expect(
+      readCachedShaderQuality(
+        { getItem: () => "not-json", setItem: () => undefined },
+        1_000,
+      ),
+    ).toBeNull();
+    expect(
+      readCachedShaderQuality(
+        {
+          getItem: () => JSON.stringify({ quality: "high", measuredAt: 2_000 }),
+          setItem: () => undefined,
+        },
+        1_000,
+      ),
+    ).toBeNull();
+    const blocked = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+    };
+    expect(readCachedShaderQuality(blocked, 1_000)).toBeNull();
+    expect(writeCachedShaderQuality(blocked, "high", 1_000)).toBe(false);
   });
 });
