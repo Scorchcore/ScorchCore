@@ -2,7 +2,16 @@
 
 import { useEffect, useRef } from "react";
 
-const SHADER_SRC = `#version 300 es
+export const FORGE_SHADER_PROFILES = {
+  high: { outerSteps: 80, innerSteps: 8, normalization: 5_000 },
+  compatible: { outerSteps: 48, innerSteps: 6, normalization: 2_250 },
+} as const;
+
+export type ForgeShaderQuality = keyof typeof FORGE_SHADER_PROFILES;
+
+function createShaderSource(quality: ForgeShaderQuality): string {
+  const profile = FORGE_SHADER_PROFILES[quality];
+  return `#version 300 es
 precision highp float;
 
 out vec4 fragColor;
@@ -22,19 +31,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     vec4  o  = vec4(0.0);
 
     float s = 0.0;
-    for (float i = 0.0, z = 0.0, d = 0.0; i++ < 8e1; o += (cos(s + vec4(0.0, 1.0, 8.0, 0.0)) + 1.0) / d)
+    for (float i = 0.0, z = 0.0, d = 0.0; i++ < ${profile.outerSteps}.0; o += (cos(s + vec4(0.0, 1.0, 8.0, 0.0)) + 1.0) / d)
     {
         vec3 p = z * normalize(FC.rgb * 2.0 - r.xyy);
         vec3 a = normalize(cos(vec3(5.0, 0.0, 1.0) + t - d * 4.0));
         p.z += 5.0;
 
         a = a * dot(a, p) - cross(a, p);
-        for (d = 1.0; d++ < 9.0; )
+        for (d = 1.0; d++ < ${profile.innerSteps + 1}.0; )
             a -= sin(a * d + t).zxy / d;
 
         z += d = 0.1 * abs(length(p) - 3.0) + 0.07 * abs(cos(s = a.y));
     }
-    o = tanh(o / 5e3);
+    o = tanh(o / ${profile.normalization}.0);
 
     vec3 val = o.rgb;
     float lum = length(val) / sqrt(3.0);
@@ -66,6 +75,7 @@ void main(){
   mainImage(fragColor, gl_FragCoord.xy);
 }
 `;
+}
 
 const VERT_SRC = `#version 300 es
 precision highp float;
@@ -102,6 +112,47 @@ function safeLink(
   return { program: ok ? prog : null, log };
 }
 
+interface ShaderProgram {
+  program: WebGLProgram;
+  resolution: WebGLUniformLocation | null;
+  time: WebGLUniformLocation | null;
+  frame: WebGLUniformLocation | null;
+  mouse: WebGLUniformLocation | null;
+  heat: WebGLUniformLocation | null;
+}
+
+function buildProgram(
+  gl: WebGL2RenderingContext,
+  quality: ForgeShaderQuality,
+): { state: ShaderProgram | null; log: string } {
+  const vertex = safeCompile(gl, gl.VERTEX_SHADER, VERT_SRC);
+  if (!vertex.shader) return { state: null, log: vertex.log };
+  const fragment = safeCompile(
+    gl,
+    gl.FRAGMENT_SHADER,
+    createShaderSource(quality),
+  );
+  if (!fragment.shader) {
+    gl.deleteShader(vertex.shader);
+    return { state: null, log: fragment.log };
+  }
+  const linked = safeLink(gl, vertex.shader, fragment.shader);
+  gl.deleteShader(vertex.shader);
+  gl.deleteShader(fragment.shader);
+  if (!linked.program) return { state: null, log: linked.log };
+  return {
+    state: {
+      program: linked.program,
+      resolution: gl.getUniformLocation(linked.program, "iResolution"),
+      time: gl.getUniformLocation(linked.program, "iTime"),
+      frame: gl.getUniformLocation(linked.program, "iFrame"),
+      mouse: gl.getUniformLocation(linked.program, "iMouse"),
+      heat: gl.getUniformLocation(linked.program, "uHeat"),
+    },
+    log: "",
+  };
+}
+
 function drawError(gl: WebGL2RenderingContext, msg: string) {
   console.error(msg);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -116,22 +167,7 @@ interface ForgeShaderProps {
   renderScale?: number;
   /** Cap the render framerate. The look is ambient so ~30–40 is plenty. */
   maxFps?: number;
-  adaptiveQuality?: boolean;
-  minRenderScale?: number;
-  maxQualityReductions?: number;
-}
-
-export function nextRenderScale(current: number, minimum: number): number {
-  return Math.max(minimum, Math.round(current * 0.8 * 100) / 100);
-}
-
-export function canReduceQuality(
-  current: number,
-  minimum: number,
-  reductions: number,
-  maximumReductions: number,
-): boolean {
-  return current > minimum && reductions < maximumReductions;
+  quality?: "auto" | ForgeShaderQuality;
 }
 
 export function isFrameTimingSample(
@@ -148,14 +184,21 @@ export function shouldReduceQuality(
   return averageFrameMs > targetFrameMs * 1.5;
 }
 
+export function selectShaderQuality(
+  averageFrameMs: number,
+  targetFrameMs: number,
+): ForgeShaderQuality {
+  return shouldReduceQuality(averageFrameMs, targetFrameMs)
+    ? "compatible"
+    : "high";
+}
+
 export default function ForgeShader({
   heat = 0,
   pixelRatio,
-  renderScale = 0.75,
-  maxFps = 30,
-  adaptiveQuality = true,
-  minRenderScale = 0.5,
-  maxQualityReductions = 1,
+  renderScale = 0.6,
+  maxFps = 24,
+  quality = "auto",
 }: ForgeShaderProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -184,16 +227,18 @@ export default function ForgeShader({
     if (!gl) return;
 
     let disposed = false;
-    const minimumScale = Math.max(0.25, Math.min(1, minRenderScale));
-    const qualityReductionLimit = Math.max(0, Math.floor(maxQualityReductions));
-    let qualityScale = Math.max(minimumScale, Math.min(1, renderScale));
-    let qualityReductions = 0;
+    const qualityScale = Math.max(0.25, Math.min(1, renderScale));
     const prefersReducedMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    let selectedQuality: ForgeShaderQuality =
+      quality === "auto" ? "high" : quality;
+    let qualitySelected = quality !== "auto";
     let vao: WebGLVertexArrayObject | null = null;
     let vbo: WebGLBuffer | null = null;
-    let program: WebGLProgram | null = null;
+    let highProgram: ShaderProgram | null = null;
+    let compatibleProgram: ShaderProgram | null = null;
+    let activeProgram: ShaderProgram | null = null;
     let ro: ResizeObserver | null = null;
     let resizeScheduled = false;
     let mouseBound = false;
@@ -272,39 +317,28 @@ export default function ForgeShader({
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    const { shader: vs, log: vsLog } = safeCompile(
-      gl,
-      gl.VERTEX_SHADER,
-      VERT_SRC,
-    );
-    if (!vs) {
-      drawError(gl, `Vertex compile error:\n${vsLog}`);
+    const highBuild = buildProgram(gl, "high");
+    const compatibleBuild = buildProgram(gl, "compatible");
+    highProgram = highBuild.state;
+    compatibleProgram = compatibleBuild.state;
+    if (!highProgram && !compatibleProgram) {
+      drawError(
+        gl,
+        `Shader compile error:\n${highBuild.log}\n${compatibleBuild.log}`,
+      );
       return cleanup;
     }
-    const { shader: fs, log: fsLog } = safeCompile(
-      gl,
-      gl.FRAGMENT_SHADER,
-      SHADER_SRC,
-    );
-    if (!fs) {
-      drawError(gl, `Fragment compile error:\n${fsLog}`);
-      gl.deleteShader(vs);
-      return cleanup;
+    if (selectedQuality === "high" && !highProgram) {
+      selectedQuality = "compatible";
+      qualitySelected = true;
     }
-    const linked = safeLink(gl, vs, fs);
-    gl.deleteShader(vs);
-    gl.deleteShader(fs);
-    if (!linked.program) {
-      drawError(gl, `Program link error:\n${linked.log}`);
-      return cleanup;
+    if (selectedQuality === "compatible" && !compatibleProgram) {
+      selectedQuality = "high";
+      qualitySelected = true;
     }
-    program = linked.program;
-
-    const uResolution = gl.getUniformLocation(program, "iResolution");
-    const uTime = gl.getUniformLocation(program, "iTime");
-    const uFrame = gl.getUniformLocation(program, "iFrame");
-    const uMouse = gl.getUniformLocation(program, "iMouse");
-    const uHeat = gl.getUniformLocation(program, "uHeat");
+    activeProgram =
+      selectedQuality === "compatible" ? compatibleProgram : highProgram;
+    activeProgram ??= highProgram ?? compatibleProgram;
 
     ro = new ResizeObserver(scheduleSize);
     ro.observe(canvas);
@@ -361,22 +395,29 @@ export default function ForgeShader({
 
       try {
         if (resizeScheduled) applySize();
+        if (!activeProgram) return;
 
         // biome-ignore lint/correctness/useHookAtTopLevel: WebGL API, not a React hook
-        gl.useProgram(program);
+        gl.useProgram(activeProgram.program);
 
         const dpr = getDpr();
         const w = canvas.width;
         const h = canvas.height;
 
-        if (uResolution) gl.uniform3f(uResolution, w, h, dpr);
-        if (uTime) gl.uniform1f(uTime, t);
-        if (uFrame) gl.uniform1i(uFrame, frameRef.current);
-        if (uMouse) {
-          const m = mouseRef.current;
-          gl.uniform4f(uMouse, m.x * dpr, m.y * dpr, m.l, m.r);
+        if (activeProgram.resolution) {
+          gl.uniform3f(activeProgram.resolution, w, h, dpr);
         }
-        if (uHeat) gl.uniform1f(uHeat, heatRef.current);
+        if (activeProgram.time) gl.uniform1f(activeProgram.time, t);
+        if (activeProgram.frame) {
+          gl.uniform1i(activeProgram.frame, frameRef.current);
+        }
+        if (activeProgram.mouse) {
+          const m = mouseRef.current;
+          gl.uniform4f(activeProgram.mouse, m.x * dpr, m.y * dpr, m.l, m.r);
+        }
+        if (activeProgram.heat) {
+          gl.uniform1f(activeProgram.heat, heatRef.current);
+        }
 
         gl.bindVertexArray(vao);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -384,7 +425,7 @@ export default function ForgeShader({
         drawError(gl, (err as Error)?.message ?? String(err));
       }
 
-      if (adaptiveQuality && !prefersReducedMotion) {
+      if (!qualitySelected && !prefersReducedMotion) {
         if (!isFrameTimingSample(renderedFrameTime, frameInterval)) {
           sampledFrameTime = 0;
           sampledFrames = 0;
@@ -393,19 +434,15 @@ export default function ForgeShader({
           sampledFrames += 1;
           if (sampledFrames >= 24) {
             const averageFrameTime = sampledFrameTime / sampledFrames;
-            if (
-              shouldReduceQuality(averageFrameTime, frameInterval) &&
-              canReduceQuality(
-                qualityScale,
-                minimumScale,
-                qualityReductions,
-                qualityReductionLimit,
-              )
-            ) {
-              qualityScale = nextRenderScale(qualityScale, minimumScale);
-              qualityReductions += 1;
-              scheduleSize();
-            }
+            selectedQuality = selectShaderQuality(
+              averageFrameTime,
+              frameInterval,
+            );
+            activeProgram =
+              selectedQuality === "compatible"
+                ? (compatibleProgram ?? highProgram)
+                : (highProgram ?? compatibleProgram);
+            qualitySelected = true;
             sampledFrameTime = 0;
             sampledFrames = 0;
           }
@@ -483,24 +520,24 @@ export default function ForgeShader({
           } catch {}
           vao = null;
         }
-        if (program) {
+        if (highProgram) {
           try {
-            gl.deleteProgram(program);
+            gl.deleteProgram(highProgram.program);
           } catch {}
-          program = null;
+          highProgram = null;
         }
+        if (compatibleProgram) {
+          try {
+            gl.deleteProgram(compatibleProgram.program);
+          } catch {}
+          compatibleProgram = null;
+        }
+        activeProgram = null;
       }
     }
 
     return cleanup;
-  }, [
-    adaptiveQuality,
-    maxFps,
-    maxQualityReductions,
-    minRenderScale,
-    pixelRatio,
-    renderScale,
-  ]);
+  }, [maxFps, pixelRatio, quality, renderScale]);
 
   return (
     <canvas

@@ -1,25 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
-  canReduceQuality,
+  FORGE_SHADER_PROFILES,
   isFrameTimingSample,
-  nextRenderScale,
+  selectShaderQuality,
   shouldReduceQuality,
 } from "../ForgeShader";
 
-describe("ForgeShader adaptive quality", () => {
-  it("reduces resolution by twenty percent", () => {
-    expect(nextRenderScale(0.6, 0.35)).toBe(0.48);
+describe("ForgeShader quality selection", () => {
+  it("keeps the original iteration budget in high quality", () => {
+    expect(FORGE_SHADER_PROFILES.high).toEqual({
+      outerSteps: 80,
+      innerSteps: 8,
+      normalization: 5_000,
+    });
   });
 
-  it("never reduces below the configured minimum", () => {
-    expect(nextRenderScale(0.6, 0.5)).toBe(0.5);
-    expect(nextRenderScale(0.5, 0.5)).toBe(0.5);
-  });
-
-  it("stops after the configured number of reductions", () => {
-    expect(canReduceQuality(0.6, 0.5, 0, 1)).toBe(true);
-    expect(canReduceQuality(0.5, 0.5, 1, 1)).toBe(false);
-    expect(canReduceQuality(0.6, 0.5, 1, 1)).toBe(false);
+  it("cuts nested fragment work by more than half in compatible quality", () => {
+    const highWork =
+      FORGE_SHADER_PROFILES.high.outerSteps *
+      FORGE_SHADER_PROFILES.high.innerSteps;
+    const compatibleWork =
+      FORGE_SHADER_PROFILES.compatible.outerSteps *
+      FORGE_SHADER_PROFILES.compatible.innerSteps;
+    expect(compatibleWork / highWork).toBeLessThan(0.5);
   });
 
   it("ignores timing gaps caused by hidden tabs or suspended browsers", () => {
@@ -28,11 +31,15 @@ describe("ForgeShader adaptive quality", () => {
     expect(isFrameTimingSample(5_000, targetFrameMs)).toBe(false);
   });
 
-  it("keeps quality for frames within the performance budget", () => {
-    expect(shouldReduceQuality(50, 1_000 / 24)).toBe(false);
+  it("selects high quality for frames within the performance budget", () => {
+    const targetFrameMs = 1_000 / 24;
+    expect(shouldReduceQuality(50, targetFrameMs)).toBe(false);
+    expect(selectShaderQuality(50, targetFrameMs)).toBe("high");
   });
 
-  it("reduces quality when frames exceed the budget by fifty percent", () => {
-    expect(shouldReduceQuality(63, 1_000 / 24)).toBe(true);
+  it("selects compatible quality for sustained slow frames", () => {
+    const targetFrameMs = 1_000 / 24;
+    expect(shouldReduceQuality(63, targetFrameMs)).toBe(true);
+    expect(selectShaderQuality(63, targetFrameMs)).toBe("compatible");
   });
 });
