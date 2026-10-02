@@ -1069,13 +1069,6 @@ export default function ForgePage() {
 
                         <div className="mt-2 flex gap-4">
                           <Button
-                            variant="outline"
-                            onClick={closeCategoryDetail}
-                            className="rounded-none border-cyan-100/20 bg-black/30 px-8"
-                          >
-                            Volver
-                          </Button>
-                          <Button
                             variant="primary"
                             onClick={confirmCategory}
                             className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22"
@@ -1325,13 +1318,6 @@ export default function ForgePage() {
 
             <div className="mt-10 flex w-full flex-col gap-3 px-4 sm:w-auto sm:flex-row sm:gap-4 sm:px-0">
               <Button
-                variant="outline"
-                onClick={() => setWizardStep(2)}
-                className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
-              >
-                Atrás
-              </Button>
-              <Button
                 variant="primary"
                 onClick={() => setWizardStep(4)}
                 disabled={!hasRequiredAxieSelection}
@@ -1432,13 +1418,6 @@ export default function ForgePage() {
             )}
 
             <div className="mt-10 flex w-full flex-col gap-3 px-4 sm:w-auto sm:flex-row sm:gap-4 sm:px-0">
-              <Button
-                variant="outline"
-                onClick={() => setWizardStep(3)}
-                className="w-full rounded-none border-cyan-100/20 bg-black/30 px-8 sm:w-auto"
-              >
-                Atrás
-              </Button>
               <Button
                 variant="primary"
                 onClick={() => setWizardStep(5)}
