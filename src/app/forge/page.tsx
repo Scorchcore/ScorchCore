@@ -961,7 +961,7 @@ export default function ForgePage() {
                             stiffness: 180,
                             damping: 22,
                           }}
-                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)] xl:h-[300px] xl:w-[300px]"
+                          className="relative flex h-[150px] w-[150px] items-center justify-center rounded-full border border-white/5 bg-white/3 shadow-[0_0_40px_rgba(125,249,255,0.06)] transition-all duration-300 group-hover:border-white/10 group-hover:bg-white/6 group-hover:shadow-[0_0_60px_rgba(125,249,255,0.12)] sm:h-[180px] sm:w-[180px] md:h-[210px] md:w-[210px] lg:h-[250px] lg:w-[250px] xl:h-[300px] xl:w-[300px]"
                           animate={isSelected ? { opacity: 0 } : { opacity: 1 }}
                         >
                           <GlossImage
@@ -969,11 +969,11 @@ export default function ForgePage() {
                             alt={cat.name}
                             width={240}
                             height={240}
-                            className="scale-50 transition-transform duration-300 xl:scale-100"
+                            className="scale-50 transition-transform duration-300 sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.85] xl:scale-100"
                           />
                           {isLocked && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center rounded-full bg-black/60">
-                              <Lock className="h-8 w-8 text-magma-gold xl:h-16 xl:w-16" />
+                              <Lock className="h-8 w-8 text-magma-gold sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16" />
                             </div>
                           )}
                         </motion.div>
