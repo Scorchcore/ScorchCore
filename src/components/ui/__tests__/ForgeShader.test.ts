@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canReduceQuality,
+  isFrameTimingSample,
   nextRenderScale,
   shouldReduceQuality,
 } from "../ForgeShader";
@@ -19,6 +20,12 @@ describe("ForgeShader adaptive quality", () => {
     expect(canReduceQuality(0.6, 0.5, 0, 1)).toBe(true);
     expect(canReduceQuality(0.5, 0.5, 1, 1)).toBe(false);
     expect(canReduceQuality(0.6, 0.5, 1, 1)).toBe(false);
+  });
+
+  it("ignores timing gaps caused by hidden tabs or suspended browsers", () => {
+    const targetFrameMs = 1_000 / 24;
+    expect(isFrameTimingSample(80, targetFrameMs)).toBe(true);
+    expect(isFrameTimingSample(5_000, targetFrameMs)).toBe(false);
   });
 
   it("keeps quality for frames within the performance budget", () => {

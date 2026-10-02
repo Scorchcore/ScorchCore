@@ -134,6 +134,13 @@ export function canReduceQuality(
   return current > minimum && reductions < maximumReductions;
 }
 
+export function isFrameTimingSample(
+  frameTimeMs: number,
+  targetFrameMs: number,
+): boolean {
+  return frameTimeMs > 0 && frameTimeMs <= targetFrameMs * 4;
+}
+
 export function shouldReduceQuality(
   averageFrameMs: number,
   targetFrameMs: number,
@@ -191,6 +198,7 @@ export default function ForgeShader({
     let resizeScheduled = false;
     let mouseBound = false;
     let ctxBound = false;
+    let hiddenAt = 0;
 
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -217,6 +225,7 @@ export default function ForgeShader({
       scheduleSize();
       startRef.current = performance.now();
       frameRef.current = 0;
+      resetFrameSampling();
       if (!rafRef.current) rafRef.current = requestAnimationFrame(tick);
     };
 
@@ -320,6 +329,15 @@ export default function ForgeShader({
     let sampledFrameTime = 0;
     let sampledFrames = 0;
 
+    function resetFrameSampling(now = performance.now()) {
+      lastFrame = now;
+      lastRenderedFrame = 0;
+      sampledFrameTime = 0;
+      sampledFrames = 0;
+    }
+
+    resetFrameSampling();
+
     function tick(now: number) {
       if (disposed) return;
       if (gl.isContextLost()) {
@@ -367,25 +385,30 @@ export default function ForgeShader({
       }
 
       if (adaptiveQuality && !prefersReducedMotion) {
-        sampledFrameTime += renderedFrameTime;
-        sampledFrames += 1;
-        if (sampledFrames >= 24) {
-          const averageFrameTime = sampledFrameTime / sampledFrames;
-          if (
-            shouldReduceQuality(averageFrameTime, frameInterval) &&
-            canReduceQuality(
-              qualityScale,
-              minimumScale,
-              qualityReductions,
-              qualityReductionLimit,
-            )
-          ) {
-            qualityScale = nextRenderScale(qualityScale, minimumScale);
-            qualityReductions += 1;
-            scheduleSize();
-          }
+        if (!isFrameTimingSample(renderedFrameTime, frameInterval)) {
           sampledFrameTime = 0;
           sampledFrames = 0;
+        } else {
+          sampledFrameTime += renderedFrameTime;
+          sampledFrames += 1;
+          if (sampledFrames >= 24) {
+            const averageFrameTime = sampledFrameTime / sampledFrames;
+            if (
+              shouldReduceQuality(averageFrameTime, frameInterval) &&
+              canReduceQuality(
+                qualityScale,
+                minimumScale,
+                qualityReductions,
+                qualityReductionLimit,
+              )
+            ) {
+              qualityScale = nextRenderScale(qualityScale, minimumScale);
+              qualityReductions += 1;
+              scheduleSize();
+            }
+            sampledFrameTime = 0;
+            sampledFrames = 0;
+          }
         }
       }
 
@@ -400,11 +423,18 @@ export default function ForgeShader({
 
     const onVis = () => {
       if (document.hidden) {
+        hiddenAt = performance.now();
         if (rafRef.current) {
           cancelAnimationFrame(rafRef.current);
           rafRef.current = null;
         }
       } else {
+        const resumedAt = performance.now();
+        if (hiddenAt > 0) {
+          startRef.current += resumedAt - hiddenAt;
+          hiddenAt = 0;
+        }
+        resetFrameSampling(resumedAt);
         if (!rafRef.current) rafRef.current = requestAnimationFrame(tick);
       }
     };
