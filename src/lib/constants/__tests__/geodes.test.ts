@@ -5,7 +5,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { CATEGORY_INFO, AXIE_CLASS_INFO, AxieClass, GeodeCategory } from '../geodes';
+import {
+  AVAILABLE_CATEGORIES,
+  AXIE_CLASS_INFO,
+  AxieClass,
+  CATEGORY_INFO,
+  GeodeCategory,
+} from '../geodes';
 
 describe('CATEGORY_INFO', () => {
   it('should have info defined for all geode categories', () => {
@@ -28,6 +34,10 @@ describe('CATEGORY_INFO', () => {
       expect(category.maxSupply).toBeGreaterThan(0);
       expect(category.miningPower).toBeGreaterThan(0);
     });
+  });
+
+  it('should expose all categories in the forge selector', () => {
+    expect(AVAILABLE_CATEGORIES).toHaveLength(5);
   });
 
   it('should have valid IDs matching enum', () => {

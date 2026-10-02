@@ -19,7 +19,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { encodeFunctionData, numberToHex, parseEther } from "viem";
-import { useAccount, useChainId, useReadContract, useSwitchChain } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useReadContract,
+  useReadContracts,
+  useSwitchChain,
+} from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { AxieBonusIndicator } from "@/components/axie";
 import { GeodeVideo } from "@/components/GeodeVideo";
@@ -69,6 +75,13 @@ import { addGasBuffer } from "@/lib/utils/network/transactionGas";
 
 const logger = createServiceLogger("ForgePage");
 const MOCK_AXIE_NFT_ADDRESS = CONTRACT_ADDRESSES.MockAxieNFTV2;
+const GEODE_CATEGORY_IDS = [
+  GeodeCategory.PETIT,
+  GeodeCategory.ALTO,
+  GeodeCategory.ANIMAL,
+  GeodeCategory.ULTRAMECH,
+  GeodeCategory.TANQUE,
+] as const;
 const PROTOCOL_FEE_ABI = [
   {
     type: "function",
@@ -299,6 +312,15 @@ export default function ForgePage() {
     abi: FORGEFACTORY_ABI,
     functionName: "trustScoreEnabled",
   });
+  const { data: categoryEnabledData } = useReadContracts({
+    allowFailure: false,
+    contracts: GEODE_CATEGORY_IDS.map((category) => ({
+      address: CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`,
+      abi: FORGEFACTORY_ABI,
+      functionName: "categoryEnabled" as const,
+      args: [category] as const,
+    })),
+  });
   const { data: forgeFailureEnabledData } = useReadContract({
     address: CONTRACT_ADDRESSES.ForgeFactory as `0x${string}`,
     abi: FORGEFACTORY_ABI,
@@ -306,7 +328,8 @@ export default function ForgePage() {
   });
   const protocolFee =
     (protocolFeeData as bigint | undefined) ?? parseEther("0.05");
-  const trustScoreEnabled = Boolean(trustScoreEnabledData);
+  const trustScoreEnabled =
+    (trustScoreEnabledData as boolean | undefined) ?? true;
   const forgeFailureEnabled = Boolean(forgeFailureEnabledData);
 
   /* Faucet claim counter */
@@ -349,17 +372,28 @@ export default function ForgePage() {
       ? getGeodeName(selectedCategory, selectedClass)
       : "Selecciona una geoda";
 
-  const categoryRequirement =
-    selectedCategory !== undefined
-      ? CATEGORY_TRUST_REQUIREMENTS[selectedCategory]
-      : null;
-  const hasAccessToCategory =
-    !trustScoreEnabled ||
-    !categoryRequirement ||
-    !trustScoreInfo ||
-    trustScoreInfo.level >= categoryRequirement.level;
   const userScore = trustScoreInfo?.score ?? 0;
   const userLevel = trustScoreInfo?.level ?? 0;
+  const categoryAvailability = categoryEnabledData as
+    | readonly boolean[]
+    | undefined;
+  const isForgeCategoryEnabled = (category: GeodeCategory) =>
+    categoryAvailability?.[category] ?? category <= GeodeCategory.ANIMAL;
+  const hasRequiredTrustScore = (category: GeodeCategory) =>
+    !trustScoreEnabled ||
+    userScore >= CATEGORY_TRUST_REQUIREMENTS[category].minScore;
+  const selectedCategoryEnabled =
+    selectedCategory !== undefined && isForgeCategoryEnabled(selectedCategory);
+  const hasAccessToCategory =
+    selectedCategory !== undefined &&
+    selectedCategoryEnabled &&
+    hasRequiredTrustScore(selectedCategory);
+  const previewCategoryEnabled =
+    previewCategory !== undefined && isForgeCategoryEnabled(previewCategory);
+  const hasAccessToPreviewCategory =
+    previewCategory !== undefined &&
+    previewCategoryEnabled &&
+    hasRequiredTrustScore(previewCategory);
 
   const stakedAxiesCount = axies.filter(
     (axie: AxieNFT) => axie.isStaked,
@@ -804,12 +838,6 @@ export default function ForgePage() {
   };
 
   const openCategoryDetail = (cat: GeodeCategory) => {
-    const requirement = CATEGORY_TRUST_REQUIREMENTS[cat];
-    const hasAccess =
-      !trustScoreEnabled ||
-      !trustScoreInfo ||
-      trustScoreInfo.level >= requirement.level;
-    if (!hasAccess) return;
     setPreviewCategory(cat);
     setCategoryView("detail");
   };
@@ -839,7 +867,7 @@ export default function ForgePage() {
   };
 
   const confirmCategory = () => {
-    if (previewCategory !== undefined) {
+    if (previewCategory !== undefined && hasAccessToPreviewCategory) {
       goToStep(2, () => {
         setSelectedCategory(previewCategory);
         setCategoryView("grid");
@@ -930,27 +958,24 @@ export default function ForgePage() {
                 >
                   {AVAILABLE_CATEGORIES.map((cat) => {
                     const requirement = CATEGORY_TRUST_REQUIREMENTS[cat.id];
-                    const hasAccess =
-                      !trustScoreEnabled ||
-                      !trustScoreInfo ||
-                      trustScoreInfo.level >= requirement.level;
-                    const isLocked = !hasAccess;
+                    const isUpcoming = !isForgeCategoryEnabled(cat.id);
+                    const isLocked =
+                      !isUpcoming && !hasRequiredTrustScore(cat.id);
                     const isSelected = previewCategory === cat.id;
                     return (
                       <button
                         type="button"
                         key={cat.id}
-                        onClick={() => !isLocked && openCategoryDetail(cat.id)}
-                        disabled={isLocked}
-                        className={`group relative flex flex-col items-center transition-all focus:outline-none ${
-                          isLocked
-                            ? "cursor-not-allowed opacity-40"
-                            : "hover:scale-105"
+                        onClick={() => openCategoryDetail(cat.id)}
+                        className={`group relative flex flex-col items-center transition-all focus:outline-none hover:scale-105 ${
+                          isLocked || isUpcoming ? "opacity-70" : ""
                         }`}
                         title={
-                          isLocked
-                            ? `Requiere Trust Score nivel ${requirement.level}`
-                            : cat.name
+                          isUpcoming
+                            ? `${cat.name}: Próximamente`
+                            : isLocked
+                              ? `Requiere ${requirement.minScore} TrustScore`
+                              : cat.name
                         }
                       >
                         <motion.div
@@ -971,9 +996,15 @@ export default function ForgePage() {
                             height={240}
                             className="scale-50 transition-transform duration-300 sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.85] xl:scale-100"
                           />
-                          {isLocked && (
-                            <div className="absolute inset-0 z-20 flex items-center justify-center rounded-full bg-black/60">
-                              <Lock className="h-8 w-8 text-magma-gold sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16" />
+                          {(isLocked || isUpcoming) && (
+                            <div className="absolute inset-0 z-20 flex items-center justify-center rounded-full bg-black/55">
+                              {isUpcoming ? (
+                                <span className="border border-magma-gold/45 bg-black/70 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-magma-gold sm:text-xs">
+                                  Próximamente
+                                </span>
+                              ) : (
+                                <Lock className="h-8 w-8 text-magma-gold sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16" />
+                              )}
                             </div>
                           )}
                         </motion.div>
@@ -1071,10 +1102,17 @@ export default function ForgePage() {
                           <Button
                             variant="primary"
                             onClick={confirmCategory}
-                            className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22"
+                            disabled={!hasAccessToPreviewCategory}
+                            className="rounded-none border-ethereal-cyan/55 bg-cyan-300/14 px-10 text-cyan-50 shadow-[0_0_28px_rgba(125,249,255,0.16)] hover:bg-cyan-300/22 disabled:cursor-not-allowed disabled:opacity-45"
                           >
-                            Confirmar
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            {!previewCategoryEnabled
+                              ? "Próximamente"
+                              : !hasRequiredTrustScore(previewCategory)
+                                ? `Requiere ${CATEGORY_TRUST_REQUIREMENTS[previewCategory].minScore} TrustScore`
+                                : "Confirmar"}
+                            {hasAccessToPreviewCategory && (
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -1082,10 +1120,17 @@ export default function ForgePage() {
 
                     {(() => {
                       const req = CATEGORY_TRUST_REQUIREMENTS[previewCategory];
+                      if (!previewCategoryEnabled) {
+                        return (
+                          <div className="mt-8 border border-magma-gold/35 bg-orange-500/10 p-4 text-center text-sm text-magma-gold">
+                            Esta categoría estará disponible próximamente.
+                          </div>
+                        );
+                      }
                       if (
-                        req.level > 0 &&
-                        trustScoreInfo &&
-                        trustScoreInfo.level < req.level
+                        trustScoreEnabled &&
+                        req.minScore > 0 &&
+                        userScore < req.minScore
                       ) {
                         return (
                           <div className="mt-8">
