@@ -116,13 +116,28 @@ interface ForgeShaderProps {
   renderScale?: number;
   /** Cap the render framerate. The look is ambient so ~30–40 is plenty. */
   maxFps?: number;
+  adaptiveQuality?: boolean;
+  minRenderScale?: number;
+}
+
+export function nextRenderScale(current: number, minimum: number): number {
+  return Math.max(minimum, Math.round(current * 0.8 * 100) / 100);
+}
+
+export function shouldReduceQuality(
+  averageFrameMs: number,
+  targetFrameMs: number,
+): boolean {
+  return averageFrameMs > targetFrameMs * 1.5;
 }
 
 export default function ForgeShader({
   heat = 0,
   pixelRatio,
-  renderScale = 1.0,
-  maxFps = 40,
+  renderScale = 0.75,
+  maxFps = 30,
+  adaptiveQuality = true,
+  minRenderScale = 0.35,
 }: ForgeShaderProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -140,11 +155,22 @@ export default function ForgeShader({
     if (!canvas) return;
     const gl = canvas.getContext("webgl2", {
       alpha: true,
+      antialias: false,
+      depth: false,
+      desynchronized: true,
+      powerPreference: "high-performance",
       premultipliedAlpha: false,
+      preserveDrawingBuffer: false,
+      stencil: false,
     }) as WebGL2RenderingContext;
     if (!gl) return;
 
     let disposed = false;
+    const minimumScale = Math.max(0.25, Math.min(1, minRenderScale));
+    let qualityScale = Math.max(minimumScale, Math.min(1, renderScale));
+    const prefersReducedMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     let vao: WebGLVertexArrayObject | null = null;
     let vbo: WebGLBuffer | null = null;
     let program: WebGLProgram | null = null;
@@ -184,7 +210,7 @@ export default function ForgeShader({
     const getDpr = () => {
       const sys = window.devicePixelRatio || 1;
       const base = Math.max(1, Math.min(2, pixelRatio ?? sys));
-      return base * Math.max(0.25, Math.min(1, renderScale));
+      return base * qualityScale;
     };
 
     function applySize() {
@@ -277,6 +303,9 @@ export default function ForgeShader({
 
     const frameInterval = 1000 / Math.max(1, maxFps);
     let lastFrame = 0;
+    let lastRenderedFrame = 0;
+    let sampledFrameTime = 0;
+    let sampledFrames = 0;
 
     function tick(now: number) {
       if (disposed) return;
@@ -285,11 +314,16 @@ export default function ForgeShader({
         return;
       }
 
-      if (now - lastFrame < frameInterval) {
+      const elapsed = now - lastFrame;
+      if (elapsed < frameInterval - 1) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
-      lastFrame = now;
+      lastFrame = now - (elapsed % frameInterval);
+      const renderedFrameTime = lastRenderedFrame
+        ? now - lastRenderedFrame
+        : frameInterval;
+      lastRenderedFrame = now;
 
       const t = (now - startRef.current) / 1000;
       frameRef.current += 1;
@@ -319,6 +353,27 @@ export default function ForgeShader({
         drawError(gl, (err as Error)?.message ?? String(err));
       }
 
+      if (adaptiveQuality && !prefersReducedMotion) {
+        sampledFrameTime += renderedFrameTime;
+        sampledFrames += 1;
+        if (sampledFrames >= 24) {
+          const averageFrameTime = sampledFrameTime / sampledFrames;
+          if (
+            shouldReduceQuality(averageFrameTime, frameInterval) &&
+            qualityScale > minimumScale
+          ) {
+            qualityScale = nextRenderScale(qualityScale, minimumScale);
+            scheduleSize();
+          }
+          sampledFrameTime = 0;
+          sampledFrames = 0;
+        }
+      }
+
+      if (prefersReducedMotion) {
+        rafRef.current = null;
+        return;
+      }
       rafRef.current = requestAnimationFrame(tick);
     }
 
@@ -389,7 +444,7 @@ export default function ForgeShader({
     }
 
     return cleanup;
-  }, [pixelRatio, renderScale, maxFps]);
+  }, [adaptiveQuality, maxFps, minRenderScale, pixelRatio, renderScale]);
 
   return (
     <canvas

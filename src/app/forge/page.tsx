@@ -1487,7 +1487,11 @@ export default function ForgePage() {
                   "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
               }}
             >
-              <ForgeShader heat={transmutationHeat} maxFps={30} />
+              <ForgeShader
+                heat={transmutationHeat}
+                maxFps={24}
+                renderScale={0.6}
+              />
             </div>
             <div className="relative z-10 flex w-full max-w-xl flex-col items-center px-4 sm:px-0">
               <button
