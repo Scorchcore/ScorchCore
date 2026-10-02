@@ -118,10 +118,20 @@ interface ForgeShaderProps {
   maxFps?: number;
   adaptiveQuality?: boolean;
   minRenderScale?: number;
+  maxQualityReductions?: number;
 }
 
 export function nextRenderScale(current: number, minimum: number): number {
   return Math.max(minimum, Math.round(current * 0.8 * 100) / 100);
+}
+
+export function canReduceQuality(
+  current: number,
+  minimum: number,
+  reductions: number,
+  maximumReductions: number,
+): boolean {
+  return current > minimum && reductions < maximumReductions;
 }
 
 export function shouldReduceQuality(
@@ -137,7 +147,8 @@ export default function ForgeShader({
   renderScale = 0.75,
   maxFps = 30,
   adaptiveQuality = true,
-  minRenderScale = 0.35,
+  minRenderScale = 0.5,
+  maxQualityReductions = 1,
 }: ForgeShaderProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -167,7 +178,9 @@ export default function ForgeShader({
 
     let disposed = false;
     const minimumScale = Math.max(0.25, Math.min(1, minRenderScale));
+    const qualityReductionLimit = Math.max(0, Math.floor(maxQualityReductions));
     let qualityScale = Math.max(minimumScale, Math.min(1, renderScale));
+    let qualityReductions = 0;
     const prefersReducedMotion = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -360,9 +373,15 @@ export default function ForgeShader({
           const averageFrameTime = sampledFrameTime / sampledFrames;
           if (
             shouldReduceQuality(averageFrameTime, frameInterval) &&
-            qualityScale > minimumScale
+            canReduceQuality(
+              qualityScale,
+              minimumScale,
+              qualityReductions,
+              qualityReductionLimit,
+            )
           ) {
             qualityScale = nextRenderScale(qualityScale, minimumScale);
+            qualityReductions += 1;
             scheduleSize();
           }
           sampledFrameTime = 0;
@@ -444,7 +463,14 @@ export default function ForgeShader({
     }
 
     return cleanup;
-  }, [adaptiveQuality, maxFps, minRenderScale, pixelRatio, renderScale]);
+  }, [
+    adaptiveQuality,
+    maxFps,
+    maxQualityReductions,
+    minRenderScale,
+    pixelRatio,
+    renderScale,
+  ]);
 
   return (
     <canvas

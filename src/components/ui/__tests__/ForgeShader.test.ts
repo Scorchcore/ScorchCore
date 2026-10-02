@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { nextRenderScale, shouldReduceQuality } from "../ForgeShader";
+import {
+  canReduceQuality,
+  nextRenderScale,
+  shouldReduceQuality,
+} from "../ForgeShader";
 
 describe("ForgeShader adaptive quality", () => {
   it("reduces resolution by twenty percent", () => {
@@ -7,8 +11,14 @@ describe("ForgeShader adaptive quality", () => {
   });
 
   it("never reduces below the configured minimum", () => {
-    expect(nextRenderScale(0.4, 0.35)).toBe(0.35);
-    expect(nextRenderScale(0.35, 0.35)).toBe(0.35);
+    expect(nextRenderScale(0.6, 0.5)).toBe(0.5);
+    expect(nextRenderScale(0.5, 0.5)).toBe(0.5);
+  });
+
+  it("stops after the configured number of reductions", () => {
+    expect(canReduceQuality(0.6, 0.5, 0, 1)).toBe(true);
+    expect(canReduceQuality(0.5, 0.5, 1, 1)).toBe(false);
+    expect(canReduceQuality(0.6, 0.5, 1, 1)).toBe(false);
   });
 
   it("keeps quality for frames within the performance budget", () => {

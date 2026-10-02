@@ -1490,6 +1490,8 @@ export default function ForgePage() {
               <ForgeShader
                 heat={transmutationHeat}
                 maxFps={24}
+                maxQualityReductions={1}
+                minRenderScale={0.5}
                 renderScale={0.6}
               />
             </div>
