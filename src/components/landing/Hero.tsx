@@ -1,5 +1,6 @@
 "use client";
 
+import { SurvivorLink } from "@/components/survivor/SurvivorLink";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
@@ -267,6 +268,7 @@ export default function Hero() {
               A deflationary Forge & Collect-to-Earn Protocol with a programmed
               scarcity of 2.1 Billion $CORE tokens.
             </p>
+            <SurvivorLink />
           </div>
 
           <div className="absolute bottom-8 left-1/2 z-10 h-12 w-px -translate-x-1/2 overflow-hidden bg-cyan-100/10">
